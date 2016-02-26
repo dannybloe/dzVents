@@ -3,7 +3,7 @@ Simplified event system for home automation software Domoticz
 
 About
 =============
-Domoticz' event system check its script folder and calls every script it can find if the name starts with `script_device`. Even when the device hasn't changed. If you have many scripts then each call can take quite some time because Domoticz will build all the device tables for each call.
+Domoticz' event system checks its script folder and calls every script it can find if the name starts with `script_device`. Even when the device hasn't changed. If you have many scripts then each call can take quite some time because Domoticz will build all the device tables for each call.
 
 This script makes this more efficient. The idea is that there are only two script files called by Domoticz: 
 
