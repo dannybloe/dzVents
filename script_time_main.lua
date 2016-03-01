@@ -1,5 +1,5 @@
 -- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.6
+-- Version 0.9.7
 
 print('Handle timer events')
 
@@ -7,13 +7,16 @@ print('Handle timer events')
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
 
-commandArray = {}
-
 local helpers = require('event_helpers')
-local timerevents = helpers.getTimerHandlers()
+local Domoticz = require('Domoticz')
+local domoticz = Domoticz()
 
-commandArray = helpers.handleEvents(timerevents, nil, commandArray, nil, nil)
+local timerevents = helpers.getTimerHandlers(domoticz)
 
-helpers.dumpCommandArray(commandArray)
+helpers.handleEvents(timerevents, domoticz)
+
+helpers.dumpCommandArray(domoticz.commandArray)
+
+commandArray = domoticz.commandArray
 
 return commandArray

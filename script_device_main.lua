@@ -1,39 +1,44 @@
 -- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.6
+-- Version 0.9.7
 
 -- make sure we can find our modules
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
-
-commandArray = {}
-
 local helpers = require('event_helpers')
-local eventBindings = helpers.getEventBindings()
+
+local Domoticz = require('Domoticz')
+local domoticz = Domoticz()
+
+--local domoticz = helpers.getData()
+local eventBindings = helpers.getEventBindings(domoticz)
 
 if (eventBindings == nil) then
-	return commandArray -- end of the line
+	return domoticz.commandArray -- end of the line
 end
 
 devicechanged['*'] = ''  -- trigger for * events
 
 if (devicechanged~=nil) then
 	for event, value in pairs(devicechanged) do
-		local idx = helpers.getIndex(event, otherdevices_idx)
+		--print('event ' .. event)
+		local bindings
+		local device = domoticz.getDeviceByEvent(event)
 
-		if (eventBindings[event] ~= nil) then
-			-- there are event handlers for this device
+		if (device~=nil) then
+			bindings = eventBindings[event] or eventBindings[device.id]
+		else
+			bindings = eventBindings[event]
+		end
+
+		if (bindings~=nil) then
 			print('Handling events for: "' .. event .. '", value: "' .. value .. '"')
-			commandArray = helpers.handleEvents(eventBindings[event], value, commandArray, event, idx)
+			helpers.handleEvents(bindings, domoticz, device)
 		end
 
-		-- see if there is an indexed eventhandler
-		if (eventBindings[idx] ~= nil) then
-			print('Handling events for: "' .. event .. '", value: "' .. value .. '", index: ' .. tostring(idx))
-			commandArray = helpers.handleEvents(eventBindings[idx], value, commandArray, event, idx)
-		end
 	end
 end
 
-helpers.dumpCommandArray(commandArray)
+helpers.dumpCommandArray(domoticz.commandArray)
 
+commandArray = domoticz.commandArray
 return commandArray

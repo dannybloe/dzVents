@@ -1,5 +1,5 @@
 -- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.6
+-- Version 0.9.7
 
 -- make sure we can find our modules
 local SCRIPTFOLDER = 'scripts'
@@ -7,14 +7,14 @@ local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
 package.path    = package.path .. ';' .. scriptPath .. SCRIPTFOLDER .. '/?.lua'
 
-
 local MAIN_METHOD = 'execute'
 
 -- load the mddule and call the MAIN_METHOD
 -- also has some error handling
-function callEventHandler(eventHandler, value, name, index)
+
+function callEventHandler(eventHandler, device, domoticz)
 	if (eventHandler[MAIN_METHOD] ~= nil) then
-		local ok2, res = pcall(eventHandler[MAIN_METHOD], value, name, index)
+		local ok2, res = pcall(eventHandler[MAIN_METHOD], device, domoticz)
 		if (ok2) then
 			return res
 		else
@@ -27,24 +27,13 @@ function callEventHandler(eventHandler, value, name, index)
 	return {}
 end
 
--- return the index of a given device name
--- strips any additions like _Temperature first
-function getIndex(device, otherdevices_idx)
-	if (otherdevices_idx == nil) then
-		-- old system
-		return 0
-	end
-
-	-- first get the name, it could be 'My temperature_humidity', we only need the part before the _
-	local name = device
-	local pos, len = string.find(device, '_')
+function getDeviceNameByEvent(event)
+	local pos, len = string.find(event, '_')
+	local name = event
 	if (pos ~= nil and pos > 1) then -- cannot start with _ (we use that for our _always script)
-		name = string.sub(device, 1, pos-1)
+		name = string.sub(event, 1, pos-1)
 	end
-	-- now find the index in the table otherdevices_idx
-	local idx = otherdevices_idx[name]
-
-	return idx
+	return name
 end
 
 function length(t)
@@ -57,7 +46,7 @@ function length(t)
 	return count
 end
 
-function handleEvents(events, deviceValue, commandArray, deviceName, deviceIndex)
+function handleEvents(events, domoticz, device)
 	local commands
 
 	if (type(events) ~= 'table') then
@@ -67,32 +56,24 @@ function handleEvents(events, deviceValue, commandArray, deviceName, deviceIndex
 	for eventIdx, eventHandler in pairs(events) do
 		print('=====================================================')
 		print('>>> Handler: ' .. eventHandler.name )
-		if (deviceName) then
-			print('>>> Device: "' .. deviceName .. '" Index: ' .. deviceIndex)
+		if (device) then
+			print('>>> Device: "' .. device.name .. '" Index: ' .. device.id)
 		end
+
 		print('.....................................................')
 
-		commands = callEventHandler(eventHandler, deviceValue, deviceName, deviceIndex)
+		callEventHandler(eventHandler, domoticz, device)
 
 		print('.....................................................')
 		print('<<< Done ')
 		print('-----------------------------------------------------')
 
-		-- commandIndex = commandIndex + 1
-		for k,v in pairs(commands) do
-			if (type(k) == 'number' and type(v) == 'table') then
-				table.insert(commandArray, v)
-			else
-				table.insert(commandArray, {[k]=v})
-			end
-
-		end
 	end
 
 	return commandArray, commandIndex
 end
 
-function getEventBindings(mode)
+function getEventBindings(domoticz, mode)
 	local bindings = {}
 	local ok, modules, moduleName, i, event, j, device
 	ok, modules = pcall( scandir, scriptPath .. '/' .. SCRIPTFOLDER)
@@ -110,7 +91,7 @@ function getEventBindings(mode)
 				if (module.active ~= nil) then
 					local active = false
 					if (type(module.active) == 'function') then
-						active = module.active()
+						active = module.active(domoticz)
 					else
 						active = module.active
 					end
@@ -165,8 +146,8 @@ function getEventBindings(mode)
 	return bindings
 end
 
-function getTimerHandlers()
-	return getEventBindings('timer')
+function getTimerHandlers(domoticz)
+	return getEventBindings(domoticz, 'timer')
 end
 
 function scandir(directory)
