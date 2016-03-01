@@ -16,7 +16,7 @@ return {
 		
 		if (roomSwitch.state == 'On' and domoticz.devices['Living room'].temperature > 18) then
 			domoticz.devices['Another switch'].switchOn()
-			domoticz.notify('This rocks!', 'Turns out that it is getting warm here', -1)
+			domoticz.notify('This rocks!', 'Turns out that it is getting warm here', domoticz.PRIORITY_LOW)
 		end
 					
 	end
