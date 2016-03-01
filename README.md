@@ -41,6 +41,9 @@ return {
 			domoticz.variables['anotherVar'].set(15)
 			--activate my scene
 			domoticz.setScene('Evening lights', 'On')
+			if (domoticz.devices['My PIR'].lastUpdate.minutesAgo > 5) then
+                domoticz.devices['Bathroom lights'].switchOff()
+            end
 		end			
 					
 	end
