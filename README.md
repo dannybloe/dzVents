@@ -208,18 +208,18 @@ This is the total structure/api of the **domoticz** object:
  - **state**: String. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level
 attribute holding the dimming level.
  - **bState**: Boolean. Is true for some commong states like 'On' or 'Open' or 'Motion'. 
- - **Level**: Number. For dimmers an other 'Set Level..%' devices this holds the level.
+ - **Level**: Number. For dimmers and other 'Set Level..%' devices this holds the level.
  - **< device_attribute >**: All sensor attributes like *temperature* or *humidity* are available on the device object. E.g.: `domoticz.device['My sensor'].temperature`.
  - **setState(newState)**: *Function*. Generic update method for switch-like devices. It accepts strings like 'On FOR 3'.
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g.
 `device.attributeChanged('temperature')`.
- - **switchOn(timingOption)**:* Function*.  Switch device on if it supports it. timingOption that can be like 'AFTER 3' or 'RANDOM 30' etc.
+ - **switchOn(timingOption)**:* Function*.  Switch device on if it supports it. timingOption (optional) can be like 'AFTER 3' or 'RANDOM 30' etc.
  - **switchOff(timingOption)**: *Function*.  Switch device off it is supports it.
  - **open(timingOption)**: *Function*.  Set device to Open if it supports it.
  - **close(timingOption)**: *Function*.  Set device to Close if it supports it.
  - **activate(timingOption)**: *Function*.  Activate the device if it supports it.
  - **deactive(timingOption)**: *Function*.  Deactivate the device if it supports it.
- - **update(<params>)**: *Function*. Generic update method. Accepts any number of parameters that will be sent back to Domoticz. There is no need to
+ - **update(< params >)**: *Function*. Generic update method. Accepts any number of parameters that will be sent back to Domoticz. There is no need to
 pass the device.id here. It will be passed for you. Example to update
 a temperature: `device.update(0,12)`. This will eventually result in
 a commandArray entry `['UpdateDevice']='<idx>|0|12'`
