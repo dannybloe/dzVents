@@ -7,7 +7,7 @@ Let's start with an example. Let's say you have a switch that when activated, it
 
 ```
 return {
-	active = true,                  -- set to true to activate this script,
+	active = true,
 	on = {
 		'Room switch'
 	},
