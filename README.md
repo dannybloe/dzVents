@@ -25,7 +25,7 @@ return {
 }
 
 ```
-Or you have a timer script that should be executed every 10 minutes but only on weekdays and it do something with some user variables and only during daytime:
+Or you have a timer script that should be executed every 10 minutes but only on weekdays and have it do something with some user variables and only during daytime:
 
 ```
 return {
