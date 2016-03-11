@@ -54,8 +54,10 @@ Just to give you an idea! Everything that was previously scattered around in a d
 
 Installing
 =============
-Copy the files `event_helpers.lua`, `script_time_main.lua`, `script_device_main.lua`, `Domoticz.lua` and the folder `scripts` to the Domoticz script folder
+Copy the files `event_helpers.lua`, `script_time_main.lua`, `script_device_main.lua`, `Domoticz.lua`, `dzVents_settings.lua` and the folder `scripts` to the Domoticz script folder
 `../domoticz/scripts/lua`.
+
+Edit the file `dzVents_settings.lua` and enter the ip number and port number of your Domoticz instance. Make sure that you don't need a username/password for local networks (see Domoticz settings) or dzVents will not be able to fetch additional data like battery status and device type information! If you don't want this then you can set `['Enable http fetch']` to `false`.
 
 In the scripts folder there is an example.lua file. The scripts in that folder are used by the dzVents *_main.lua script files. All scripts in that folder are scanned by dzVents and the triggers are read and the code executed only when necessary.  
 
@@ -94,9 +96,8 @@ return {
 So, you add a little bit of code *around* your original logic (you return a Lua table). So this module return a table with three keys:
 
 * **on**: This is a table (or array) with **one or more** trigger events. It is either:
-    * the name of your device between string quotes
-    * the index(!) of your device (the name may change, the index will usually stay the same), 
-    * **'*'** which causes the script to be executed every update cycle not matter which device has changed, 
+    * the name of your device between string quotes. **You can use the asterisk (\*) wild-card here e.g. `PIR_*` or `*_PIR` .**  
+    * the index of your device (the name may change, the index will usually stay the same), 
     * the string or table 'timer' which makes the script execute every minute (see the section **timer trigger options** below). 
     * Or a **combination**.
      
@@ -163,8 +164,8 @@ This is the total structure/api of the **domoticz** object:
  - **notify(subject, message, priority)**: *Function*. Send a notification (like Prowl). Priority can be like `domoticz.PRIORITY_LOW, PRIORITY_MODERATE, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_EMERGENCY`
  - **email(subject, message, mailTo)**: *Function*. Send email.
  - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
- - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`
- - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`
+ - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
+ - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
  - **devices**: a table with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below.
  - **changedDevices**: a table holding all the devices that have been updated in this cycle.
  - **variables**: a table holding all the user *variable objects* as defined in Domoticz. See **Variable object** for the attributes.  
@@ -209,19 +210,31 @@ This is the total structure/api of the **domoticz** object:
 	 - **isToday**: Boolean. Indicates if the device was updated today
 	 - **minutesAgo**: Number. Number of minutes since the last update.
  - **state**: String. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level
-attribute holding the dimming level.
+attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
  - **bState**: Boolean. Is true for some commong states like 'On' or 'Open' or 'Motion'. 
  - **Level**: Number. For dimmers and other 'Set Level..%' devices this holds the level.
+ - **batteryLevel**: Number (note this is the raw value from Domoticcz and can be 255)
+ - **signalLevel**: String. See Domoticz devices table.
+ - **deviceSubType**: String. See Domoticz devices table.
+ - **deviceType**: String. See Domoticz devices table.
+ - **hardwareName**: String. See Domoticz devices table.
+ - **hardwareId**: Number. See Domoticz devices table.
+ - **hardwareType**: String. See Domoticz devices table.
+ - **hardwareTypeVal**: Number. See Domoticz devices table.
+ - **switchType**: String. See Domoticz devices table.
+ - **switchTypeValue**: Number. See Domoticz devices table.
  - **< device_attribute >**: All sensor attributes like *temperature* or *humidity* are available on the device object. E.g.: `domoticz.device['My sensor'].temperature`.
- - **setState(newState)**: *Function*. Generic update method for switch-like devices. It accepts strings like 'On FOR 3'.
+ - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See below.
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g.
 `device.attributeChanged('temperature')`.
- - **switchOn(timingOption)**:* Function*.  Switch device on if it supports it. timingOption (optional) can be like 'AFTER 3' or 'RANDOM 30' etc.
- - **switchOff(timingOption)**: *Function*.  Switch device off it is supports it.
- - **open(timingOption)**: *Function*.  Set device to Open if it supports it.
- - **close(timingOption)**: *Function*.  Set device to Close if it supports it.
- - **activate(timingOption)**: *Function*.  Activate the device if it supports it.
- - **deactive(timingOption)**: *Function*.  Deactivate the device if it supports it.
+ - **switchOn()**: *Function*.  Switch device on if it supports it. Supports timing options. See below.
+ - **switchOff()**: *Function*.  Switch device off it is supports it. Supports timing options. See below.
+ - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See below.
+ - **switchSelector(level)**:  *Function*. Switches a selector switch to a specific level (numeric value, see the edit page in Domoticz for such a switch to get a list of the values). Supports timing options. See below.
+ - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See below.
+ - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See below.
+ - **activate()**: *Function*.  Activate the device if it supports it. Supports timing options. See below.
+ - **deactive()**: *Function*.  Deactivate the device if it supports it. Supports timing options. See below.
  - **update(< params >)**: *Function*. Generic update method. Accepts any number of parameters that will be sent back to Domoticz. There is no need to
 pass the device.id here. It will be passed for you. Example to update
 a temperature: `device.update(0,12)`. This will eventually result in
@@ -265,6 +278,25 @@ ALERTLEVEL_ORANGE, ALERTLEVEL_RED
 	 - **sec**: Number
 	 - **isToday**: Boolean. Indicates if the device was updated today
 	 - **minutesAgo**: Number. Number of minutes since the last update.
+
+**Switch timing options**
+To specify a duration or a delay for the various switch command you can do this:
+
+    -- switch on for 2 minutes after 10 seconds
+    device.switchOn().after_sec(10).for_min(2) 
+    
+    -- switch on for 2 minutes after a randomized delay of 1-10 minutes
+    device.switchOff().within_min(10).for_min(2) 
+    device.close().for_min(15)
+    device.open().after_sec(20)
+    device.open().after_min(2)
+
+ - **after_sec(seconds)**
+ - **after_min(minutes)**
+ - **for_min(minutes)**
+ - **within_min(minutes)**
+
+Note that **dimTo()** doesn't support **duration()**.
 
 That's all there is to it. 
 

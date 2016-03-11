@@ -1,5 +1,43 @@
--- this class assumes acces to the domoticz
--- global tables
+-- Created by: Danny Bloemendaal, danny@bloemeland.nl
+-- Version 0.9.8
+
+local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
+package.path    = package.path .. ';' .. scriptPath .. '?.lua'
+local helpers = require('event_helpers')
+
+LOG_INFO = 2
+LOG_DEBUG = 3
+LOG_ERROR = 1
+
+local function getDevicesPath()
+	return debug.getinfo(1).source:match("@?(.*/)") .. 'devices.lua'
+end
+
+local function readHttpDomoticzData()
+	local httpData = {
+		['result'] = {}
+	}
+
+	-- figure out what os this is
+	local sep = string.sub(package.config,1,1)
+	if (sep~='/') then return httpData end -- only on linux
+
+	if helpers.fileExists(getDevicesPath()) then
+		local ok, module
+
+		ok, module = pcall(require, 'devices')
+		if (ok) then
+			if (type(module) == 'table') then
+				httpData = module
+			end
+		else
+			-- cannot be loaded
+			log('devices.lua cannot be loaded', LOG_ERROR)
+			log(module, LOG_ERROR)
+		end
+	end
+	return httpData
+end
 
 -- class for last update information
 local function Time(sDate)
@@ -35,6 +73,84 @@ local function Time(sDate)
 	self['current'] = today
 
 	return self
+end
+
+-- generic 'switch' class with timed options
+-- supports chainging like:
+-- switch(v1).for_min(v2).after_sec/min(v3)
+-- switch(v1).within_min(v2).for_min(v3)
+-- switch(v1).after_sec(v2).for_min(v3)
+
+local function TimedCommand(domoticz, name, value)
+	local valueValue = value
+	local afterValue, forValue, randomValue
+
+	local constructCommand = function()
+		local command = {}
+		table.insert(command, valueValue)
+		if (randomValue ~= nil) then
+			table.insert(command, 'RANDOM ' .. tostring(randomValue))
+		end
+		if (afterValue ~= nil) then
+			table.insert(command, 'AFTER ' .. tostring(afterValue))
+		end
+		if (forValue ~= nil) then
+			table.insert(command, 'FOR ' .. tostring(forValue))
+		end
+
+		local sCommand = table.concat(command, " ")
+		log('Constructed command: ' .. sCommand, LOG_DEBUG)
+		return sCommand
+	end
+
+	local latest, command, sValue = domoticz.sendCommand(name, constructCommand())
+	return {
+		['after_sec'] = function(seconds)
+			afterValue = seconds
+			latest[command] = constructCommand()
+			return {
+				['for_min'] = function(minutes)
+					forValue = minutes
+					latest[command] = constructCommand()
+				end
+			}
+		end,
+		['after_min'] = function(minutes)
+			afterValue = minutes * 60
+			latest[command] = constructCommand()
+			return {
+				['for_min'] = function(minutes)
+					forValue = minutes
+					latest[command] = constructCommand()
+				end
+			}
+		end,
+		['for_min'] = function(minutes)
+			forValue = minutes
+			latest[command] = constructCommand()
+			return {
+				['after_sec'] = function(seconds)
+					afterValue = seconds
+					latest[command] = constructCommand()
+				end,
+				['after_min'] = function(minutes)
+					afterValue = minutes * 60
+					latest[command] = constructCommand()
+				end
+
+			}
+		end,
+		['within_min'] = function(minutes)
+			randomValue = minutes
+			latest[command] = constructCommand()
+			return {
+				['for_minutes'] = function(minutes)
+					forValue = minutes
+					latest[command] = constructCommand()
+				end
+			}
+		end
+	}
 end
 
 -- simple string splitting method
@@ -96,24 +212,41 @@ local function Device(domoticz, name, state)
 
 	-- generic state update method
 	function self.setState(newState)
-		domoticz.sendCommand(self.name, newState)
-	end
-
-	-- generic 'switch' function wrapper
-	-- timingOption can be like AFTER 2 or RANDOM 30
-	local function switch(value, timingOption)
-		if (extra==nil) then timingOption = '' end
-		domoticz.sendCommand(self.name, value ..timingOption)
+		return TimedCommand(domoticz, self.name, newState)
 	end
 
 	-- some convenient methods
-	function self.switchOn(timingOption) switch('On', timingOption) end
-	function self.switchOff(timingOption) switch('Off', timingOption) end
-	function self.close(timingOption) switch('Close', timingOption) end
-	function self.open(timingOption) switch('Open', timingOption) end
-	function self.activate(timingOption) switch('Activate', timingOption) end
-	function self.deactivate(timingOption) switch('Deactivate', timingOption) end
+	function self.switchOn()
+		return TimedCommand(domoticz, self.name, 'On')
+	end
 
+	function self.switchOff()
+		return TimedCommand(domoticz, self.name, 'Off')
+	end
+
+	function self.close()
+		return TimedCommand(domoticz, self.name, 'Close')
+	end
+
+	function self.open()
+		return TimedCommand(domoticz, self.name, 'Open')
+	end
+
+	function self.activate()
+		return TimedCommand(domoticz, self.name, 'Activate')
+	end
+
+	function self.deactivate()
+		return TimedCommand(domoticz, self.name, 'Deactivate')
+	end
+
+	function self.dimTo(percentage)
+		return TimedCommand(domoticz, self.name, 'Set Level ' .. tostring(percentage))
+	end
+
+	function self.switchSelector(level)
+		return TimedCommand(domoticz, self.name, 'Set Level ' .. tostring(level))
+	end
 	-- generic update method for non-switching devices
 	-- each part of the update data can be passed as a separate argument e.g.
 	-- device.update(12,34,54) will result in a command like
@@ -356,26 +489,30 @@ local function Domoticz()
 	-- add domoticz commands to the commandArray
 	function self.sendCommand(command, value)
 		table.insert(self.commandArray, {[command] = value})
+
+		-- return a reference to the newly added item
+		return self.commandArray[#self.commandArray], command, value
 	end
 
 	-- return the device object by event name
-	-- even name can be like MySensor_Temperature
+	-- event name can be like MySensor_Temperature
+	-- or some_sensor_Temperature
 	function self.getDeviceByEvent(eventName)
 
 		if (eventName == '*') then return nil end -- special case
 
-		local pos, len = string.find(eventName, '_')
+		local pos, len = helpers.reverseFind(eventName, '_')
 		local name = eventName
 
 		-- check for the _ addition
 		if (pos ~= nil and pos > 1) then -- should be larger than 1!
-			name = string.sub(eventName, 1, pos-1)
+			name = string.sub(eventName, 1, pos)
 		end
 
 		local device = self.devices[name]
 
 		if (device == nil) then
-			print('Cannot find a device by the event name ' .. eventName)
+			log('Cannot find a device by the event name ' .. eventName, LOG_ERROR)
 		end
 
 		return device
@@ -402,12 +539,12 @@ local function Domoticz()
 
 	-- send a scene switch command
 	function self.setScene(scene, value)
-		self.sendCommand('Scene:' .. scene, value)
+		return TimedCommand(self, 'Scene:' .. scene, value)
 	end
 
 	-- send a group switch command
 	function self.switchGroup(group, value)
-		self.sendCommand('Group:' .. group, value)
+		return TimedCommand(self, 'Group:' .. group, value)
 	end
 
 	-- bootstrap the variables section
@@ -423,14 +560,14 @@ local function Domoticz()
 	-- set the attribute on the appropriate device object
 	local function setDeviceAttribute(otherdevicesTable, attribute, tableName)
 		for name, value in pairs(otherdevicesTable) do
-
+			log('otherdevices table :' .. name .. ' value: ' .. value, LOG_DEBUG)
 			if (name ~= nil and name ~= '') then -- sometimes domoticz seems to do this!! ignore...
 
 				-- get the device
 				local device = self.devices[name]
 
 				if (device == nil) then
-					print ('Cannot find the device. Skipping:  ' .. name .. ' ' .. value)
+					log('Cannot find the device. Skipping:  ' .. name .. ' ' .. value, LOG_ERROR)
 				else
 					if (attribute == 'lastUpdate') then
 						device.addAttribute(attribute, Time(value))
@@ -501,6 +638,35 @@ local function Domoticz()
 				-- now let's get and store the stuff
 				setDeviceAttribute(tableData, attribute, oriAttribute)
 
+			end
+		end
+
+		local httpData = readHttpDomoticzData()
+
+		if (httpData) then
+			for i, httpDevice in pairs(httpData.result) do
+				if (self.devices[httpDevice['Name']]) then
+
+					if (logLevel == LOG_DEBUG) then
+						log('Http data for device ' .. httpDevice['Name'], LOG_DEBUG)
+						log('=========================', LOG_DEBUG)
+						for attr, val in pairs(httpDevice) do
+							log(attr .. ': ' .. tostring(val), LOG_DEBUG)
+						end
+					end
+
+					local device = self.devices[httpDevice['Name']]
+					device['batteryLevel'] = httpDevice.BatteryLevel
+					device['signalLevel'] = httpDevice.SignalLevel
+					device['deviceSubType'] = httpDevice.SubType
+					device['deviceType'] = httpDevice.Type
+					device['hardwareName'] = httpDevice.HardwareName
+					device['hardwareType'] = httpDevice.HardwareType
+					device['hardwareId'] = httpDevice.HardwareID
+					device['hardwareTypeVal'] = httpDevice.HardwareTypeVal
+					device['switchType'] = httpDevice.SwitchType
+					device['switchTypeValue'] = httpDevice.SwitchTypeVal
+				end
 			end
 		end
 	end
