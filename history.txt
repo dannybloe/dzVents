@@ -1,3 +1,6 @@
+[0.9.9]
+* Fixed a bug where every trigger name was treated as a wild-carded name. Oopsidayzy...
+
 [0.9.8]
 * Fixed a bug where a device can have underscores in its name.
 * Added dimTo(percentage) method to control dimmers.

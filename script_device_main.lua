@@ -1,5 +1,5 @@
 -- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.8
+-- Version 0.9.9
 
 -- make sure we can find our modules
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
@@ -30,11 +30,16 @@ local function findBindingByEvent(event, allBindings)
 	log('findBindingByEvent: '.. event, LOG_DEBUG)
 
 	for trigger, bindings in pairs(allBindings) do
-		trigger = string.gsub(trigger, "*", ".*")
-		if (string.match(event, trigger)) then
-			return bindings
+		if (string.find(trigger, '*')) then
+			trigger = string.gsub(trigger, "*", ".*")
+			if (string.match(event, trigger)) then
+				return bindings
+			end
+		else
+			if (trigger == event) then
+				return bindings
+			end
 		end
-
 	end
 	return nil
 end

@@ -1,5 +1,5 @@
 -- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.8
+-- Version 0.9.9
 
 -- make sure we can find our modules
 local SCRIPTFOLDER = 'scripts'
