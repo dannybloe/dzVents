@@ -96,7 +96,7 @@ return {
 So, you add a little bit of code *around* your original logic (you return a Lua table). So this module return a table with three keys:
 
 * **on**: This is a table (or array) with **one or more** trigger events. It is either:
-    * the name of your device between string quotes. **You can use the asterisk (\*) wild-card here e.g. `PIR_*` or `*_PIR` .**  
+    * the name of your device between string quotes. **You can use the asterisk (\*) wild-card here e.g. `PIR_*` or `*_PIR` .** Note that in one cycle several devices could have been updated. If you have a script with a wild-card trigger that matches all the names of these changed devices, then this script will be executed *for all these changed devices*.  
     * the index of your device (the name may change, the index will usually stay the same), 
     * the string or table 'timer' which makes the script execute every minute (see the section **timer trigger options** below). 
     * Or a **combination**.
@@ -106,6 +106,8 @@ So, you add a little bit of code *around* your original logic (you return a Lua 
 	* a boolean value (true or false, no quotes!). When set to false, the script will not be called. This is handy for when you are still writing the script and you don't want it to be executed just yet or when you simply want to disable it. 
 	* A function returning true or false. The function will receive the domoticz object with all the information about you domoticz instance: `active = function(domoticz) .... end`. So for example you could check for a Domoticz variable or switch and prevent the script from being executed. **However, be aware that for *every script* in your scripts folder, this active function will be called, every cycle!! So, it is better to put all your logic in the execute function instead of in the active function.** Maybe it is better to not allow a function here at all... /me wonders.
 * **execute**: This is the actual logic of your script. You can copy the code from your existing script into this section. What is special is that dzVents will pass the domoticz object and for device triggers, the device that caused the trigger to be executed. These two objects are all you need to access all the data that Domoticz exposes to the event scripts. They also have all the methods needed to modify devices in Domoticz like modifying switches or sending notifcations. *There shouldn't be any need to manipulate the commandArray anymore.* (If there is a need, please let me know and I'll fix it). More about the domoticz object below.
+
+**Note: if you have a script with *both a device trigger and a timer trigger* then only in the case of when a device update occurs, the changed device is passed into the execute function. When the timer triggers the script then this second parameter is `nil`.** You will have to check for this situation in you script. 
 
 *timer* trigger options
 -------------
@@ -142,13 +144,15 @@ The domoticz object
 ===================
 And now the most interesting part. Before, all the device information was scattered around in a dozen global Lua tables like `otherdevices` or `devicechanged`. You had to write a lot of code to collect all this information and build your logic around it. And, when you want to update switches and stuff you had to fill the commandArray with often low-level stuff in order to make it work.
 
+**IMPORTANT: Make sure that all your devices have unique names!! dzVents doesn't check for duplicates!!**
+
 Fear no more: introducing the **domoticz resource object**.
 
 The domoticz object contains everything that you need to know in your scripts and all the methods (hopefully) to manipulate your devices and sensors. Getting this information has never been more easy: 
 
 `domoticz.time.isDayTime` or `domoticz.devices['My sensor'].temperature` or `domoticz.devices['My sensor'].lastUpdate.minutesAgo`.   
 
-So this object structure contains all the information logically arranged where you would expect it to be. Also, it harbors methods to manipulate Domoticz or devices. dzVents will create the commandArray contents for you and all you have to do is something like `domoticz.devices[123].switchOn('AFTER 3')` or `domoticz.devices['My dummy sensor'].updateBarometer(1034, domoticz.BARO_THUNDERSTORM)`.
+So this object structure contains all the information logically arranged where you would expect it to be. Also, it harbors methods to manipulate Domoticz or devices. dzVents will create the commandArray contents for you and all you have to do is something like `domoticz.devices[123].switchOn().for_min(5).after_sec(10)` or `domoticz.devices['My dummy sensor'].updateBarometer(1034, domoticz.BARO_THUNDERSTORM)`.
 
 *The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
@@ -166,6 +170,7 @@ This is the total structure/api of the **domoticz** object:
  - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
  - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
  - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
+ - **fetchHttpDomoticzData**: *Function*. This will trigger a script that will download the device data from Domoticz and stores this on the filesystem for dzVents to use. This data contains information like battery level and device type information that can only be fetched through an http call. Normally dzVents will do this automatically in the background if it is enabled in the `dzVents_settings.lua` file. If you want to do this manually through an event script perhaps (you can use a switch trigger for instance) then you can disable the automatic fetching by changing the setting in `dzVents_settings.lua` and create your own event.
  - **devices**: a table with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below.
  - **changedDevices**: a table holding all the devices that have been updated in this cycle.
  - **variables**: a table holding all the user *variable objects* as defined in Domoticz. See **Variable object** for the attributes.  
@@ -212,17 +217,18 @@ This is the total structure/api of the **domoticz** object:
  - **state**: String. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level
 attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
  - **bState**: Boolean. Is true for some commong states like 'On' or 'Open' or 'Motion'. 
- - **Level**: Number. For dimmers and other 'Set Level..%' devices this holds the level.
+ - **Level**: Number. For dimmers and other 'Set Level..%' devices this holds the level like selector switches.
+ - **rawData**: *Table*:  Not all information from a device is available as a named attribute on the device object. That is because Domoticz doesn't provide this as such. If you have a multi-sensor for instance then you can find all data points in this **rawData** attribute. It is an array (Lua table). E.g. to get the Lux value of a sensor you can do this: `local lux = mySensor.rawData[1]` (assuming it is the first value that is passed by Domoticz).
  - **batteryLevel**: Number (note this is the raw value from Domoticcz and can be 255)
- - **signalLevel**: String. See Domoticz devices table.
- - **deviceSubType**: String. See Domoticz devices table.
- - **deviceType**: String. See Domoticz devices table.
- - **hardwareName**: String. See Domoticz devices table.
- - **hardwareId**: Number. See Domoticz devices table.
- - **hardwareType**: String. See Domoticz devices table.
- - **hardwareTypeVal**: Number. See Domoticz devices table.
- - **switchType**: String. See Domoticz devices table.
- - **switchTypeValue**: Number. See Domoticz devices table.
+ - **signalLevel**: String. See Domoticz devices table in Domoticz GUI.
+ - **deviceSubType**: String. See Domoticz devices table in Domoticz GUI.
+ - **deviceType**: String. See Domoticz devices table in Domoticz GUI.
+ - **hardwareName**: String. See Domoticz devices table in Domoticz GUI.
+ - **hardwareId**: Number. See Domoticz devices table in Domoticz GUI.
+ - **hardwareType**: String. See Domoticz devices table in Domoticz GUI.
+ - **hardwareTypeVal**: Number. See Domoticz devices table in Domoticz GUI.
+ - **switchType**: String. See Domoticz devices table in Domoticz GUI.
+ - **switchTypeValue**: Number. See Domoticz devices table in Domoticz GUI.
  - **< device_attribute >**: All sensor attributes like *temperature* or *humidity* are available on the device object. E.g.: `domoticz.device['My sensor'].temperature`.
  - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See below.
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g.
@@ -261,7 +267,14 @@ BARO_CLOUDY_RAIN
  - **updateText(text)**: *Function*. 
  - **updateAlertSensor(level, text)**: *Function*. Level can be domoticz.ALERTLEVEL_GREY, ALERTLEVEL_GREE, ALERTLEVEL_YELLOW,
 ALERTLEVEL_ORANGE, ALERTLEVEL_RED
- - **updateDistance(distance)**: *Function*. 
+ - **updateDistance(distance)**: *Function*.
+
+**"Hey!! I don't see my sensor readings in the device object!! Where is my LUX value for instance?"**
+That may be because Domoticz doesn't pass all the device data as named attributes. If you cannot find your attribute then you can inspect the **rawData** attribute of the device. This is a table (array) of values. So for a device that has a Lux value you may access it like this:
+
+    local lux = mySensor.rawData[0]
+Other devices may have more stuff in the rawData attribute like wind direction, energy info etc etc.
+
 
 **Variable object**:
 
