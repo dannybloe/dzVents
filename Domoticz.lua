@@ -547,7 +547,7 @@ local function Domoticz()
 		if (message == nil) then message = '' end
         if (sound == nil) then sound = self.SOUND_DEFAULT end
 
-		self.sendCommand('SendNotification', subject .. '#' .. message .. '#' .. tostring(priority) .. '#' .. sound)
+		self.sendCommand('SendNotification', subject .. '#' .. message .. '#' .. tostring(priority) .. '#' .. tostring(sound))
 	end
 
 	-- have domoticz send an email
