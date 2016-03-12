@@ -465,6 +465,28 @@ local function Domoticz()
 		['PRIORITY_NORMAL'] = 0,
 		['PRIORITY_HIGH'] = 1,
 		['PRIORITY_EMERGENCY'] = 2,
+        ['SOUND_DEFAULT'] = 'pushover',
+        ['SOUND_BIKE'] = 'bike',
+        ['SOUND_BUGLE'] = 'bugle',
+        ['SOUND_CASH_REGISTER'] = 'cashregister',
+        ['SOUND_CLASSICAL'] = 'classical',
+        ['SOUND_COSMIC'] = 'cosmic',
+        ['SOUND_FALLING'] = 'falling',
+        ['SOUND_GAMELAN'] = 'gamelan',
+        ['SOUND_INCOMING'] = 'incoming',
+        ['SOUND_INTERMISSION'] = 'intermission',
+        ['SOUND_MAGIC'] = 'magic',
+        ['SOUND_MECHANICAL'] = 'mechanical',
+        ['SOUND_PIANOBAR'] = 'pianobar',
+        ['SOUND_SIREN'] = 'siren',
+        ['SOUND_SPACEALARM'] = 'spacealarm',
+        ['SOUND_TUGBOAT'] = 'tugboat',
+        ['SOUND_ALIEN'] = 'alien',
+        ['SOUND_CLIMB'] = 'climb',
+        ['SOUND_PERSISTENT'] = 'persistent',
+        ['SOUND_ECHO'] = 'echo',
+        ['SOUND_UPDOWN'] = 'updown',
+        ['SOUND_NONE'] = 'none',
 		['HUM_NORMAL'] = 0,
 		['HUM_COMFORTABLE'] = 1,
 		['HUM_DRY'] = 2,
@@ -519,12 +541,13 @@ local function Domoticz()
 	end
 
 	-- have domoticz send a push notification
-	function self.notify(subject, message, priority)
+	function self.notify(subject, message, priority, sound)
 		-- set defaults
 		if (priority == nil) then priority = self.PRIORITY_NORMAL end
 		if (message == nil) then message = '' end
+        if (sound == nil) then sound = self.SOUND_DEFAULT end
 
-		self.sendCommand('SendNotification', subject .. '#' .. message .. '#' .. tostring(priority))
+		self.sendCommand('SendNotification', subject .. '#' .. message .. '#' .. tostring(priority) .. '#' .. sound)
 	end
 
 	-- have domoticz send an email

@@ -165,7 +165,7 @@ This is the total structure/api of the **domoticz** object:
 	 - **sunriseInMinutes**
 	 - **sunsetInMinutes**
  - **sendCommand(command, value)**: *Function*. Generic command method (adds it to the commandArray) to the list of commands that are being sent back to domoticz. *There is likely no need to use this directly. Use any of the device methods instead (see below).*
- - **notify(subject, message, priority)**: *Function*. Send a notification (like Prowl). Priority can be like `domoticz.PRIORITY_LOW, PRIORITY_MODERATE, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_EMERGENCY`
+ - **notify(subject, message, priority, sound)**: *Function*. Send a notification (like Prowl). Priority can be like `domoticz.PRIORITY_LOW, PRIORITY_MODERATE, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_EMERGENCY`. Sound can be like `domoticz.SOUND_DEFAULT, domoticz.SOUND_BIKE, etc.`
  - **email(subject, message, mailTo)**: *Function*. Send email.
  - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
  - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
