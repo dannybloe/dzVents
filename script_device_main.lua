@@ -18,53 +18,68 @@ LOG_ERROR = 1
 local Domoticz = require('Domoticz')
 local domoticz = Domoticz()
 
-local eventBindings = helpers.getEventBindings(domoticz)
+local allEventScripts = helpers.getEventBindings(domoticz)
 
-if (eventBindings == nil) then
+if (allEventScripts == nil) then
 	return domoticz.commandArray -- end of the line
 end
 
-local function findBindingByEvent(event, allBindings)
+local function findScriptsForChangedDevice(changedDeviceName, allEventScripts)
 	-- event could be like: myPIRLivingRoom
 	-- or myPir(.*)
-	log('findBindingByEvent: '.. event, LOG_DEBUG)
+	log('Searching for scripts for changed device: '.. changedDeviceName, LOG_DEBUG)
 
-	for trigger, bindings in pairs(allBindings) do
-		if (string.find(trigger, '*')) then
-			trigger = string.gsub(trigger, "*", ".*")
-			if (string.match(event, trigger)) then
-				return bindings
+	for scriptTrigger, scripts in pairs(allEventScripts) do
+		if (string.find(scriptTrigger, '*')) then -- a wild-card was use
+			-- turn it into a valid regexp
+			scriptTrigger = string.gsub(scriptTrigger, "*", ".*")
+
+			if (string.match(changedDeviceName, scriptTrigger)) then
+				-- there is trigger for this changedDeviceName
+				return scripts
 			end
 		else
-			if (trigger == event) then
-				return bindings
+			if (scriptTrigger == changedDeviceName) then
+				-- there is trigger for this changedDeviceName
+				return scripts
 			end
 		end
 	end
 	return nil
 end
 
+-- Note that if there is a wild-card trigger that matches the name of every device name in devicechanged
+-- it will call that script for every changed device!!
+
 if (devicechanged~=nil) then
-	for event, value in pairs(devicechanged) do
-		log('Event in devicechanged: ' .. event .. ' value: ' .. value, LOG_DEBUG)
-		local bindings
-		local device = domoticz.getDeviceByEvent(event)
+	for changedDeviceName, changedDeviceValue in pairs(devicechanged) do
+		log('Event in devicechanged: ' .. changedDeviceName .. ' value: ' .. changedDeviceValue, LOG_DEBUG)
+		local scriptsToExecute
+
+		-- find the device for this name
+		-- could be MySensor or MySensor_Temperature
+		-- the device returned would be MySensor in that case
+		local device = domoticz.getDeviceByEvent(changedDeviceName)
 
 		if (device~=nil) then
-			bindings = findBindingByEvent(event, eventBindings)
-			if (bindings==nil) then
-				bindings = eventBindings[device.id]
+			-- first search by name
+			scriptsToExecute = findScriptsForChangedDevice(changedDeviceName, allEventScripts)
+
+			if (scriptsToExecute ==nil) then
+				-- search by id
+				scriptsToExecute = allEventScripts[device.id]
 			end
 
-			-- bindings = eventBindings[event] or eventBindings[device.id]
+			if (scriptsToExecute ~=nil) then
+				log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', LOG_INFO)
+				helpers.handleEvents(scriptsToExecute, domoticz, device)
+			end
+
 		else
-			bindings = eventBindings[event]
+			-- this is weird.. basically impossible because the list of device objects is based on what
+			-- Domoticz passes along.
 		end
 
-		if (bindings~=nil) then
-			log('Handling events for: "' .. event .. '", value: "' .. value .. '"', LOG_INFO)
-			helpers.handleEvents(bindings, domoticz, device)
-		end
 
 	end
 end

@@ -450,5 +450,6 @@ return {
 	evalTimeTrigger = evalTimeTrigger,
 	reverseFind = reverseFind,
 	fetchHttpDomoticzData = fetchHttpDomoticzData,
+	requestDomoticzData = requestDomoticzData,
 	fileExists = fileExists
 }

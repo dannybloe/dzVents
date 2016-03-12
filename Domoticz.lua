@@ -547,6 +547,14 @@ local function Domoticz()
 		return TimedCommand(self, 'Group:' .. group, value)
 	end
 
+	function self.fetchHttpDomoticzData()
+		local settings = require('dzVents_settings')
+		helpers.requestDomoticzData(
+			settings['Domoticz ip'],
+			settings['Domoticz port']
+		)
+	end
+
 	-- bootstrap the variables section
 	local function createVariables()
 		for name, value in pairs(uservariables) do
@@ -560,7 +568,7 @@ local function Domoticz()
 	-- set the attribute on the appropriate device object
 	local function setDeviceAttribute(otherdevicesTable, attribute, tableName)
 		for name, value in pairs(otherdevicesTable) do
-			log('otherdevices table :' .. name .. ' value: ' .. value, LOG_DEBUG)
+			-- log('otherdevices table :' .. name .. ' value: ' .. value, LOG_DEBUG)
 			if (name ~= nil and name ~= '') then -- sometimes domoticz seems to do this!! ignore...
 
 				-- get the device
@@ -606,6 +614,27 @@ local function Domoticz()
 		end
 	end
 
+	local function dumpTable(t, level)
+		for attr, value in pairs(t) do
+			if (type(value) ~= 'function') then
+				if (type(value) == 'table') then
+					print(level .. attr .. ':')
+					dumpTable(value, level .. '    ')
+				else
+					print(level .. attr .. ': ' .. value)
+				end
+			end
+		end
+	end
+
+	-- doesn't seem to work well for some weird reasone
+	function self.logDevice(device)
+		print('----------------------------')
+		print('Device: ' .. device.name)
+		print('----------------------------')
+		dumpTable(device, '> ')
+	end
+
 	local function createDevices()
 		-- first create the device objects
 		for name, state in pairs(otherdevices) do
@@ -618,7 +647,7 @@ local function Domoticz()
 
 			-- only deal with global <otherdevices_*> tables
 			if (string.find(tableName, 'otherdevices_')~=nil) then
-
+				log('Found ' .. tableName .. ' adding this as a possible attribute', LOG_DEBUG)
 				-- extract the part after 'otherdevices_'
 				-- That is the unprocesses attribute name
 				local oriAttribute = string.sub(tableName, 14)
@@ -647,13 +676,13 @@ local function Domoticz()
 			for i, httpDevice in pairs(httpData.result) do
 				if (self.devices[httpDevice['Name']]) then
 
-					if (logLevel == LOG_DEBUG) then
-						log('Http data for device ' .. httpDevice['Name'], LOG_DEBUG)
-						log('=========================', LOG_DEBUG)
-						for attr, val in pairs(httpDevice) do
-							log(attr .. ': ' .. tostring(val), LOG_DEBUG)
-						end
-					end
+--					if (logLevel == LOG_DEBUG) then
+--						log('Http data for device ' .. httpDevice['Name'], LOG_DEBUG)
+--						log('=========================', LOG_DEBUG)
+--						for attr, val in pairs(httpDevice) do
+--							log(attr .. ': ' .. tostring(val), LOG_DEBUG)
+--						end
+--					end
 
 					local device = self.devices[httpDevice['Name']]
 					device['batteryLevel'] = httpDevice.BatteryLevel
