@@ -1,3 +1,4 @@
+[0.9.10]
 * A little less verbose debug logging. Domoticz seems not to print all message in the log. If there are too many they may get lost. [dannybloe]
 * Added method fetchHttpDomoticzData to domoticz object so you can manually trigger getting device information from Domoticz through http. [dannybloe]
 * Added support for sounds in domiticz.notify(). [WebStarVenlo]

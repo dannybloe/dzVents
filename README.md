@@ -320,3 +320,5 @@ Oh, this code is tested on a linux file system. It should work on Windows. Let m
 Another note: I haven't tested all the various `device.update*` methods. Please let me know if I made any mistakes there or fix them yourselves and create a pull request (or email me) in GitHub.
 
 Good luck and hopefully you enjoy using dzVents.
+
+- Danny Bloemendaal, danny at bloemeland dot nl

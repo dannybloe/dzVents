@@ -1,5 +1,4 @@
--- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.9
+-- Version 0.9.10
 
 -- make sure we can find our modules
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")

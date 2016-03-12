@@ -1,6 +1,5 @@
--- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.9
--- See readme.md for a description
+-- Version 0.9.10
+-- See README.md for instructions
 
 return {
 	active = false,                  -- set to true to activate this script

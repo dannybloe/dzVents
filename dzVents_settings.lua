@@ -1,5 +1,4 @@
--- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.9
+-- Version 0.9.10
 
 --[[
 	Log level = 1: Errors
