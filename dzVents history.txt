@@ -1,3 +1,7 @@
+[0.9.11]
+* Added log method to domoticz object. Using this to log message in the Domoticz log will respect the log level setting in the settings file. [dannybloe]
+* Updated readme. Better overview, more attributes described.
+
 [0.9.10]
 * A little less verbose debug logging. Domoticz seems not to print all message in the log. If there are too many they may get lost. [dannybloe]
 * Added method fetchHttpDomoticzData to domoticz object so you can manually trigger getting device information from Domoticz through http. [dannybloe]

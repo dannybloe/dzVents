@@ -693,6 +693,9 @@ local function Domoticz()
 				if (attribute == 'svalues') then
 					attribute = 'rawData'
 				end
+				if (attribute == 'rain_lasthour') then
+					attribute = 'raindLastHour'
+				end
 
 				-- now let's get and store the stuff
 				setDeviceAttribute(tableData, attribute, oriAttribute)

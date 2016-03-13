@@ -15,6 +15,7 @@ LOG_INFO = 2
 LOG_DEBUG = 3
 LOG_ERROR = 1
 
+-- global function
 function log(msg, level)
 	if (level == nil) then level = LOG_INFO end
 	if (logLevel == level) then
