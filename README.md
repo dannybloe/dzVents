@@ -4,14 +4,15 @@
 
 - [About](#about)
 - [Installing](#installing)
-- [Getting it to work](#getting-it-to-work)
   - [Quickstart](#quickstart)
+- [How does it to work?](#how-does-it-to-work)
   - [Adapting or creating your scripts](#adapting-or-creating-your-scripts)
   - [*timer* trigger options](#timer-trigger-options)
 - [The domoticz object](#the-domoticz-object)
   - [Domoticz object API](#domoticz-object-api)
     - [Attributes:](#attributes)
     - [Methods](#methods)
+    - [Iterators](#iterators)
     - [Contants](#contants)
   - [Device object API](#device-object-api)
     - [Attributes](#attributes)
@@ -126,7 +127,7 @@ return {
  - You can watch the log in Domoticz and it should show you that indeed it triggered your script.
  - Assuming of course that you have configured the notify options in Domoticz. Otherwise you can change the lines with `domoticz.notify` to `domoticz.email(<your address>)`.
 
-The examples folder has a couple of example scripts
+The [examples folder](/examples) has a couple of example scripts
 
 How does it to work?
 ============
