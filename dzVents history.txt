@@ -1,6 +1,8 @@
 [0.9.11]
 * Added log method to domoticz object. Using this to log message in the Domoticz log will respect the log level setting in the settings file. [dannybloe]
 * Updated readme. Better overview, more attributes described.
+* Added iterator functions (forEach and filter) to domoticz.devices, domoticz.changedDevices and domoticz.variables to iterate or filter more easily over these collections.
+* Added a couple of example scripts.
 
 [0.9.10]
 * A little less verbose debug logging. Domoticz seems not to print all message in the log. If there are too many they may get lost. [dannybloe]

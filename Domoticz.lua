@@ -444,6 +444,29 @@ local function Variable(domoticz, name, value)
 	return self
 end
 
+function setIterators(context, collection)
+	collection['forEach'] = function(func)
+		for i, item in pairs(collection) do
+			if (type(item) ~= 'function' and type(i)~='number') then
+				func(item, i)
+			end
+		end
+	end
+
+	collection['filter'] = function(filter)
+		local res = {}
+		for i, item in pairs(collection) do
+			if (type(item) ~= 'function' and type(i)~='number') then
+				if (filter(item)) then
+					res[i] = item
+				end
+			end
+		end
+		setIterators(res, res)
+		return res
+	end
+end
+
 -- main class
 local function Domoticz()
 
@@ -510,6 +533,11 @@ local function Domoticz()
 		['LOG_DEBUG'] = 3,
 		['LOG_ERROR'] = 1,
 	}
+
+	setIterators(self, self.devices)
+	setIterators(self, self.changedDevices)
+	setIterators(self, self.variables)
+
 
 	-- add domoticz commands to the commandArray
 	function self.sendCommand(command, value)

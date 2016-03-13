@@ -80,30 +80,25 @@ Just to give you an idea! Everything that was previously scattered around in a d
 
 Installing
 =============
-Copy the files `event_helpers.lua`, `script_time_main.lua`, `script_device_main.lua`, `Domoticz.lua`, `dzVents_settings.lua` and the folder `scripts` to the Domoticz script folder
-`../domoticz/scripts/lua`.
+*First of all, installing dzVents will not affect any of the scripts you have already in place so you can try dzVents without disrupting things.*
 
-Edit the file `dzVents_settings.lua` and enter the ip number and port number of your Domoticz instance. Make sure that you don't need a username/password for local networks (see Domoticz settings) or dzVents will not be able to fetch additional data like battery status and device type information! If you don't want this then you can set `['Enable http fetch']` to `false`.
+Copy the following to to the Domoticz script folder:  `/path/to/domoticz/scripts/lua`:
 
-In the scripts folder there is an example.lua file. The scripts in that folder are used by the dzVents script_`device_main.lua`  and `script_timer_main.lua` script files. All scripts in that folder are scanned by dzVents and the triggers are read and the code executed only when necessary.  
+ -  `event_helpers.lua`
+ - `script_time_main.lua`
+ - `script_device_main.lua`
+ - `Domoticz.lua`
+ - `dzVents_settings.lua` and 
+ - the folder `scripts` 
 
-Getting it to work
-============
-Normally, every time a device is updated in Domoticz it scans the script folder `../domoticz/scripts/lua` and executes *every script it can find starting with script_device* but before it does so, for each and every script, it builds all the necessary global Lua tables. This takes quite some time especially when you have a lot of scripts. Also, you have to program logic in every script to prevent the code from being executed when you don't want to (e.g. the device wasn't updated).
- 
-dzVents optimizes this process. The idea is that there is only one `script_device_main.lua` and one `script_time.main.lua`. All other scripts you can move and rename them perhaps to a more sane name to the `scripts` sub folder and modularize them (an easy process, more on that later). Every script defines one or more triggers and dzVents only executes the scripts when those triggers are met.
+Edit the file `dzVents_settings.lua` and enter the ip number and port number of your Domoticz instance. Make sure that you don't need a username/password for local networks (see Domoticz settings) or dzVents will not be able to fetch additional data like battery status and device type information! If you don't want  or need this then you can set `['Enable http fetch']` to `false`.
 
-*Note: there are two other kinds of scripts that Domoticz might call: `script_security..` and `script_variable..`. They will not be affected by this code (yet).*
-
-Even though your logic in these scripts will stay more or less the same, you have to adapt your script a little.
-
-But let's see if it works first:
+The scripts folder is where you put your new Lua event scripts. You can give them any name with the `.lua` extension (no need for *script_device* nor *script_time* prefixing).
 
 Quickstart
 -------------
-Just to do a quick test of dzVents:
+After you placed the dzVents files in the right location we can do a quick test if everything works:
 
- - Copy the files as listed above to the correct places
  - Pick a switch in your Domoticz system. Note down the exact name of the switch. If you don't have a switch then you can create a Dummy switch and use that one.
  - Create a new script in the scripts folder. Call it `test.lua`.
  - Open test.lua in an editor and fill it with this code and change `<exact name of the switch>` with the .. you guessed it... exact name of the switch device:
@@ -115,7 +110,7 @@ return {
 		'<exact name of the switch>'
 	},
 	execute = function(domoticz, switch)
-		if (switch.state() == 'On') then
+		if (switch.state == 'On') then
 			domoticz.notify('Hey!', 'I am on!',
 			domoticz.PRIORITY_NORMAL)
 		else
@@ -125,12 +120,29 @@ return {
 	end
 }
 ```
- - Save the script and that press the switch in Domoticz. You can watch the log in Domoticz and it should show you that indeed it triggered your script.
+ - Save the script
+ - Open the Domoticz log in the browser
+ - In Domoticz (another tab perhaps) press the switch. 
+ - You can watch the log in Domoticz and it should show you that indeed it triggered your script.
  - Assuming of course that you have configured the notify options in Domoticz. Otherwise you can change the lines with `domoticz.notify` to `domoticz.email(<your address>)`.
+
+The examples folder has a couple of example scripts
+
+How does it to work?
+============
+Normally, every time a device is updated in Domoticz it scans the script folder `../domoticz/scripts/lua` and executes *every script it can find starting with script_device* but before it does so, for each and every script, it builds all the necessary global Lua tables. This takes quite some time especially when you have a lot of scripts. Also, you have to program logic in every script to prevent the code from being executed when you don't want to (e.g. the device wasn't updated).
+ 
+dzVents optimizes this process. All the event scripts that you make using dzVents will have to sit in the scripts folder and the two main script `script_device_main.lua` and `script_time.main.lua` make sure the right event scripts are called. Don't change these two files. 
+
+All other scripts can live alongside the dzVents scripts. However, in order to have them work with dzVents you have to adapt them a little (and move them over to the scripts folder).
+
+*Note: there are two other kinds of scripts that Domoticz might call: `script_security..` and `script_variable..`. They will not be affected by dzVents just yet.*
+
+So, how to adapt the scripts?
 
 Adapting or creating your scripts
 ----------------------------------
-In order for your scripts to work with dzVents, they have to be turned into a Lua module. There is already an example called `example.lua` that shows you how to do this. Basically you make sure it returns a Lua table with a couple of predefined keys. Here is an example:
+In order for your scripts to work with dzVents, they have to be turned into a Lua module. Basically you make sure it returns a Lua table (object) with a couple of predefined keys `active`, `on` and `execute`.. Here is an example:
 
 ```
 return {
@@ -149,22 +161,23 @@ return {
     end
 }
 ```
+Simply said, if you want to turn your existing script into a script that can be used with dzVents, you put it inside the execute function.
 
-So, you add a little bit of code *around* your original logic (you return a Lua table). So this module return a table with three keys:
+So, the module returns a table with these sections (keys):
 
-* **on**: This is a table (or array) with **one or more** trigger events. It is either:
-    * the name of your device between string quotes. **You can use the asterisk (\*) wild-card here e.g. `PIR_*` or `*_PIR` .** Note that in one cycle several devices could have been updated. If you have a script with a wild-card trigger that matches all the names of these changed devices, then this script will be executed *for all these changed devices*.  
-    * the index of your device (the name may change, the index will usually stay the same), 
-    * the string or table 'timer' which makes the script execute every minute (see the section **timer trigger options** below). 
+* **on**: (don't confuse this with **on**/off, it's like: **on** < some event > **execute** < code >). This is a table (or array) with **one or more** trigger events:
+    * The name of your device between string quotes. **You can use the asterisk (\*) wild-card here e.g. `PIR_*` or `*_PIR` .** Note that in one cycle several devices could have been updated. If you have a script with a wild-card trigger that matches all the names of these changed devices, then this script will be executed *for all these changed devices*.  
+    * The index of your device (the name may change, the index will usually stay the same), 
+    * The string or table 'timer' which makes the script execute every minute (see the section **timer trigger options** [below](#timer-trigger-options)). 
     * Or a **combination**.
      
-    So you can put as many triggers in there as you like and only if one of those is met, then the execute part is executed by dzVents.
+    So you can put as many triggers in there as you like and only if one of those is met, then the **execute** part is executed by dzVents.
 * **active**: this can either be:
 	* a boolean value (true or false, no quotes!). When set to false, the script will not be called. This is handy for when you are still writing the script and you don't want it to be executed just yet or when you simply want to disable it. 
 	* A function returning true or false. The function will receive the domoticz object with all the information about you domoticz instance: `active = function(domoticz) .... end`. So for example you could check for a Domoticz variable or switch and prevent the script from being executed. **However, be aware that for *every script* in your scripts folder, this active function will be called, every cycle!! So, it is better to put all your logic in the execute function instead of in the active function.** Maybe it is better to not allow a function here at all... /me wonders.
-* **execute**: This is the actual logic of your script. You can copy the code from your existing script into this section. What is special is that dzVents will pass the domoticz object and for device triggers, the device that caused the trigger to be executed. These two objects are all you need to access all the data that Domoticz exposes to the event scripts. They also have all the methods needed to modify devices in Domoticz like modifying switches or sending notifcations. *There shouldn't be any need to manipulate the commandArray anymore.* (If there is a need, please let me know and I'll fix it). More about the domoticz object below.
+* **execute**: This is the actual logic of your script. You can copy the code from your existing script into this section. What is special is that dzVents will pass the [domoticz object](#domoticz-object-api) and, for device triggers, the actual [device](#device-object-api) causing the script to be called. These two objects are all you need to access almost everything in your Domoticz system including all methods to manipulate them like modifying switches or sending notifications. *There shouldn't be any need to manipulate the commandArray anymore.* (If there is a need, please let me know and I'll fix it). More about the domoticz object below.
 
-**Note: if you have a script with *both a device trigger and a timer trigger* then only in the case of when a device update occurs, the changed device is passed into the execute function. When the timer triggers the script then this second parameter is `nil`.** You will have to check for this situation in you script. 
+**Note**: if you have a script with *both a device trigger and a timer trigger* then only in the case of when a device update occurs, the changed device is passed into the execute function. When the timer triggers the script then this second parameter is `nil`. You will have to check for this situation in you script. 
 
 *timer* trigger options
 -------------
@@ -195,7 +208,7 @@ on = {
 
 },
 ```
-**One important note: if Domoticz ,for whatever reason, skips a beat (skips a timer event) then you may miss the trigger! So you may have to build in some fail-safe checks or some redundancy if you have critical time-based stuff to control. There is nothing dzVents can do about it**
+**One important note: if Domoticz, for whatever reason, skips a beat (skips a timer event) then you may miss the trigger! So you may have to build in some fail-safe checks or some redundancy if you have critical time-based stuff to control. There is nothing dzVents can do about it**
 
 The domoticz object
 ===================
@@ -215,12 +228,12 @@ So this object structure contains all the information logically arranged where y
 
 Domoticz object API
 -----------
-The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**:
+The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**. There three collection each have two iterator functions: `forEach(function)` and `filter(function)` to make searching for devices easier. See iterators below.
 
 ### Attributes:
 
  - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
- - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below.
+ - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below. 
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**:
 	 - **isDayTime**
@@ -240,57 +253,48 @@ The domoticz object holds all information about your Domoticz system. It has a c
  - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
  - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
 
+### Iterators
+The domoticz object has three collections (tables): devices, changedDevices and variables. In order to make iterating over these collections easier dzVents has two iterator methods so you don't need to use the `pair()` or `ipairs()` function anymore (less code to write):
+
+ 1. **forEach(function):** Executes a provided function once per array element. The function receives the item in the collection (device or variable) and the key.
+ 2. **filter(function):** returns items in the collection for which the function returns true.
+
+Best to illustrate with an example:
+
+```
+	domoticz.devices.forEach(function(device)
+		if (device.batteryLevel < 20) then
+			-- do something
+		end
+	end)
+```
+Or using a filter:
+```
+	local deadDevices = domoticz.devices.filter(function(device)
+		return (device.lastUpdate.minutesAgo > 60)
+	end)
+	deadDevices.forEach(function(zombie)
+		-- do something
+	end)
+```
+Of course you can chain:
+```
+	domoticz.devices.filter(function(device)
+		return (device.lastUpdate.minutesAgo > 60)
+	end).forEach(function(zombie)
+		-- do something with the zombie
+	end)
+```
+
 ### Contants
 
- - **ALERTLEVEL_GREY**: Constant for alert sensors.
- - **ALERTLEVEL_GREEN**: Constant for alert sensors.
- - **ALERTLEVEL_ORANGE**: Constant for alert sensors.
- - **ALERTLEVEL_RED**: Constant for alert sensors.
- - **ALERTLEVEL_YELLOW**: Constant for alert sensors.
- - **BARO_CLOUDY**:  Constant for barometric forecast.
- - **BARO_CLOUDY_RAIN**:  Constant for barometric forecast.
- - **BARO_STABLE**:  Constant for barometric forecast.
- - **BARO_SUNNY**:  Constant for barometric forecast.
- - **BARO_THUNDERSTORM**:  Constant for barometric forecast.
- - **BARO_UNKNOWN**:  Constant for barometric forecast.
- - **BARO_UNSTABLE**:  Constant for barometric forecast.
- - **HUM_COMFORTABLE**: Constant for humidity status.
- - **HUM_DRY**: Constant for humidity status.
- - **HUM_NORMAL**: Constant for humidity status.
- - **HUM_WET**: Constant for humidity status.
- - **LOG_DEBUG**: Constant for logging messages.
- - **LOG_ERROR**: Constant for logging messages.
- - **LOG_INFO**: Constant for logging messages.
- - **PRIORITY_LOW**: Constant for notification priority.
- - **PRIORITY_MODERATE**: Constant for notification priority.
- - **PRIORITY_NORMAL**: Constant for notification priority.
- - **PRIORITY_HIGH**: Constant for notification priority.
- - **PRIORITY_EMERGENCY**: Constant for notification priority.
- - **SECURITY_ARMEDAWAY**: Constant for security state.
- - **SECURITY_ARMEDHOME**: Constant for security state.
- - **SECURITY_DISARMED**: Constant for security state.
- - **SOUND_ALIEN** 
- - **SOUND_BIKE**
- - **SOUND_BUGLE**
- - **SOUND_CASH_REGISTER**
- - **SOUND_CLASSICAL**
- - **SOUND_CLIMB** 
- - **SOUND_COSMIC**
- - **SOUND_DEFAULT** 
- - **SOUND_ECHO**
- - **SOUND_FALLING**  
- - **SOUND_GAMELAN**
- - **SOUND_INCOMING**
- - **SOUND_INTERMISSION**
- - **SOUND_MAGIC** 
- - **SOUND_MECHANICAL**
- - **SOUND_NONE**
- - **SOUND_PERSISTENT**
- - **SOUND_PIANOBAR** 
- - **SOUND_SIREN** 
- - **SOUND_SPACEALARM**
- - **SOUND_TUGBOAT**  
- - **SOUND_UPDOWN** 
+ - **ALERTLEVEL_GREY**, **ALERTLEVEL_GREEN**, **ALERTLEVEL_ORANGE**, **ALERTLEVEL_RED**, **ALERTLEVEL_YELLOW**: For updating text sensors.
+ - **BARO_CLOUDY**, **BARO_CLOUDY_RAIN**, **BARO_STABLE**, **BARO_SUNNY**, **BARO_THUNDERSTORM**, **BARO_UNKNOWN**, **BARO_UNSTABLE**: For updating barometric values.
+ - **HUM_COMFORTABLE**, **HUM_DRY**, **HUM_NORMAL**, **HUM_WET**: Constant for humidity status.
+ - **LOG_DEBUG**, **LOG_ERROR**, **LOG_INFO**: For logging messages.
+ - **PRIORITY_LOW**, **PRIORITY_MODERATE**, **PRIORITY_NORMAL**, **PRIORITY_HIGH**, **PRIORITY_EMERGENCY**: For notification priority.
+ - **SECURITY_ARMEDAWAY**, **SECURITY_ARMEDHOME**, **SECURITY_DISARMED**: For security state.
+ - **SOUND_ALIEN** , **SOUND_BIKE**, **SOUND_BUGLE**, **SOUND_CASH_REGISTER**, **SOUND_CLASSICAL**, **SOUND_CLIMB** , **SOUND_COSMIC**, **SOUND_DEFAULT** , **SOUND_ECHO**, **SOUND_FALLING**  , **SOUND_GAMELAN**, **SOUND_INCOMING**, **SOUND_INTERMISSION**, **SOUND_MAGIC** , **SOUND_MECHANICAL**, **SOUND_NONE**, **SOUND_PERSISTENT**, **SOUND_PIANOBAR** , **SOUND_SIREN** , **SOUND_SPACEALARM**, **SOUND_TUGBOAT**  , **SOUND_UPDOWN**: For notification sounds. 
  
 
 Device object API
