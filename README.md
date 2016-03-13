@@ -9,7 +9,7 @@
   - [Adapting or creating your scripts](#adapting-or-creating-your-scripts)
   - [*timer* trigger options](#timer-trigger-options)
 - [The domoticz object](#the-domoticz-object)
-  - [domoticz object API](#domoticz-object-api)
+  - [Domoticz object API](#domoticz-object-api)
   - [Device object API](#device-object-api)
   - [Variable object API](#variable-object-api)
 
