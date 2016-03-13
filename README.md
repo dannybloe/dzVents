@@ -335,7 +335,7 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
  - **level**: *Number*. For dimmers and other 'Set Level..%' devices this holds the level like selector switches.
  - **name**: *String*. Name of the device
  - **rain**: Only when applicable.
- - **raindLastHour**: Only when applicable.
+ - **rainLastHour**: Only when applicable.
  - **rawData**: *Table*:  Not all information from a device is available as a named attribute on the device object. That is because Domoticz doesn't provide this as such. If you have a multi-sensor for instance then you can find all data points in this **rawData** attribute. It is an array (Lua table). E.g. to get the Lux value of a sensor you can do this: `local lux = mySensor.rawData[1]` (assuming it is the first value that is passed by Domoticz).
  - **signalLevel**: *String*. See Domoticz devices table in Domoticz GUI.
  - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.

@@ -202,12 +202,12 @@ local function Device(domoticz, name, state)
 	if (level) then self['level'] = level end
 
 	if (state~=nil) then -- not all devices have a state like sensors
-		if (type(state)=='string') then -- just to be sure
-			self['state'] = state
-			self['bState'] = stateToBool(self['state'])
-		else
-			self['state'] = state
-		end
+	if (type(state)=='string') then -- just to be sure
+	self['state'] = state
+	self['bState'] = stateToBool(self['state'])
+	else
+		self['state'] = state
+	end
 	end
 
 	-- generic state update method
@@ -404,11 +404,11 @@ local function Device(domoticz, name, state)
 		self.update(0, distance)
 	end
 
---	function self.updateSelector(value)
---		-- untested
---		domoticz.sendCommand('SwtichLight', self.id .. '|')
---		self.update(0, distance)
---	end
+	--	function self.updateSelector(value)
+	--		-- untested
+	--		domoticz.sendCommand('SwtichLight', self.id .. '|')
+	--		self.update(0, distance)
+	--	end
 
 	-- returns true if an attribute is marked as changed
 	function self.attributeChanged(attribute)
@@ -488,28 +488,28 @@ local function Domoticz()
 		['PRIORITY_NORMAL'] = 0,
 		['PRIORITY_HIGH'] = 1,
 		['PRIORITY_EMERGENCY'] = 2,
-        ['SOUND_DEFAULT'] = 'pushover',
-        ['SOUND_BIKE'] = 'bike',
-        ['SOUND_BUGLE'] = 'bugle',
-        ['SOUND_CASH_REGISTER'] = 'cashregister',
-        ['SOUND_CLASSICAL'] = 'classical',
-        ['SOUND_COSMIC'] = 'cosmic',
-        ['SOUND_FALLING'] = 'falling',
-        ['SOUND_GAMELAN'] = 'gamelan',
-        ['SOUND_INCOMING'] = 'incoming',
-        ['SOUND_INTERMISSION'] = 'intermission',
-        ['SOUND_MAGIC'] = 'magic',
-        ['SOUND_MECHANICAL'] = 'mechanical',
-        ['SOUND_PIANOBAR'] = 'pianobar',
-        ['SOUND_SIREN'] = 'siren',
-        ['SOUND_SPACEALARM'] = 'spacealarm',
-        ['SOUND_TUGBOAT'] = 'tugboat',
-        ['SOUND_ALIEN'] = 'alien',
-        ['SOUND_CLIMB'] = 'climb',
-        ['SOUND_PERSISTENT'] = 'persistent',
-        ['SOUND_ECHO'] = 'echo',
-        ['SOUND_UPDOWN'] = 'updown',
-        ['SOUND_NONE'] = 'none',
+		['SOUND_DEFAULT'] = 'pushover',
+		['SOUND_BIKE'] = 'bike',
+		['SOUND_BUGLE'] = 'bugle',
+		['SOUND_CASH_REGISTER'] = 'cashregister',
+		['SOUND_CLASSICAL'] = 'classical',
+		['SOUND_COSMIC'] = 'cosmic',
+		['SOUND_FALLING'] = 'falling',
+		['SOUND_GAMELAN'] = 'gamelan',
+		['SOUND_INCOMING'] = 'incoming',
+		['SOUND_INTERMISSION'] = 'intermission',
+		['SOUND_MAGIC'] = 'magic',
+		['SOUND_MECHANICAL'] = 'mechanical',
+		['SOUND_PIANOBAR'] = 'pianobar',
+		['SOUND_SIREN'] = 'siren',
+		['SOUND_SPACEALARM'] = 'spacealarm',
+		['SOUND_TUGBOAT'] = 'tugboat',
+		['SOUND_ALIEN'] = 'alien',
+		['SOUND_CLIMB'] = 'climb',
+		['SOUND_PERSISTENT'] = 'persistent',
+		['SOUND_ECHO'] = 'echo',
+		['SOUND_UPDOWN'] = 'updown',
+		['SOUND_NONE'] = 'none',
 		['HUM_NORMAL'] = 0,
 		['HUM_COMFORTABLE'] = 1,
 		['HUM_DRY'] = 2,
@@ -559,7 +559,7 @@ local function Domoticz()
 
 		-- check for the _ addition
 		if (pos ~= nil and pos > 1) then -- should be larger than 1!
-			name = string.sub(eventName, 1, pos)
+		name = string.sub(eventName, 1, pos)
 		end
 
 		local device = self.devices[name]
@@ -576,7 +576,7 @@ local function Domoticz()
 		-- set defaults
 		if (priority == nil) then priority = self.PRIORITY_NORMAL end
 		if (message == nil) then message = '' end
-        if (sound == nil) then sound = self.SOUND_DEFAULT end
+		if (sound == nil) then sound = self.SOUND_DEFAULT end
 
 		self.sendCommand('SendNotification', subject .. '#' .. message .. '#' .. tostring(priority) .. '#' .. tostring(sound))
 	end
@@ -629,45 +629,45 @@ local function Domoticz()
 			-- log('otherdevices table :' .. name .. ' value: ' .. value, LOG_DEBUG)
 			if (name ~= nil and name ~= '') then -- sometimes domoticz seems to do this!! ignore...
 
-				-- get the device
-				local device = self.devices[name]
+			-- get the device
+			local device = self.devices[name]
 
-				if (device == nil) then
-					log('Cannot find the device. Skipping:  ' .. name .. ' ' .. value, LOG_ERROR)
-				else
-					if (attribute == 'lastUpdate') then
-						device.addAttribute(attribute, Time(value))
-					elseif (attribute == 'rawData') then
-						device.addAttribute(attribute, string.split(value, ';'))
-					elseif (attribute == 'id') then
-						device.addAttribute(attribute, value)
+			if (device == nil) then
+				log('Cannot find the device. Skipping:  ' .. name .. ' ' .. value, LOG_ERROR)
+			else
+				if (attribute == 'lastUpdate') then
+					device.addAttribute(attribute, Time(value))
+				elseif (attribute == 'rawData') then
+					device.addAttribute(attribute, string.split(value, ';'))
+				elseif (attribute == 'id') then
+					device.addAttribute(attribute, value)
 
-						-- create lookup by id
-						self.devices[value] = device
+					-- create lookup by id
+					self.devices[value] = device
 
-						-- create the changedDevices entry when changed
-						-- we do it at this moment because at this stage
-						-- the device just got his id
-						if (device.changed) then
-							self.changedDevices[device.name] = device
-							self.changedDevices[value] = device -- id lookup
-						end
-					else
-						device.addAttribute(attribute, value)
+					-- create the changedDevices entry when changed
+					-- we do it at this moment because at this stage
+					-- the device just got his id
+					if (device.changed) then
+						self.changedDevices[device.name] = device
+						self.changedDevices[value] = device -- id lookup
 					end
+				else
+					device.addAttribute(attribute, value)
+				end
 
-					if (tableName ~=nil) then
-						local deviceAttributeName = name .. '_' ..
-								string.upper(string.sub(tableName,1,1)) ..
-								string.sub(tableName,2)
+				if (tableName ~=nil) then
+					local deviceAttributeName = name .. '_' ..
+							string.upper(string.sub(tableName,1,1)) ..
+							string.sub(tableName,2)
 
-						-- now we have to transfer the changed information for attributes
-						-- if that is availabel
-						if (devicechanged and devicechanged[deviceAttributeName]~= nil) then
-							device.setAttributeChanged(attribute)
-						end
+					-- now we have to transfer the changed information for attributes
+					-- if that is availabel
+					if (devicechanged and devicechanged[deviceAttributeName]~= nil) then
+						device.setAttributeChanged(attribute)
 					end
 				end
+			end
 			end
 		end
 	end
@@ -722,7 +722,7 @@ local function Domoticz()
 					attribute = 'rawData'
 				end
 				if (attribute == 'rain_lasthour') then
-					attribute = 'raindLastHour'
+					attribute = 'rainLastHour'
 				end
 
 				-- now let's get and store the stuff
