@@ -203,8 +203,8 @@ So this object structure contains all the information logically arranged where y
 
 *The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
-domoticz object API
------------
+Domoticz object API
+-------------------
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**:
 	 - **isDayTime**
