@@ -254,6 +254,14 @@ domoticz object API
 
 Device object API
 ------
+Each device in Domoticz can be found in the `domoticz.devices` collection as listed above. The device object has a set of fixed attributes like *name* and *id*. Many devices though (like sensors) have special attributes like *temperature*, *humidity* etc. These attributes are also available on each device object *when applicable*. However, not all attributes are passed to dzVents by Domoticz as named attributes like temperature. In that case you can find the values in the rawData attribute:
+
+```
+	domoticz.devices['mySensor'].temperature
+	domoticz.devices['myLightSensor'].rawData[1] -- lux value
+```
+
+Full API:
  - **name**: String. Name of the device
  - **id**: Number. Id of the device
  - **changed**: Boolean. True if the device was changed
