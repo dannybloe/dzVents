@@ -10,8 +10,15 @@
   - [*timer* trigger options](#timer-trigger-options)
 - [The domoticz object](#the-domoticz-object)
   - [Domoticz object API](#domoticz-object-api)
+    - [Attributes:](#attributes)
+    - [Methods](#methods)
+    - [Contants](#contants)
   - [Device object API](#device-object-api)
+    - [Attributes](#attributes)
+    - [Methods](#methods-1)
   - [Variable object API](#variable-object-api)
+    - [Attributes](#attributes-1)
+    - [Methods](#methods-2)
   - [Switch timing options (delay, duration)](#switch-timing-options-delay-duration)
 - [Final note](#final-note)
 
@@ -210,50 +217,81 @@ Domoticz object API
 -----------
 The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**:
 
+### Attributes:
+
+ - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
+ - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below.
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**:
 	 - **isDayTime**
 	 - **isNightTime**
-	 - **sunriseInMinutes**
 	 - **sunsetInMinutes**
- - **sendCommand(command, value)**: *Function*. Generic command method (adds it to the commandArray) to the list of commands that are being sent back to domoticz. *There is likely no need to use this directly. Use any of the device methods instead (see below).*
- - **notify(subject, message, priority)**: *Function*. Send a notification (like Prowl). Priority can be like `domoticz.PRIORITY_LOW, PRIORITY_MODERATE, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_EMERGENCY`
+	 - **sunriseInMinutes**
+ - **variables**: *Table*. A collection holding all the user *variable objects* as defined in Domoticz. See **Variable object** for the attributes.  
+
+### Methods
+
  - **email(subject, message, mailTo)**: *Function*. Send email.
- - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
- - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
- - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
  - **fetchHttpDomoticzData**: *Function*. This will trigger a script that will download the device data from Domoticz and stores this on the filesystem for dzVents to use. This data contains information like battery level and device type information that can only be fetched through an http call. Normally dzVents will do this automatically in the background if it is enabled in the `dzVents_settings.lua` file. If you want to do this manually through an event script perhaps (you can use a switch trigger for instance) then you can disable the automatic fetching by changing the setting in `dzVents_settings.lua` and create your own event.
  - **log(message, level):** *Function*. Creates a logging entry in the Domoticz log but respects the log level settings. You can provide the loglevel: `domoticz.LOG_INFO`, `domoticz.LOG_DEBUG` or `domoticz.LOG_ERROR`. In `dzVents_settings.lua` you can specify which kind of log message will be printed.
- - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below.
- - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
- - **variables**: *Table*. A collection holding all the user *variable objects* as defined in Domoticz. See **Variable object** for the attributes.  
+ - **notify(subject, message, priority)**: *Function*. Send a notification (like Prowl). Priority can be like `domoticz.PRIORITY_LOW, PRIORITY_MODERATE, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_EMERGENCY`
+ - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
+ - **sendCommand(command, value)**: *Function*. Generic command method (adds it to the commandArray) to the list of commands that are being sent back to domoticz. *There is likely no need to use this directly. Use any of the device methods instead (see below).*
+ - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
+ - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
+
+### Contants
+
+ - **ALERTLEVEL_GREY**: Constant for alert sensors.
+ - **ALERTLEVEL_GREEN**: Constant for alert sensors.
+ - **ALERTLEVEL_ORANGE**: Constant for alert sensors.
+ - **ALERTLEVEL_RED**: Constant for alert sensors.
+ - **ALERTLEVEL_YELLOW**: Constant for alert sensors.
+ - **BARO_CLOUDY**:  Constant for barometric forecast.
+ - **BARO_CLOUDY_RAIN**:  Constant for barometric forecast.
+ - **BARO_STABLE**:  Constant for barometric forecast.
+ - **BARO_SUNNY**:  Constant for barometric forecast.
+ - **BARO_THUNDERSTORM**:  Constant for barometric forecast.
+ - **BARO_UNKNOWN**:  Constant for barometric forecast.
+ - **BARO_UNSTABLE**:  Constant for barometric forecast.
+ - **HUM_COMFORTABLE**: Constant for humidity status.
+ - **HUM_DRY**: Constant for humidity status.
+ - **HUM_NORMAL**: Constant for humidity status.
+ - **HUM_WET**: Constant for humidity status.
+ - **LOG_DEBUG**: Constant for logging messages.
+ - **LOG_ERROR**: Constant for logging messages.
+ - **LOG_INFO**: Constant for logging messages.
  - **PRIORITY_LOW**: Constant for notification priority.
  - **PRIORITY_MODERATE**: Constant for notification priority.
  - **PRIORITY_NORMAL**: Constant for notification priority.
  - **PRIORITY_HIGH**: Constant for notification priority.
  - **PRIORITY_EMERGENCY**: Constant for notification priority.
- - **HUM_NORMAL**: Constant for humidity status.
- - **HUM_COMFORTABLE**: Constant for humidity status.
- - **HUM_DRY**: Constant for humidity status.
- - **HUM_WET**: Constant for humidity status.
- - **BARO_STABLE**:  Constant for barometric forecast.
- - **BARO_SUNNY**:  Constant for barometric forecast.
- - **BARO_CLOUDY**:  Constant for barometric forecast.
- - **BARO_UNSTABLE**:  Constant for barometric forecast.
- - **BARO_THUNDERSTORM**:  Constant for barometric forecast.
- - **BARO_UNKNOWN**:  Constant for barometric forecast.
- - **BARO_CLOUDY_RAIN**:  Constant for barometric forecast.
- - **ALERTLEVEL_GREY**: Constant for alert sensors.
- - **ALERTLEVEL_GREEN**: Constant for alert sensors.
- - **ALERTLEVEL_YELLOW**: Constant for alert sensors.
- - **ALERTLEVEL_ORANGE**: Constant for alert sensors.
- - **ALERTLEVEL_RED**: Constant for alert sensors.
- - **SECURITY_DISARMED**: Constant for security state.
  - **SECURITY_ARMEDAWAY**: Constant for security state.
  - **SECURITY_ARMEDHOME**: Constant for security state.
- - **LOG_INFO**: Constant for logging messages.
- - **LOG_DEBUG**: Constant for logging messages.
- - **LOG_ERROR**: Constant for logging messages.
+ - **SECURITY_DISARMED**: Constant for security state.
+ - **SOUND_ALIEN** 
+ - **SOUND_BIKE**
+ - **SOUND_BUGLE**
+ - **SOUND_CASH_REGISTER**
+ - **SOUND_CLASSICAL**
+ - **SOUND_CLIMB** 
+ - **SOUND_COSMIC**
+ - **SOUND_DEFAULT** 
+ - **SOUND_ECHO**
+ - **SOUND_FALLING**  
+ - **SOUND_GAMELAN**
+ - **SOUND_INCOMING**
+ - **SOUND_INTERMISSION**
+ - **SOUND_MAGIC** 
+ - **SOUND_MECHANICAL**
+ - **SOUND_NONE**
+ - **SOUND_PERSISTENT**
+ - **SOUND_PIANOBAR** 
+ - **SOUND_SIREN** 
+ - **SOUND_SPACEALARM**
+ - **SOUND_TUGBOAT**  
+ - **SOUND_UPDOWN** 
+ 
 
 Device object API
 ------
@@ -264,74 +302,78 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
 	domoticz.devices['myLightSensor'].rawData[1] -- lux value
 ```
 
-Full API:
- - **name**: *String*. Name of the device
- - **id**: *Number*. Id of the device
- - **changed**: *Boolean*. True if the device was changed
- - **lastUpdate**: 
-	 - **raw**: *String*. Generated by Domoticz
-	 - **year**: *Number*
-	 - **month**: *Number*
-	 - **day**: *Number*
-	 - **hour**: *Number*
-	 - **min**: *Number*
-	 - **sec**: *Number*
-	 - **isToday**: *Boolean*. Indicates if the device was updated today
-	 - **minutesAgo**: *Number*. Number of minutes since the last update.
- - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level
-attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
- - **bState**: *Boolean*. Is true for some commong states like 'On' or 'Open' or 'Motion'. 
- - **Level**: *Number*. For dimmers and other 'Set Level..%' devices this holds the level like selector switches.
- - **rawData**: *Table*:  Not all information from a device is available as a named attribute on the device object. That is because Domoticz doesn't provide this as such. If you have a multi-sensor for instance then you can find all data points in this **rawData** attribute. It is an array (Lua table). E.g. to get the Lux value of a sensor you can do this: `local lux = mySensor.rawData[1]` (assuming it is the first value that is passed by Domoticz).
+### Attributes
+
  - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255)
- - **signalLevel**: *String*. See Domoticz devices table in Domoticz GUI.
+ - **bState**: *Boolean*. Is true for some commong states like 'On' or 'Open' or 'Motion'. 
+ - **barometer**: Only when applicable.
+ - **changed**: *Boolean*. True if the device was changed
  - **deviceSubType**: *String*. See Domoticz devices table in Domoticz GUI.
  - **deviceType**: *String*. See Domoticz devices table in Domoticz GUI.
+ - **dewpoint**: Only when applicable. 
  - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI.
  - **hardwareId**: *Number*. See Domoticz devices table in Domoticz GUI.
  - **hardwareType**: *String*. See Domoticz devices table in Domoticz GUI.
  - **hardwareTypeVal**: *Number*. See Domoticz devices table in Domoticz GUI.
+ - **humidity**: Only when applicable.
+ - **id**: *Number*. Id of the device
+ - **lastUpdate**: 
+	 - **day**: *Number*
+	 - **hour**: *Number*
+	 - **isToday**: *Boolean*. Indicates if the device was updated today
+	 - **month**: *Number*
+	 - **min**: *Number*
+	 - **minutesAgo**: *Number*. Number of minutes since the last update.
+	 - **raw**: *String*. Generated by Domoticz
+	 - **sec**: *Number*
+	 - **year**: *Number*
+ - **level**: *Number*. For dimmers and other 'Set Level..%' devices this holds the level like selector switches.
+ - **name**: *String*. Name of the device
+ - **rawData**: *Table*:  Not all information from a device is available as a named attribute on the device object. That is because Domoticz doesn't provide this as such. If you have a multi-sensor for instance then you can find all data points in this **rawData** attribute. It is an array (Lua table). E.g. to get the Lux value of a sensor you can do this: `local lux = mySensor.rawData[1]` (assuming it is the first value that is passed by Domoticz).
+ - **signalLevel**: *String*. See Domoticz devices table in Domoticz GUI.
+ - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
  - **switchType**: *String*. See Domoticz devices table in Domoticz GUI.
  - **switchTypeValue**: *Number*. See Domoticz devices table in Domoticz GUI.
- - **< device_attribute >**: All sensor attributes like *temperature* or *humidity* are available on the device object. E.g.: `domoticz.device['My sensor'].temperature`.
- - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See below.
- - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g.
-`device.attributeChanged('temperature')`.
- - **switchOn()**: *Function*.  Switch device on if it supports it. Supports timing options. See below.
- - **switchOff()**: *Function*.  Switch device off it is supports it. Supports timing options. See below.
- - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See below.
- - **switchSelector(level)**:  *Function*. Switches a selector switch to a specific level (numeric value, see the edit page in Domoticz for such a switch to get a list of the values). Supports timing options. See below.
- - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See below.
- - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See below.
+ - **temperature**: Only when applicable.
+ - **utility**: Only when applicable.
+ - **weather**: Only when applicable.
+ - **winddir**: Only when applicable.
+ - **windgust**: Only when applicable.
+ - **windspeed**: Only when applicable.
+
+### Methods
+
  - **activate()**: *Function*.  Activate the device if it supports it. Supports timing options. See below.
+ - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g. `device.attributeChanged('temperature')`.
+ - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See below.
  - **deactive()**: *Function*.  Deactivate the device if it supports it. Supports timing options. See below.
- - **update(< params >)**: *Function*. Generic update method. Accepts any number of parameters that will be sent back to Domoticz. There is no need to
-pass the device.id here. It will be passed for you. Example to update
-a temperature: `device.update(0,12)`. This will eventually result in
-a commandArray entry `['UpdateDevice']='<idx>|0|12'`
- - **updateTemperature(temperature)**: *Function*. Update temperature sensor.
+ - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See below.
+ - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See below.
+ - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See below.
+ - **switchOff()**: *Function*.  Switch device off it is supports it. Supports timing options. See below.
+ - **switchOn()**: *Function*.  Switch device on if it supports it. Supports timing options. See below.
+ - **switchSelector(level)**:  *Function*. Switches a selector switch to a specific level (numeric value, see the edit page in Domoticz for such a switch to get a list of the values). Supports timing options. See below.
+ - **update(< params >)**: *Function*. Generic update method. Accepts any number of parameters that will be sent back to Domoticz. There is no need to pass the device.id here. It will be passed for you. Example to update a temperature: `device.update(0,12)`. This will eventually result in a commandArray entry `['UpdateDevice']='<idx>|0|12'`
+ - **updateAirQuality(quality)**: *Function*. 
+ - **updateAlertSensor(level, text)**: *Function*. Level can be domoticz.ALERTLEVEL_GREY, ALERTLEVEL_GREE, ALERTLEVEL_YELLOW, ALERTLEVEL_ORANGE, ALERTLEVEL_RED
+ - **updateBarometer(pressure, forecast)**: *Function*. Update barometric pressure. Forecast can be domoticz.BARO_STABLE, BARO_SUNNY, BARO_CLOUDY, BARO_UNSTABLE, BARO_THUNDERSTORM, BARO_UNKNOWN, BARO_CLOUDY_RAIN 
+ - **updateCounter(value)**: *Function*. 
+ - **updateDistance(distance)**: *Function*. 
+ - **updateElectricity(power, energy)**: *Function*. 
+ - **updateGas(usage)**: *Function*. 
  - **updateHumidity(humidity, status)**: *Function*. Update humidity. status can be domoticz.HUM_NORMAL, HUM_COMFORTABLE, HUM_DRY, HUM_WET 
- - **updateBarometer(pressure, forecast)**: *Function*. Update barometric pressure. Forecast can be domoticz.BARO_STABLE, BARO_SUNNY,
-BARO_CLOUDY, BARO_UNSTABLE, BARO_THUNDERSTORM, BARO_UNKNOWN,
-BARO_CLOUDY_RAIN 
+ - **updateLux(lux)**: *Function*. 
+ - **updateP1(sage1, usage2, return1, return2, cons, prod)**: *Function*. 
+ - **updatePercentage(percentage)**: *Function*. 
+ - **updatePressure(pressure)**: *Function*. 
+ - **updateRain(rate, counter)**: *Function*. Update rain sensor.
+ - **updateTemperature(temperature)**: *Function*. Update temperature sensor.
  - **updateTempHum(temperature, humidity, status)**: *Function*. For status options see updateHumidity.
  - **updateTempHumBaro(temperature, humidity, status, pressure, forecast)**: *Function*. 
- - **updateRain(rate, counter)**: *Function*. Update rain sensor.
- - **updateWind(bearing, direction, speed, gust, temperature, chill)**: *Function*. 
- - **updateUV(uv)**: *Function*. 
- - **updateCounter(value)**: *Function*. 
- - **updateElectricity(power, energy)**: *Function*. 
- - **updateP1(sage1, usage2, return1, return2, cons, prod)**: *Function*. 
- - **updateAirQuality(quality)**: *Function*. 
- - **updatePressure(pressure)**: *Function*. 
- - **updatePercentage(percentage)**: *Function*. 
- - **updateGas(usage)**: *Function*. 
- - **updateLux(lux)**: *Function*. 
- - **updateVoltage(voltage)**: *Function*. 
  - **updateText(text)**: *Function*. 
- - **updateAlertSensor(level, text)**: *Function*. Level can be domoticz.ALERTLEVEL_GREY, ALERTLEVEL_GREE, ALERTLEVEL_YELLOW,
-ALERTLEVEL_ORANGE, ALERTLEVEL_RED
- - **updateDistance(distance)**: *Function*. 
+ - **updateUV(uv)**: *Function*. 
+ - **updateVoltage(voltage)**: *Function*. 
+ - **updateWind(bearing, direction, speed, gust, temperature, chill)**: *Function*. 
 
 **"Hey!! I don't see my sensor readings in the device object!! Where is my LUX value for instance?"**
 That may be because Domoticz doesn't pass all the device data as named attributes. If you cannot find your attribute then you can inspect the **rawData** attribute of the device. This is a table (array) of values. So for a device that has a Lux value you may access it like this:
@@ -343,19 +385,25 @@ Variable object API
 ------
 User variables created in Domoticz have these attributes and methods:
 
- - **value**: Raw value coming from Domoticz
+### Attributes
+
  - **nValue**: *Number*. **value** cast to number.
- - **set(value)**: *Function*. Tells Domoticz to update the variable. *No need to cast it to a string first (it will be done for you).*
+ - **value**: Raw value coming from Domoticz
  - **lastUpdate**: 
-	 - **raw**: *String*. Generated by Domoticz
-	 - **year**: *Number*
-	 - **month**: *Number*
 	 - **day**: *Number*
 	 - **hour**: *Number*
-	 - **min**: *Number*
-	 - **sec**: *Number*
 	 - **isToday**: *Boolean*. Indicates if the device was updated today
+	 - **min**: *Number*
 	 - **minutesAgo**: *Number*. Number of minutes since the last update.
+	 - **month**: *Number*
+	 - **raw**: *String*. Generated by Domoticz
+	 - **sec**: *Number*
+	 - **year**: *Number*
+
+### Methods
+
+ - **set(value)**: *Function*. Tells Domoticz to update the variable. *No need to cast it to a string first (it will be done for you).*
+
 
 Switch timing options (delay, duration)
 ---
