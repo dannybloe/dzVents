@@ -5,14 +5,9 @@
 - [About](#about)
 - [Installing](#installing)
 - [Getting it to work](#getting-it-to-work)
-  - [Quickstart](#quickstart)
   - [Adapting or creating your scripts](#adapting-or-creating-your-scripts)
   - [*timer* trigger options](#timer-trigger-options)
 - [The domoticz object](#the-domoticz-object)
-  - [Domoticz object API](#domoticz-object-api)
-  - [Device object API](#device-object-api)
-  - [Variable object API](#variable-object-api)
-- [Final note](#final-note)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -97,7 +92,7 @@ Just to do a quick test of dzVents:
 
  - Copy the files as listed above to the correct places
  - Pick a switch in your Domoticz system. Note down the exact name of the switch. If you don't have a switch then you can create a Dummy switch and use that one.
- - Create a new script in the scripts folder. Call it test.lua.
+ - Create a new script in the scripts folder. Call it `test.lua`.
  - Open test.lua in an editor and fill it with this code and change `<exact name of the switch>` with the .. you guessed it... exact name of the switch device:
  
 ```
@@ -118,6 +113,7 @@ return {
 }
 ```
  - Save the script and that press the switch in Domoticz. You can watch the log in Domoticz and it should show you that indeed it triggered your script.
+ - Assuming of course that you have configured the notify options in Domoticz. Otherwise you can change the lines with `domoticz.notify` to `domoticz.email(<your address>)`.
 
 Adapting or creating your scripts
 ----------------------------------
@@ -204,8 +200,8 @@ So this object structure contains all the information logically arranged where y
 
 *The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
-Domoticz object API
--------------------
+domoticz object API
+-----------
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**:
 	 - **isDayTime**
