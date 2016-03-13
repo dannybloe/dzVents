@@ -12,6 +12,7 @@
   - [Domoticz object API](#domoticz-object-api)
   - [Device object API](#device-object-api)
   - [Variable object API](#variable-object-api)
+- [Final note](#final-note)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -361,9 +362,9 @@ To specify a duration or a delay for the various switch command you can do this:
 
 Note that **dimTo()** doesn't support **duration()**.
 
-That's all there is to it. 
-
-If you don't want to rewrite all your scripts at once you can have dzVents live along side your other scripts. The do not influence each other at all. You can move your scripts over one by one as you see fit to the scripts folder dzVents uses.
+Final note
+==
+If you don't want to rewrite all your scripts at once you can have dzVents live along side your other scripts. They do not influence each other at all. You can move your scripts over one by one as you see fit to the scripts folder dzVents uses.
 
 Oh, this code is tested on a linux file system. It should work on Windows. Let me know if it doesn't. There is some code in event_helpers.lua that is need to get a list of all the script in the scripts folder. 
 
