@@ -1,3 +1,20 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of contents**
+
+- [About](#about)
+- [Installing](#installing)
+- [Getting it to work](#getting-it-to-work)
+  - [Quickstart](#quickstart)
+  - [Adapting or creating your scripts](#adapting-or-creating-your-scripts)
+  - [*timer* trigger options](#timer-trigger-options)
+- [The domoticz object](#the-domoticz-object)
+  - [domoticz object API](#domoticz-object-api)
+  - [Device object API](#device-object-api)
+  - [Variable object API](#variable-object-api)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 About
 =============
  
@@ -59,7 +76,7 @@ Copy the files `event_helpers.lua`, `script_time_main.lua`, `script_device_main.
 
 Edit the file `dzVents_settings.lua` and enter the ip number and port number of your Domoticz instance. Make sure that you don't need a username/password for local networks (see Domoticz settings) or dzVents will not be able to fetch additional data like battery status and device type information! If you don't want this then you can set `['Enable http fetch']` to `false`.
 
-In the scripts folder there is an example.lua file. The scripts in that folder are used by the dzVents *_main.lua script files. All scripts in that folder are scanned by dzVents and the triggers are read and the code executed only when necessary.  
+In the scripts folder there is an example.lua file. The scripts in that folder are used by the dzVents script_`device_main.lua`  and `script_timer_main.lua` script files. All scripts in that folder are scanned by dzVents and the triggers are read and the code executed only when necessary.  
 
 Getting it to work
 ============
@@ -69,7 +86,37 @@ dzVents optimizes this process. The idea is that there is only one `script_devic
 
 *Note: there are two other kinds of scripts that Domoticz might call: `script_security..` and `script_variable..`. They will not be affected by this code (yet).*
 
-Eventhough your logic in these scripts will stay more or less the same, you have to adapt your script a little:
+Even though your logic in these scripts will stay more or less the same, you have to adapt your script a little.
+
+But let's see if it works first:
+
+Quickstart
+-------------
+Just to do a quick test of dzVents:
+
+ - Copy the files as listed above to the correct places
+ - Pick a switch in your Domoticz system. Note down the exact name of the switch. If you don't have a switch then you can create a Dummy switch and use that one.
+ - Create a new script in the scripts folder. Call it test.lua.
+ - Open test.lua in an editor and fill it with this code and change `<exact name of the switch>` with the .. you guessed it... exact name of the switch device:
+ 
+```
+return {
+	active = true,
+	on = {
+		'<exact name of the switch>'
+	},
+	execute = function(domoticz, switch)
+		if (switch.state() == 'On') then
+			domoticz.notify('Hey!', 'I am on!',
+			domoticz.PRIORITY_NORMAL)
+		else
+			domoticz.notify('Hey!', 'I am off!',
+			domoticz.PRIORITY_NORMAL)
+		end
+	end
+}
+```
+ - Save the script and that press the switch in Domoticz. You can watch the log in Domoticz and it should show you that indeed it triggered your script.
 
 Adapting or creating your scripts
 ----------------------------------
@@ -156,8 +203,8 @@ So this object structure contains all the information logically arranged where y
 
 *The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
-This is the total structure/api of the **domoticz** object:
-
+domoticz object API
+-----------
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**:
 	 - **isDayTime**
@@ -165,12 +212,13 @@ This is the total structure/api of the **domoticz** object:
 	 - **sunriseInMinutes**
 	 - **sunsetInMinutes**
  - **sendCommand(command, value)**: *Function*. Generic command method (adds it to the commandArray) to the list of commands that are being sent back to domoticz. *There is likely no need to use this directly. Use any of the device methods instead (see below).*
- - **notify(subject, message, priority, sound)**: *Function*. Send a notification (like Prowl). Priority can be like `domoticz.PRIORITY_LOW, PRIORITY_MODERATE, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_EMERGENCY`. Sound can be like `domoticz.SOUND_DEFAULT, domoticz.SOUND_BIKE, etc.`
+ - **notify(subject, message, priority)**: *Function*. Send a notification (like Prowl). Priority can be like `domoticz.PRIORITY_LOW, PRIORITY_MODERATE, PRIORITY_NORMAL, PRIORITY_HIGH, PRIORITY_EMERGENCY`
  - **email(subject, message, mailTo)**: *Function*. Send email.
  - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
  - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
  - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
  - **fetchHttpDomoticzData**: *Function*. This will trigger a script that will download the device data from Domoticz and stores this on the filesystem for dzVents to use. This data contains information like battery level and device type information that can only be fetched through an http call. Normally dzVents will do this automatically in the background if it is enabled in the `dzVents_settings.lua` file. If you want to do this manually through an event script perhaps (you can use a switch trigger for instance) then you can disable the automatic fetching by changing the setting in `dzVents_settings.lua` and create your own event.
+ - log(message, level): Function. Creates a logging entry in the Domoticz log but respects the log level settings. You can provide the loglevel: `domoticz.LOG_INFO`, `domoticz.LOG_DEBUG` or `domoticz.LOG_ERROR`. In `dzVents_settings.lua` you can specify which kind of log message will be printed.
  - **devices**: a table with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below.
  - **changedDevices**: a table holding all the devices that have been updated in this cycle.
  - **variables**: a table holding all the user *variable objects* as defined in Domoticz. See **Variable object** for the attributes.  
@@ -195,12 +243,15 @@ This is the total structure/api of the **domoticz** object:
  - **ALERTLEVEL_YELLOW**: Constant for alert sensors.
  - **ALERTLEVEL_ORANGE**: Constant for alert sensors.
  - **ALERTLEVEL_RED**: Constant for alert sensors.
- - **SECURITY_DISARMED**: Constant for security state
- - **SECURITY_ARMEDAWAY**: Constant for security state
- - **SECURITY_ARMEDHOME**: Constant for security state
+ - **SECURITY_DISARMED**: Constant for security state.
+ - **SECURITY_ARMEDAWAY**: Constant for security state.
+ - **SECURITY_ARMEDHOME**: Constant for security state.
+ - **LOG_INFO**: Constant for logging messages.
+ - **LOG_DEBUG**: Constant for logging messages.
+ - **LOG_ERROR**: Constant for logging messages.
 
-**Device object:**
-
+Device object API
+------
  - **name**: String. Name of the device
  - **id**: Number. Id of the device
  - **changed**: Boolean. True if the device was changed
@@ -267,7 +318,7 @@ BARO_CLOUDY_RAIN
  - **updateText(text)**: *Function*. 
  - **updateAlertSensor(level, text)**: *Function*. Level can be domoticz.ALERTLEVEL_GREY, ALERTLEVEL_GREE, ALERTLEVEL_YELLOW,
 ALERTLEVEL_ORANGE, ALERTLEVEL_RED
- - **updateDistance(distance)**: *Function*.
+ - **updateDistance(distance)**: *Function*. 
 
 **"Hey!! I don't see my sensor readings in the device object!! Where is my LUX value for instance?"**
 That may be because Domoticz doesn't pass all the device data as named attributes. If you cannot find your attribute then you can inspect the **rawData** attribute of the device. This is a table (array) of values. So for a device that has a Lux value you may access it like this:
@@ -275,9 +326,8 @@ That may be because Domoticz doesn't pass all the device data as named attribute
     local lux = mySensor.rawData[0]
 Other devices may have more stuff in the rawData attribute like wind direction, energy info etc etc.
 
-
-**Variable object**:
-
+Variable object API
+------
  - **value**: Raw value coming from Domoticz
  - **nValue**: Number. **value** cast to number.
  - **set(value)**: *Function*. Tells Domoticz to update the variable. *No need to cast it to a string first (it will be done for you).*
@@ -320,5 +370,3 @@ Oh, this code is tested on a linux file system. It should work on Windows. Let m
 Another note: I haven't tested all the various `device.update*` methods. Please let me know if I made any mistakes there or fix them yourselves and create a pull request (or email me) in GitHub.
 
 Good luck and hopefully you enjoy using dzVents.
-
-- Danny Bloemendaal, danny at bloemeland dot nl

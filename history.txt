@@ -1,0 +1,22 @@
+[0.9.11]
+* Added log method to domoticz object. Using this to log message in the Domoticz log will respect the log level setting in the settings file. [dannybloe]
+
+[0.9.10]
+* A little less verbose debug logging. Domoticz seems not to print all message in the log. If there are too many they may get lost. [dannybloe]
+* Added method fetchHttpDomoticzData to domoticz object so you can manually trigger getting device information from Domoticz through http. [dannybloe]
+* Added support for sounds in domiticz.notify(). [WebStarVenlo]
+
+[0.9.9]
+* Fixed a bug where every trigger name was treated as a wild-carded name. Oopsidayzy...
+
+[0.9.8]
+* Fixed a bug where a device can have underscores in its name.
+* Added dimTo(percentage) method to control dimmers.
+* Modified the switch-like commands to allow for timing options: .for_min(), .within_min(), after_sec() and after_min() methods to control delays and durations. Removed the options argument to the switch functions. See readme.
+* Added switchSelector method on a device to set a selector switch.
+* Added wild-card option for triggers
+* Added http request data from Domoticz to devices. Now you can check the battery level and switch type and more. Make sure to edit dzVents_settings.lua file first and check the readme for install instructions!!!
+* Added log level setting in dzVents_settings.lua
+
+[0.9.7]
+Added domoticz object resource structure. Updated readme accordingly. No more (or hardly any) need for juggling with all the Domoticz Lua tables and commandArrays.

@@ -505,7 +505,10 @@ local function Domoticz()
 		['ALERTLEVEL_RED'] = 4,
 		['SECURITY_DISARMED'] = 'Disarmed',
 		['SECURITY_ARMEDAWAY'] = 'Armed Away',
-		['SECURITY_ARMEDHOME'] = 'Armed Home'
+		['SECURITY_ARMEDHOME'] = 'Armed Home',
+		['LOG_INFO'] = 2,
+		['LOG_DEBUG'] = 3,
+		['LOG_ERROR'] = 1,
 	}
 
 	-- add domoticz commands to the commandArray
@@ -576,6 +579,10 @@ local function Domoticz()
 			settings['Domoticz ip'],
 			settings['Domoticz port']
 		)
+	end
+
+	function self.log(message, level)
+		log(message, level)
 	end
 
 	-- bootstrap the variables section
@@ -698,15 +705,6 @@ local function Domoticz()
 		if (httpData) then
 			for i, httpDevice in pairs(httpData.result) do
 				if (self.devices[httpDevice['Name']]) then
-
---					if (logLevel == LOG_DEBUG) then
---						log('Http data for device ' .. httpDevice['Name'], LOG_DEBUG)
---						log('=========================', LOG_DEBUG)
---						for attr, val in pairs(httpDevice) do
---							log(attr .. ': ' .. tostring(val), LOG_DEBUG)
---						end
---					end
-
 					local device = self.devices[httpDevice['Name']]
 					device['batteryLevel'] = httpDevice.BatteryLevel
 					device['signalLevel'] = httpDevice.SignalLevel
