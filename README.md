@@ -83,7 +83,7 @@ Installing
 =============
 *First of all, installing dzVents will not affect any of the scripts you have already in place so you can try dzVents without disrupting things.*
 
-Copy the following to to the Domoticz script folder:  `/path/to/domoticz/scripts/lua`:
+Copy the following to the Domoticz script folder:  `/path/to/domoticz/scripts/lua`:
 
  -  `event_helpers.lua`
  - `script_time_main.lua`
