@@ -4,15 +4,14 @@
 
 - [About](#about)
 - [Installing](#installing)
+- [Getting it to work](#getting-it-to-work)
   - [Quickstart](#quickstart)
-- [How does it to work?](#how-does-it-to-work)
   - [Adapting or creating your scripts](#adapting-or-creating-your-scripts)
   - [*timer* trigger options](#timer-trigger-options)
 - [The domoticz object](#the-domoticz-object)
   - [Domoticz object API](#domoticz-object-api)
     - [Attributes:](#attributes)
     - [Methods](#methods)
-    - [Iterators](#iterators)
     - [Contants](#contants)
   - [Device object API](#device-object-api)
     - [Attributes](#attributes)
@@ -383,7 +382,8 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
  - **updateVoltage(voltage)**: *Function*. 
  - **updateWind(bearing, direction, speed, gust, temperature, chill)**: *Function*. 
 
-**"Hey!! I don't see my sensor readings in the device object!! Where is my LUX value for instance?"**
+> "Hey!! I don't see my sensor readings in the device object!! Where is my LUX value for instance?"
+
 That may be because Domoticz doesn't pass all the device data as named attributes. If you cannot find your attribute then you can inspect the **rawData** attribute of the device. This is a table (array) of values. So for a device that has a Lux value you may access it like this:
 
     local lux = mySensor.rawData[0]
