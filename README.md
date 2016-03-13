@@ -9,7 +9,7 @@
   - [Adapting or creating your scripts](#adapting-or-creating-your-scripts)
   - [*timer* trigger options](#timer-trigger-options)
 - [The domoticz object](#the-domoticz-object)
-  - [domoticz object API](#domoticz-object-api)
+  - [Domoticz object API](#domoticz-object-api)
   - [Device object API](#device-object-api)
   - [Variable object API](#variable-object-api)
   - [Switch timing options (delay, duration)](#switch-timing-options-delay-duration)
@@ -206,7 +206,7 @@ So this object structure contains all the information logically arranged where y
 
 *The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
-domoticz object API
+Domoticz object API
 -----------
 The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**:
 
