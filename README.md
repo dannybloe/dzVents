@@ -10,16 +10,16 @@
   - [*timer* trigger options](#timer-trigger-options)
 - [The domoticz object](#the-domoticz-object)
   - [Domoticz object API](#domoticz-object-api)
-    - [Attributes:](#attributes)
-    - [Methods](#methods)
+    - [Domoticz attributes:](#domoticz-attributes)
+    - [Domoticz methods](#domoticz-methods)
     - [Iterators](#iterators)
     - [Contants](#contants)
   - [Device object API](#device-object-api)
-    - [Attributes](#attributes)
-    - [Methods](#methods-1)
+    - [Device attributes](#device-attributes)
+    - [Device methods](#device-methods)
   - [Variable object API](#variable-object-api)
-    - [Attributes](#attributes-1)
-    - [Methods](#methods-2)
+    - [Variable attributes](#variable-attributes)
+    - [Variable methods](#variable-methods)
   - [Switch timing options (delay, duration)](#switch-timing-options-delay-duration)
 - [Final note](#final-note)
 
@@ -231,7 +231,7 @@ Domoticz object API
 -----------
 The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**. There three collection each have two iterator functions: `forEach(function)` and `filter(function)` to make searching for devices easier. See iterators below.
 
-### Attributes:
+### Domoticz attributes:
 
  - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
  - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below. 
@@ -243,7 +243,7 @@ The domoticz object holds all information about your Domoticz system. It has a c
 	 - **sunriseInMinutes**
  - **variables**: *Table*. A collection holding all the user *variable objects* as defined in Domoticz. See **Variable object** for the attributes.  
 
-### Methods
+### Domoticz methods
 
  - **email(subject, message, mailTo)**: *Function*. Send email.
  - **fetchHttpDomoticzData**: *Function*. This will trigger a script that will download the device data from Domoticz and stores this on the filesystem for dzVents to use. This data contains information like battery level and device type information that can only be fetched through an http call. Normally dzVents will do this automatically in the background if it is enabled in the `dzVents_settings.lua` file. If you want to do this manually through an event script perhaps (you can use a switch trigger for instance) then you can disable the automatic fetching by changing the setting in `dzVents_settings.lua` and create your own event.
@@ -307,7 +307,7 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
 	domoticz.devices['myLightSensor'].rawData[1] -- lux value
 ```
 
-### Attributes
+### Device attributes
 
  - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255)
  - **bState**: *Boolean*. Is true for some commong states like 'On' or 'Open' or 'Motion'. 
@@ -333,23 +333,29 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
 	 - **sec**: *Number*
 	 - **year**: *Number*
  - **level**: *Number*. For dimmers and other 'Set Level..%' devices this holds the level like selector switches.
+ - **lux**: *Number*. Lux level for light sensors.
  - **name**: *String*. Name of the device
  - **rain**: Only when applicable.
  - **rainLastHour**: Only when applicable.
- - **rawData**: *Table*:  Not all information from a device is available as a named attribute on the device object. That is because Domoticz doesn't provide this as such. If you have a multi-sensor for instance then you can find all data points in this **rawData** attribute. It is an array (Lua table). E.g. to get the Lux value of a sensor you can do this: `local lux = mySensor.rawData[1]` (assuming it is the first value that is passed by Domoticz).
+ - **rawData**: *Table*:  Not all information from a device is available as a named attribute on the device object. That is because Domoticz doesn't provide this as such. If you have a multi-sensor for instance then you can find all data points in this **rawData** *String*. It is an array (Lua table). E.g. to get the Lux value of a sensor you can do this: `local lux = mySensor.rawData[1]` (assuming it is the first value that is passed by Domoticz). Note that the values are string types!! So if you expect a number, convert it first (`tonumber(device.rawData[1]`).
  - **signalLevel**: *String*. See Domoticz devices table in Domoticz GUI.
  - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
+ - **setPoint**: *Number*. Holds the set point for thermostat like devices. 
+ - **heatingMode**: *String*. For zoned thermostats like EvoHome.
  - **switchType**: *String*. See Domoticz devices table in Domoticz GUI.
  - **switchTypeValue**: *Number*. See Domoticz devices table in Domoticz GUI.
  - **temperature**: Only when applicable.
  - **utility**: Only when applicable.
  - **uv**: Only when applicable.
  - **weather**: Only when applicable.
+ - **WActual**: *Number*. Current Watt usage.
+ - **WhToday**: *Number*. Total Wh usage of the day. Note the unit is Wh and not kWh.
+ - **WhTotal**: *Number*. Total Wh (incremental).
  - **winddir**: Only when applicable.
  - **windgust**: Only when applicable.
  - **windspeed**: Only when applicable.
 
-### Methods
+### Device methods
 
  - **activate()**: *Function*.  Activate the device if it supports it. Supports timing options. See below.
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g. `device.attributeChanged('temperature')`.
@@ -394,7 +400,7 @@ Variable object API
 ------
 User variables created in Domoticz have these attributes and methods:
 
-### Attributes
+### Variable attributes
 
  - **nValue**: *Number*. **value** cast to number.
  - **value**: Raw value coming from Domoticz
@@ -409,7 +415,7 @@ User variables created in Domoticz have these attributes and methods:
 	 - **sec**: *Number*
 	 - **year**: *Number*
 
-### Methods
+### Variable methods
 
  - **set(value)**: *Function*. Tells Domoticz to update the variable. *No need to cast it to a string first (it will be done for you).*
 

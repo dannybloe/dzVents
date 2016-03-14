@@ -18,7 +18,7 @@ LOG_ERROR = 1
 -- global function
 function log(msg, level)
 	if (level == nil) then level = LOG_INFO end
-	if (logLevel == level) then
+	if (level <= logLevel) then
 		print(msg)
 	end
 end

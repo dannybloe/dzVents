@@ -1,3 +1,7 @@
+[0.9.12]
+* Fixed a bug with log level printing. Now errors are printed.
+* Added setPoint, heatingMode, lux, WhTotal, WhToday, WActual attributes to devices that support it. No need to access rawData for these anymore.
+
 [0.9.11]
 * Added log method to domoticz object. Using this to log message in the Domoticz log will respect the log level setting in the settings file. [dannybloe]
 * Updated readme. Better overview, more attributes described.
