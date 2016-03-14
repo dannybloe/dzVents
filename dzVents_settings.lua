@@ -1,5 +1,3 @@
--- Version 0.9.10
-
 --[[
 	Log level = 1: Errors
 	Log level = 2: Errors + info

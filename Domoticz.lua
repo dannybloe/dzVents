@@ -1,6 +1,3 @@
--- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.9
-
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
 local helpers = require('event_helpers')

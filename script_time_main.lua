@@ -1,7 +1,3 @@
--- Version 0.9.10
-
-print('Handle timer events')
-
 -- make sure we can find our modules
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'

@@ -1,6 +1,3 @@
--- Created by: Danny Bloemendaal, danny@bloemeland.nl
--- Version 0.9.9
-
 -- make sure we can find our modules
 local SCRIPTFOLDER = 'scripts'
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
