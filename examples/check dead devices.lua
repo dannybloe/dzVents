@@ -17,7 +17,7 @@ return {
 		for i, deviceToCheck in pairs(devicesToCheck) do
 			local name = deviceToCheck['name']
 			local threshold = deviceToCheck['threshold']
-			local minutes = domoticz.devices[name].lastUpDate.minutesAgo
+			local minutes = domoticz.devices[name].lastUpdate.minutesAgo
 
 			if ( minutes > threshold) then
 				message = message .. 'Device ' ..
