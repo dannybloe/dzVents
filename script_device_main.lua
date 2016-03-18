@@ -60,7 +60,8 @@ if (devicechanged~=nil) then
 
 		if (device~=nil) then
 			-- first search by name
-			scriptsToExecute = findScriptsForChangedDevice(changedDeviceName, allEventScripts)
+			-- scriptsToExecute = findScriptsForChangedDevice(changedDeviceName, allEventScripts)
+			scriptsToExecute = findScriptsForChangedDevice(device.name, allEventScripts)
 
 			if (scriptsToExecute ==nil) then
 				-- search by id

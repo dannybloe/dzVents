@@ -12,11 +12,15 @@ LOG_INFO = 2
 LOG_DEBUG = 3
 LOG_ERROR = 1
 
+function _print(msg)
+	print(msg)
+end
+
 -- global function
 function log(msg, level)
 	if (level == nil) then level = LOG_INFO end
 	if (level <= logLevel) then
-		print(msg)
+		_print(msg)
 	end
 end
 
@@ -35,6 +39,17 @@ local function callEventHandler(eventHandler, device, domoticz)
 	return {}
 end
 
+local deviceValueExtenstions = {
+	['_Temperature'] = true,
+	['_Dewpoint'] = true,
+	['_Humidity'] = true,
+	['_Barometer'] = true,
+	['_Utility'] = true,
+	['_Weather'] = true,
+	['_Rain'] = true,
+	['_RainLastHour'] = true,
+	['_UV'] = true
+}
 
 local function reverseFind(s, target)
 	-- string: 'this long string is a long string'
@@ -47,18 +62,30 @@ local function reverseFind(s, target)
 
 	local from, to = string.find(reversed, rTarget)
 	if (from~=nil) then
-		local targetPos = string.len(s) - to
-		return targetPos, targetPos + string.len(target)
+		-- return 1 less
+		local targetPos = string.len(s) - to + 1
+		return targetPos, targetPos + string.len(target) - 1
 	else
 		return nil, nil
 	end
 end
 
 local function getDeviceNameByEvent(event)
+	-- event can be of the form <device name>_<value extension>
+	-- where device name can contain underscores as well
+	-- we have to extract the device name here and peel away the
+	-- known value extension
+
 	local pos, len = reverseFind(event, '_')
+
 	local name = event
 	if (pos ~= nil and pos > 1) then -- cannot start with _ (we use that for our _always script)
-		name = string.sub(event, 1, pos)
+		local valueExtension = string.sub(event, pos)
+
+		-- only peel away the first part if the extension is known
+		if (deviceValueExtenstions[valueExtension]) then
+			name = string.sub(event, 1, pos - 1)
+		end
 	end
 	return name
 end
@@ -76,19 +103,32 @@ local function scandir(directory)
 		cmd = 'dir "'..directory..'" /b /ad'
 	end
 
+	t = {}
 	local pfile = popen(cmd)
 	for filename in pfile:lines() do
-
 		pos,len = string.find(filename, '.lua')
+
 		if (pos and pos > 0 ) then
-			i = i + 1
-			t[i] = string.sub(filename, 1, pos-1)
-			log('Found module in ' .. SCRIPTFOLDER .. ' folder: ' .. t[i], LOG_DEBUG)
+			table.insert(t, string.sub(filename, 1, pos-1))
+			log('Found module in ' .. SCRIPTFOLDER .. ' folder: ' .. t[#t], LOG_DEBUG)
 		end
 
 	end
 	pfile:close()
 	return t
+end
+
+local function getDayOfWeek(testTime)
+	local d
+	if (testTime~=nil) then
+		d = testTime.day
+	else
+		d = os.date('*t').wday
+	end
+
+	local lookup = {'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' }
+	log('Current day .. ' .. lookup[d], LOG_DEBUG)
+	return lookup[d]
 end
 
 local function getNow(testTime)
@@ -414,20 +454,6 @@ local function dumpCommandArray(commandArray)
 	if(printed) then log('=====================================================', LOG_INFO) end
 end
 
-local function getDayOfWeek(testTime)
-	local d
-	if (testTime~=nil) then
-		d = testTime.day
-	else
-		d = os.date('*t').wday
-	end
-
-	local lookup = {'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' }
-	log('Current day .. ' .. lookup[d], LOG_DEBUG)
-	return lookup[d]
-end
-
-
 -- accepts a table of timeDefs, if one of them matches with the
 -- current time, then it returns true
 -- otherwise it returns false
@@ -440,7 +466,7 @@ local function checkTimeDefs(timeDefs, testTime)
 	return false
 end
 
-return {
+local mod = {
 	handleEvents = handleEvents,
 	getEventBindings = getEventBindings,
 	getTimerHandlers = getTimerHandlers,
@@ -449,5 +475,23 @@ return {
 	reverseFind = reverseFind,
 	fetchHttpDomoticzData = fetchHttpDomoticzData,
 	requestDomoticzData = requestDomoticzData,
-	fileExists = fileExists
+	fileExists = fileExists,
 }
+
+if (_G._TEST) then
+	mod['_print'] = _print
+	mod['checkTimeDefs'] = checkTimeDefs
+	mod['getDayOfWeek'] = getDayOfWeek
+	mod['getDevicesPath'] = getDevicesPath
+	mod['isTriggerByTime'] = isTriggerByTime
+	mod['isTriggerByHour'] = isTriggerByHour
+	mod['isTriggerByMinute'] = isTriggerByMinute
+	mod['getNow'] = getNow
+	mod['scandir'] = scandir
+	mod['getDeviceNameByEvent'] = getDeviceNameByEvent
+	mod['reverseFind'] = reverseFind
+	mod['callEventHandler'] = callEventHandler
+end
+
+
+return mod
