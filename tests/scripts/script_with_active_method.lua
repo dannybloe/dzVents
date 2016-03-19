@@ -1,6 +1,6 @@
 return {
-	active = function(x)
-		return x.active()
+	active = function(domoticz)
+		return (domoticz.devices['device1'].name == 'Device 1')
 	end,
 	on = {
 		'onscript_active'

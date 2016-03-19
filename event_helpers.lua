@@ -6,7 +6,7 @@ LOG_INFO = 2
 LOG_DEBUG = 3
 LOG_ERROR = 1
 
-local function EventHelpers(scriptFolder, mainMethod)
+local function EventHelpers(domoticz, scriptFolder, mainMethod)
 
 	local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 
@@ -18,6 +18,7 @@ local function EventHelpers(scriptFolder, mainMethod)
 	package.path = package.path .. ';' .. scriptPath .. scriptFolder .. '/?.lua'
 
 	local self = {
+		['domoticz'] = domoticz,
 		['scriptFolder'] = scriptFolder,
 		['mainMethod'] = mainMethod or MAIN_METHOD,
 		['deviceValueExtenstions'] = {
@@ -52,10 +53,11 @@ local function EventHelpers(scriptFolder, mainMethod)
 	-- make a global log
 	log = self.log
 
-	function self.callEventHandler(eventHandler, device, domoticz)
+	function self.callEventHandler(eventHandler, device)
 		if (eventHandler[self.mainMethod] ~= nil) then
-			local ok, res = pcall(eventHandler[self.mainMethod], device, domoticz)
+			local ok, res = pcall(eventHandler[self.mainMethod], self.domoticz, device)
 			if (ok) then
+				eventHandler['__called'] = true
 				return res
 			else
 				self.log('An error occured when calling event handler ' .. eventHandler.name, LOG_ERROR)
@@ -213,7 +215,6 @@ local function EventHelpers(scriptFolder, mainMethod)
 		end
 	end
 
-
 	function self.evalTimeTrigger(t, testTime)
 		if (testTime) then self.log(t) end
 
@@ -285,25 +286,29 @@ local function EventHelpers(scriptFolder, mainMethod)
 		end
 	end
 
-	function self.handleEvents(events, domoticz, device)
+	function self.handleEvents(events, device)
 		if (type(events) ~= 'table') then
 			return
 		end
 
 		for eventIdx, eventHandler in pairs(events) do
-			self.log('=====================================================', LOG_INFO)
-			self.log('>>> Handler: ' .. eventHandler.name , LOG_INFO)
-			if (device) then
-				self.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), LOG_INFO)
+			if (not eventHandler.__called) then
+				self.log('=====================================================', LOG_INFO)
+				self.log('>>> Handler: ' .. eventHandler.name , LOG_INFO)
+				if (device) then
+					self.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), LOG_INFO)
+				end
+
+				self.log('.....................................................', LOG_INFO)
+
+				self.callEventHandler(eventHandler, device)
+
+				self.log('.....................................................', LOG_INFO)
+				self.log('<<< Done ', LOG_INFO)
+				self.log('-----------------------------------------------------', LOG_INFO)
+			else
+				self.log('Skipping ' .. eventHandler.name .. '. Already executed', LOG_INFO)
 			end
-
-			self.log('.....................................................', LOG_INFO)
-
-			self.callEventHandler(eventHandler, domoticz, device)
-
-			self.log('.....................................................', LOG_INFO)
-			self.log('<<< Done ', LOG_INFO)
-			self.log('-----------------------------------------------------', LOG_INFO)
 		end
 	end
 
@@ -319,7 +324,7 @@ local function EventHelpers(scriptFolder, mainMethod)
 		return false
 	end
 
-	function self.getEventBindings(domoticz, mode)
+	function self.getEventBindings(mode)
 		local bindings = {}
 		local errModules = {}
 		local ok, modules, moduleName, i, event, j, device
@@ -339,7 +344,7 @@ local function EventHelpers(scriptFolder, mainMethod)
 					if (module.active ~= nil) then
 						local active = false
 						if (type(module.active) == 'function') then
-							active = module.active(domoticz)
+							active = module.active(self.domoticz)
 						else
 							active = module.active
 						end
@@ -397,8 +402,8 @@ local function EventHelpers(scriptFolder, mainMethod)
 		return bindings, errModules
 	end
 
-	function self.getTimerHandlers(domoticz)
-		return self.getEventBindings(domoticz, 'timer')
+	function self.getTimerHandlers()
+		return self.getEventBindings('timer')
 	end
 
 	function self.getDevicesPath()
@@ -485,7 +490,70 @@ local function EventHelpers(scriptFolder, mainMethod)
 		if(printed) then self.log('=====================================================', LOG_INFO) end
 	end
 
+	function self.findScriptForChangedDevice(changedDeviceName, allEventScripts)
+		-- event could be like: myPIRLivingRoom
+		-- or myPir(.*)
+		self.log('Searching for scripts for changed device: '.. changedDeviceName, LOG_DEBUG)
+
+		for scriptTrigger, scripts in pairs(allEventScripts) do
+			if (string.find(scriptTrigger, '*')) then -- a wild-card was use
+				-- turn it into a valid regexp
+				scriptTrigger = string.gsub(scriptTrigger, "*", ".*")
+
+				if (string.match(changedDeviceName, scriptTrigger)) then
+					-- there is trigger for this changedDeviceName
+					return scripts
+				end
+			else
+				if (scriptTrigger == changedDeviceName) then
+					-- there is trigger for this changedDeviceName
+					return scripts
+				end
+			end
+		end
+
+		return nil
+	end
+
+	function self.dispatchDeviceEventsToScripts(devicechanged)
+
+		local allEventScripts = self.getEventBindings()
+
+		if (devicechanged~=nil) then
+			for changedDeviceName, changedDeviceValue in pairs(devicechanged) do
+
+				self.log('Event in devicechanged: ' .. changedDeviceName .. ' value: ' .. changedDeviceValue, LOG_DEBUG)
+				local scriptsToExecute
+
+				-- find the device for this name
+				-- could be MySensor or MySensor_Temperature
+				-- the device returned would be MySensor in that case
+				local baseName = self.getDeviceNameByEvent(changedDeviceName)
+				local device = self.domoticz.devices[baseName]
+
+				if (device~=nil) then
+					-- first search by name
+					scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
+
+					if (scriptsToExecute ==nil) then
+						-- search by id
+						scriptsToExecute = allEventScripts[device.id]
+					end
+					if (scriptsToExecute ~=nil) then
+						self.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', LOG_INFO)
+						self.handleEvents(scriptsToExecute, device)
+					end
+
+				else
+					-- this is weird.. basically impossible because the list of device objects is based on what
+					-- Domoticz passes along.
+				end
+			end
+		end
+	end
+
 	return self
+
 end
 
 return EventHelpers

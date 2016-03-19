@@ -401,12 +401,6 @@ local function Device(domoticz, name, state)
 		self.update(0, distance)
 	end
 
---	function self.updateSelector(value)
---		-- untested
---		domoticz.sendCommand('SwtichLight', self.id .. '|')
---		self.update(0, distance)
---	end
-
 	-- returns true if an attribute is marked as changed
 	function self.attributeChanged(attribute)
 		return (changedAttributes[attribute] == true)
@@ -542,28 +536,6 @@ local function Domoticz()
 
 		-- return a reference to the newly added item
 		return self.commandArray[#self.commandArray], command, value
-	end
-
-	-- return the device object by event name
-	-- event name can be like MySensor_Temperature
-	-- or some_sensor_Temperature
-	function self.getDeviceByEvent(eventName)
-
-		local pos, len = helpers.reverseFind(eventName, '_')
-		local name = eventName
-
-		-- check for the _ addition
-		if (pos ~= nil and pos > 1) then -- should be larger than 1!
-			name = string.sub(eventName, 1, pos)
-		end
-
-		local device = self.devices[name]
-
-		if (device == nil) then
-			log('Cannot find a device by the event name ' .. eventName, LOG_ERROR)
-		end
-
-		return device
 	end
 
 	-- have domoticz send a push notification

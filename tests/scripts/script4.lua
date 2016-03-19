@@ -1,10 +1,9 @@
-local min = 'minute'
 return {
 	active = true,
 	on = {
-		['timer'] = 'every ' .. min
+		'onscript4'
 	},
 	execute = function(domoticz, device)
-		return 'script_timer_table'
+		return 'script4'
 	end
 }

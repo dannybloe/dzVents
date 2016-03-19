@@ -1,10 +1,9 @@
-local min = 'minute'
 return {
 	active = true,
 	on = {
-		['timer'] = 'every ' .. min
+		'wild*'
 	},
 	execute = function(domoticz, device)
-		return 'script_timer_table'
+		return 'script_wildcard1: ' .. domoticz.name .. ' ' .. device.name
 	end
 }

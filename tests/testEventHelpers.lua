@@ -9,8 +9,9 @@ local LOG_ERROR = 1
 
 local function keys(t)
 	local keys = _.keys(t)
-	table.sort(keys)
-	return keys
+	return _.sortBy(keys, function(k)
+		return tostring(k)
+	end)
 end
 
 local function values(t)
@@ -22,21 +23,26 @@ end
 describe('event helpers', function()
 
 	local EventHelpers, helpers
-	local domoticzFactory = function(activeValue)
-		return {
-			['active']= function()
-				return activeValue
-			end
-		}
-	end
 
-	local domoticzMock = domoticzFactory(false)
+	local domoticz = {
+
+		['name'] = 'domoticz', -- used in script1
+		['devices'] = {
+			['device1'] = { name = '' },
+			['onscript1'] = { name = 'onscript1', id = 1 },
+			['onscript4'] = { name = 'onscript4', id = 4 },
+			['on_script_5'] = { name = 'on_script_5', id = 5 },
+			['wildcard'] = { name = 'wildcard', id = 6 },
+			['someweirddevice'] = { name = 'someweirddevice', id = 7 },
+			['mydevice'] = { name = 'mydevice', id = 8 }
+		}
+	}
 
 	setup(function()
 		_G.logLevel = 1
 		--_G.log = print
 		EventHelpers = require('event_helpers')
-		helpers = EventHelpers('tests/scripts')
+		helpers = EventHelpers(domoticz, 'tests/scripts')
 	end)
 
 	teardown(function()
@@ -277,7 +283,7 @@ describe('event helpers', function()
 
 	describe('Bindings', function()
 		it('should return an array of scripts for the same trigger', function()
-			local modules = helpers.getEventBindings(domoticzMock)
+			local modules = helpers.getEventBindings()
 			local script1 = modules['onscript1']
 
 			assert.are.same('table', type(script1))
@@ -293,9 +299,16 @@ describe('event helpers', function()
 		end)
 
 		it('should return scripts for all triggers', function()
-			local modules = helpers.getEventBindings(domoticzMock)
-			assert.are.same({'onscript1', 'onscript2'}, keys(modules))
-			assert.are.same(2, _.size(modules))
+			local modules = helpers.getEventBindings()
+			assert.are.same({
+				8,
+				'on_script_5',
+				'onscript1',
+				'onscript2',
+				'onscript4',
+				'some*device',
+				'wild*' }, keys(modules))
+			assert.are.same(7, _.size(modules))
 		end)
 
 		it('should detect erroneous modules', function()
@@ -306,7 +319,7 @@ describe('event helpers', function()
 				end
 			end
 
-			local modules, errModules = helpers.getEventBindings(domoticzMock)
+			local modules, errModules = helpers.getEventBindings()
 			assert.are.same(true, err)
 			assert.are.same(4, _.size(errModules))
 			assert.are.same({
@@ -328,7 +341,7 @@ describe('event helpers', function()
 				end
 			end
 
-			local modules, errModules = helpers.getEventBindings(domoticzMock)
+			local modules, errModules = helpers.getEventBindings()
 			assert.are.same(true, err)
 			assert.are.same(4, _.size(errModules))
 			assert.are.same({
@@ -349,7 +362,7 @@ describe('event helpers', function()
 				end
 			end
 
-			local modules, errModules = helpers.getEventBindings(domoticzMock)
+			local modules, errModules = helpers.getEventBindings()
 			assert.are.same(true, err)
 			assert.are.same(4, _.size(errModules))
 			assert.are.same({
@@ -362,20 +375,17 @@ describe('event helpers', function()
 		end)
 
 		it('should evaluate active functions', function()
-			local d = domoticzFactory(true)
-			local modules = helpers.getEventBindings(d)
-			local script = modules['onscript_active']
+			domoticz.devices['device1'].name = 'Device 1'
+			local modules = helpers.getEventBindings()
 
+			local script = modules['onscript_active']
 			assert.is_not_nil(script)
-			d = domoticzFactory(false)
-			modules = helpers.getEventBindings(d)
-			script = modules['onscript_active']
-			assert.is_nil(script)
+			domoticz.devices['device1'].name = ''
 		end)
 
 		it('should handle combined triggers', function()
 
-			local modules = helpers.getEventBindings(domoticzMock)
+			local modules = helpers.getEventBindings()
 			local script2 = modules['onscript2']
 
 			assert.are.same('table', type(script2))
@@ -392,7 +402,7 @@ describe('event helpers', function()
 
 		it('should return timer scripts', function()
 			--on = {'timer'} -- every minute
-			local modules = helpers.getTimerHandlers(domoticzMock)
+			local modules = helpers.getTimerHandlers()
 
 			assert.are.same(3, _.size(modules))
 			local names = _.pluck(modules, {'name'})
@@ -492,23 +502,21 @@ describe('event helpers', function()
 
 		it('should call the event handler', function()
 
-			local bindings = helpers.getEventBindings(domoticzMock)
+			local bindings = helpers.getEventBindings()
 			local script1 = bindings['onscript1'][1]
 
 			local res = helpers.callEventHandler(script1,
 				{
 					name = 'device'
-				},
-				{
-					name = 'domoticz'
 				})
 			-- should pass the arguments to the execute function
 			-- and catch the results from the function
-			assert.is_same('script1: device domoticz', res)
+			assert.is_same('script1: domoticz device', res)
+			bindings['onscript1'][1].__called = false --reset
 		end)
 
 		it('should catch errors', function()
-			local bindings = helpers.getEventBindings(domoticzMock)
+			local bindings = helpers.getEventBindings()
 			local script2 = bindings['onscript2'][1]
 
 
@@ -525,7 +533,7 @@ describe('event helpers', function()
 		end)
 
 		it('should handle events', function()
-			local bindings = helpers.getEventBindings(domoticzMock)
+			local bindings = helpers.getEventBindings()
 			local script1 = bindings['onscript1']
 
 			local called = {}
@@ -536,6 +544,80 @@ describe('event helpers', function()
 			helpers.handleEvents(script1)
 			assert.is_same({"script1", "script3", "script_combined"}, called)
 
+		end)
+
+		it('should handle events only once', function()
+			local bindings = helpers.getEventBindings()
+			local script4 = bindings['onscript4']
+
+			local called = {}
+			helpers.callEventHandler = function(script)
+				script.__called = true
+				table.insert(called, script.name)
+			end
+
+			helpers.handleEvents(script4)
+			assert.is_same({"script4"}, called)
+
+			-- now again
+			called = {}
+			helpers.handleEvents(script4)
+			assert.is_same({}, called)
+		end)
+	end)
+
+	describe('Event dispatching', function()
+
+		setup(function()
+
+		end)
+
+		teardown(function()
+
+		end)
+
+		it('should dispatch all event scripts', function()
+			local scripts = {}
+			local devices = {}
+
+			local devicechanged = {
+				['onscript1'] = 10,
+				['onscript4'] = 20,
+				['wildcard'] = 30,
+				['someweirddevice'] = 40,
+				['on_script_5_Temperature'] = 50,
+				['mydevice'] = 60 --script 6 triggers by this device' id
+			}
+
+			helpers.handleEvents = function(_scripts, _device)
+				_.forEach(_scripts, function(s)
+					table.insert(scripts, s.name)
+				end)
+				table.insert(devices, _device.name)
+			end
+
+			helpers.dispatchDeviceEventsToScripts(devicechanged)
+
+			table.sort(scripts)
+			table.sort(devices)
+
+			assert.is_same({
+				"script1",
+				"script3",
+				"script4",
+				"script5",
+				"script6",
+				"script_combined",
+				"script_wildcard1",
+				"script_wildcard2"
+			}, scripts)
+			assert.is_same({
+				"mydevice",
+				"on_script_5",
+				"onscript1",
+				"onscript4",
+				"someweirddevice",
+				"wildcard"}, devices)
 		end)
 
 	end)
