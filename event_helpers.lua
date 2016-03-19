@@ -254,6 +254,18 @@ local function handleEvents(events, domoticz, device)
 	end
 end
 
+-- accepts a table of timeDefs, if one of them matches with the
+-- current time, then it returns true
+-- otherwise it returns false
+local function checkTimeDefs(timeDefs, testTime)
+	for i, timeDef in pairs(timeDefs) do
+		if (evalTimeTrigger(timeDef, testTime)) then
+			return true
+		end
+	end
+	return false
+end
+
 local function getEventBindings(domoticz, mode)
 	local bindings = {}
 	local ok, modules, moduleName, i, event, j, device
@@ -303,7 +315,7 @@ local function getEventBindings(domoticz, mode)
 									end
 								end
 							else
-								if (event ~= 'timer') then
+								if (event ~= 'timer' and j~='timer') then
 									-- let's not try to resolve indexes to names here for performance reasons
 									if ( bindings[event] == nil) then
 										bindings[event] = {}
@@ -428,17 +440,7 @@ local function getDayOfWeek(testTime)
 end
 
 
--- accepts a table of timeDefs, if one of them matches with the
--- current time, then it returns true
--- otherwise it returns false
-local function checkTimeDefs(timeDefs, testTime)
-	for i, timeDef in pairs(timeDefs) do
-		if (evalTimeTrigger(timeDef, testTime)) then
-			return true
-		end
-	end
-	return false
-end
+
 
 return {
 	handleEvents = handleEvents,
