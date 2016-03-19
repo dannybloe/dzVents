@@ -1,4 +1,5 @@
 --require 'busted.runner'()
+local _ = require 'lodash'
 
 package.path = package.path .. ";../?.lua"
 
@@ -7,32 +8,15 @@ local LOG_DEBUG = 3
 local LOG_ERROR = 1
 
 local function keys(t)
-	local keys = {}
-	local i,j
-	for i,j in pairs(t) do
-		table.insert(keys, i)
-	end
+	local keys = _.keys(t)
 	table.sort(keys)
 	return keys
 end
 
 local function values(t)
-	local values = {}
-	local i,j
-	for i,j in pairs(t) do
-		table.insert(values, j)
-	end
+	local values = _.values(t)
 	table.sort(values)
 	return values
-end
-
-local function length(t)
-	local count = 0
-	for i,j in pairs(t) do
-		count = count + 1
-	end
-
-	return count
 end
 
 describe("Logging", function()
@@ -364,7 +348,7 @@ describe('Bindings', function()
 	it('should return scripts for all triggers', function()
 		local modules = helpers.getEventBindings(domoticzMock)
 		assert.are.same({'onscript1', 'onscript2'}, keys(modules))
-		assert.are.same(2, length(modules))
+		assert.are.same(2, _.size(modules))
 	end)
 
 	it('should detect erroneous modules', function()
@@ -377,7 +361,7 @@ describe('Bindings', function()
 
 		local modules, errModules = helpers.getEventBindings(domoticzMock)
 		assert.are.same(true, err)
-		assert.are.same(4, length(errModules))
+		assert.are.same(4, _.size(errModules))
 		assert.are.same({
 			'script_error',
 			'script_incomplete_missing_execute',
@@ -399,7 +383,7 @@ describe('Bindings', function()
 
 		local modules, errModules = helpers.getEventBindings(domoticzMock)
 		assert.are.same(true, err)
-		assert.are.same(4, length(errModules))
+		assert.are.same(4, _.size(errModules))
 		assert.are.same({
 			'script_error',
 			'script_incomplete_missing_execute',
@@ -420,7 +404,7 @@ describe('Bindings', function()
 
 		local modules, errModules = helpers.getEventBindings(domoticzMock)
 		assert.are.same(true, err)
-		assert.are.same(4, length(errModules))
+		assert.are.same(4, _.size(errModules))
 		assert.are.same({
 			'script_error',
 			'script_incomplete_missing_execute',
@@ -459,7 +443,19 @@ describe('Bindings', function()
 
 	end)
 
-	it('should ignore timer triggers when mode<>timer', function()
+	it('should return timer scripts', function()
+		--on = {'timer'} -- every minute
+		local modules = helpers.getTimerHandlers(domoticzMock)
+
+		assert.are.same(3, _.size(modules))
+		local names = _.pluck(modules, {'name'})
+		table.sort(names)
+
+		assert.are.same({
+			"script_timer_classic",
+			"script_timer_single",
+			"script_timer_table" }, names)
+
 	end)
 
 end)

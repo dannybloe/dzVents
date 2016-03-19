@@ -368,7 +368,7 @@ local function getEventBindings(domoticz, mode)
 									end
 								end
 							else
-								if (event ~= 'timer') then
+								if (event ~= 'timer' and j~='timer') then
 									-- let's not try to resolve indexes to names here for performance reasons
 									if (bindings[event] == nil) then
 										bindings[event] = {}
