@@ -6,6 +6,35 @@ local LOG_INFO = 2
 local LOG_DEBUG = 3
 local LOG_ERROR = 1
 
+local function keys(t)
+	local keys = {}
+	local i,j
+	for i,j in pairs(t) do
+		table.insert(keys, i)
+	end
+	table.sort(keys)
+	return keys
+end
+
+local function values(t)
+	local values = {}
+	local i,j
+	for i,j in pairs(t) do
+		table.insert(values, j)
+	end
+	table.sort(values)
+	return values
+end
+
+local function length(t)
+	local count = 0
+	for i,j in pairs(t) do
+		count = count + 1
+	end
+
+	return count
+end
+
 describe("Logging", function()
 
 	local helpers
@@ -46,7 +75,6 @@ describe("Logging", function()
 	end)
 
 end)
-
 
 describe('File checking', function()
 	local helpers
@@ -287,6 +315,151 @@ describe('Evaluate time triggers', function()
 		assert.is_true(helpers.checkTimeDefs({ 'at *:3', 'at *:5', 'at 1:*'}, {['hour']=1, ['min']=11}))
 
 		assert.is_false(helpers.checkTimeDefs({ 'at *:3', 'at *:5', 'at 1:*'}, {['hour']=2, ['min']=11}))
+	end)
+
+end)
+
+describe('Bindings', function()
+
+	local helpers
+	local domoticzFactory = function(activeValue)
+		return {
+			['active']= function()
+				return activeValue
+			end
+		}
+	end
+
+	local domoticzMock = domoticzFactory(false)
+
+	setup(function()
+		_G._TEST = true
+		_G.logLevel = 1
+		--_G.log = print
+		helpers = require('event_helpers')
+		helpers.setScriptFolder('tests/scripts')
+	end)
+
+	teardown(function()
+		_G._TEST = false
+		helpers = nil
+	end)
+
+	it('should return an array of scripts for the same trigger', function()
+		local modules = helpers.getEventBindings(domoticzMock)
+		local script1 = modules['onscript1']
+
+		assert.are.same('table', type(script1))
+
+		local res = {}
+		for i,mod in pairs(script1) do
+			table.insert(res, mod.name)
+		end
+		table.sort(res)
+
+		assert.are.same({'script1', 'script3', 'script_combined'}, res)
+
+	end)
+
+	it('should return scripts for all triggers', function()
+		local modules = helpers.getEventBindings(domoticzMock)
+		assert.are.same({'onscript1', 'onscript2'}, keys(modules))
+		assert.are.same(2, length(modules))
+	end)
+
+	it('should detect erroneous modules', function()
+		local err = false
+		_G.log = function(msg,level)
+			if (level == 1) then
+				err = true
+			end
+		end
+
+		local modules, errModules = helpers.getEventBindings(domoticzMock)
+		assert.are.same(true, err)
+		assert.are.same(4, length(errModules))
+		assert.are.same({
+			'script_error',
+			'script_incomplete_missing_execute',
+			'script_incomplete_missing_on',
+			'script_notable'
+		}, values(errModules))
+	end)
+
+	it('should detect non-table modules', function()
+
+		local err = false
+		_G.log = function(msg,level)
+			if (level == 1) then
+				if ( string.find(msg, 'not a valid module') ~= nil) then
+					err = true
+				end
+			end
+		end
+
+		local modules, errModules = helpers.getEventBindings(domoticzMock)
+		assert.are.same(true, err)
+		assert.are.same(4, length(errModules))
+		assert.are.same({
+			'script_error',
+			'script_incomplete_missing_execute',
+			'script_incomplete_missing_on',
+			'script_notable'
+		}, values(errModules))
+	end)
+
+	it('should detect modules without on section', function()
+		local err = false
+		_G.log = function(msg,level)
+			if (level == 1) then
+				if ( string.find(msg, 'lua has no "on" and/or') ~= nil) then
+					err = true
+				end
+			end
+		end
+
+		local modules, errModules = helpers.getEventBindings(domoticzMock)
+		assert.are.same(true, err)
+		assert.are.same(4, length(errModules))
+		assert.are.same({
+			'script_error',
+			'script_incomplete_missing_execute',
+			'script_incomplete_missing_on',
+			'script_notable'
+		}, values(errModules))
+
+	end)
+
+	it('should evaluate active functions', function()
+		local d = domoticzFactory(true)
+		local modules = helpers.getEventBindings(d)
+		local script = modules['onscript_active']
+
+		assert.is_not_nil(script)
+		d = domoticzFactory(false)
+		modules = helpers.getEventBindings(d)
+		script = modules['onscript_active']
+		assert.is_nil(script)
+	end)
+
+	it('should handle combined triggers', function()
+
+		local modules = helpers.getEventBindings(domoticzMock)
+		local script2 = modules['onscript2']
+
+		assert.are.same('table', type(script2))
+
+		local res = {}
+		for i,mod in pairs(script2) do
+			table.insert(res, mod.name)
+		end
+		table.sort(res)
+
+		assert.are.same({'script2', 'script_combined'}, res)
+
+	end)
+
+	it('should ignore timer triggers when mode<>timer', function()
 	end)
 
 end)

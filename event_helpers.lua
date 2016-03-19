@@ -1,8 +1,17 @@
 -- make sure we can find our modules
-local SCRIPTFOLDER = 'scripts'
+
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
-package.path    = package.path .. ';' .. scriptPath .. '?.lua'
-package.path    = package.path .. ';' .. scriptPath .. SCRIPTFOLDER .. '/?.lua'
+local SCRIPTFOLDER = '/scripts'
+
+local function setScriptFolder(folder)
+	if (folder ~= nil) then
+		SCRIPTFOLDER = folder
+	end
+	package.path = package.path .. ';' .. scriptPath .. '?.lua'
+	package.path = package.path .. ';' .. scriptPath .. SCRIPTFOLDER .. '/?.lua'
+end
+
+setScriptFolder(SCRIPTFOLDER)
 
 local MAIN_METHOD = 'execute'
 
@@ -23,6 +32,7 @@ function log(msg, level)
 		_print(msg)
 	end
 end
+
 
 local function callEventHandler(eventHandler, device, domoticz)
 	if (eventHandler[MAIN_METHOD] ~= nil) then
@@ -294,16 +304,31 @@ local function handleEvents(events, domoticz, device)
 	end
 end
 
+-- accepts a table of timeDefs, if one of them matches with the
+-- current time, then it returns true
+-- otherwise it returns false
+local function checkTimeDefs(timeDefs, testTime)
+	for i, timeDef in pairs(timeDefs) do
+		if (evalTimeTrigger(timeDef, testTime)) then
+			return true
+		end
+	end
+	return false
+end
+
+
 local function getEventBindings(domoticz, mode)
 	local bindings = {}
+	local errModules = {}
 	local ok, modules, moduleName, i, event, j, device
-	ok, modules = pcall( scandir, scriptPath .. '/' .. SCRIPTFOLDER)
+	ok, modules = pcall( scandir, scriptPath .. SCRIPTFOLDER)
 	if (not ok) then
 		log(modules, LOG_ERROR)
 		return nil
 	end
 
 	for i, moduleName  in pairs(modules) do
+
 		local module, skip
 		ok, module = pcall(require, moduleName)
 		if (ok) then
@@ -345,7 +370,7 @@ local function getEventBindings(domoticz, mode)
 							else
 								if (event ~= 'timer') then
 									-- let's not try to resolve indexes to names here for performance reasons
-									if ( bindings[event] == nil) then
+									if (bindings[event] == nil) then
 										bindings[event] = {}
 									end
 									table.insert(bindings[event], module)
@@ -354,17 +379,20 @@ local function getEventBindings(domoticz, mode)
 						end
 					else
 						log('Script ' .. moduleName .. '.lua has no "on" and/or "' .. MAIN_METHOD .. '" section. Skipping', LOG_ERROR)
+						table.insert(errModules, moduleName)
 					end
 				end
 			else
 				log('Script ' .. moduleName .. '.lua is not a valid module. Skipping', LOG_ERROR)
+				table.insert(errModules, moduleName)
 			end
 		else
+			table.insert(errModules, moduleName)
 			log(module, LOG_ERROR)
 		end
 	end
 
-	return bindings
+	return bindings, errModules
 end
 
 local function getTimerHandlers(domoticz)
@@ -454,17 +482,6 @@ local function dumpCommandArray(commandArray)
 	if(printed) then log('=====================================================', LOG_INFO) end
 end
 
--- accepts a table of timeDefs, if one of them matches with the
--- current time, then it returns true
--- otherwise it returns false
-local function checkTimeDefs(timeDefs, testTime)
-	for i, timeDef in pairs(timeDefs) do
-		if (evalTimeTrigger(timeDef, testTime)) then
-			return true
-		end
-	end
-	return false
-end
 
 local mod = {
 	handleEvents = handleEvents,
@@ -491,6 +508,7 @@ if (_G._TEST) then
 	mod['getDeviceNameByEvent'] = getDeviceNameByEvent
 	mod['reverseFind'] = reverseFind
 	mod['callEventHandler'] = callEventHandler
+	mod['setScriptFolder'] = setScriptFolder
 end
 
 
