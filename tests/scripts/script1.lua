@@ -4,6 +4,6 @@ return {
 		'onscript1'
 	},
 	execute = function(domoticz, device)
-		return 'script1'
+		return 'script1: ' .. domoticz.name .. ' ' .. device.name
 	end
 }
