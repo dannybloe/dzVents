@@ -1,7 +1,5 @@
---require 'busted.runner'()
 local _ = require 'lodash'
 
-package.path = package.path .. ";../?.lua"
 package.path = package.path .. ";../?.lua"
 
 local LOG_INFO = 2
@@ -26,7 +24,7 @@ describe('event helpers', function()
 	local EventHelpers, helpers
 
 	local domoticz = {
-
+		['settings'] = {},
 		['name'] = 'domoticz', -- used in script1
 		['devices'] = {
 			['device1'] = { name = '' },
@@ -40,10 +38,11 @@ describe('event helpers', function()
 	}
 
 	setup(function()
+		local settings = {}
 		_G.logLevel = 1
 		--_G.log = print
 		EventHelpers = require('EventHelpers')
-		helpers = EventHelpers(domoticz, 'tests/scripts')
+		helpers = EventHelpers(settings, domoticz, 'tests/scripts')
 	end)
 
 	teardown(function()
@@ -96,16 +95,6 @@ describe('event helpers', function()
 			_G.logLevel = 0
 			helpers.log('error', LOG_ERROR)
 			assert.is_nil(printed)
-		end)
-	end)
-
-	describe('File checking', function()
-		it('should return true if a file exists', function()
-			assert.is_true(helpers.fileExists('testfile'))
-		end)
-
-		it('should return false if a file does not exist', function()
-			assert.is_false(helpers.fileExists('blatestfile'))
 		end)
 	end)
 
@@ -419,29 +408,9 @@ describe('event helpers', function()
 	end)
 
 	describe('Http data', function()
-		it('should return the path to devices.lua', function()
-			local path = helpers.getDevicesPath()
-			assert.are.same('../devices.lua', path)
-		end)
-
-		it('should fetch the http data', function()
-			local cmd
-
-			helpers.osExecute = function(c)
-				cmd = c
-			end
-
-			helpers.requestDomoticzData('0.0.0.0', '8080')
-
-			local expected = "{ echo 'return ' ; curl 'http://0.0.0.0:8080/json.htm?type=devices&displayhidden=1&filter=all&used=true' -s ; }  | sed 's/],/},/' | sed 's/   \"/   [\"/' | sed 's/         \"/         [\"/' | sed 's/\" :/\"]=/' | sed 's/: \\[/: {/' | sed 's/= \\[/= {/' > ../devices.lua 2>/dev/null &"
-
-			assert.is_same(expected, cmd)
-		end)
-
-
 		it('should fetch http data when timer trigger is met', function()
 			local requested = false
-			helpers.requestDomoticzData = function(ip, port)
+			helpers.utils.requestDomoticzData = function(ip, port)
 				requested = true
 			end
 
@@ -456,7 +425,7 @@ describe('event helpers', function()
 		it('should log an error when passing wrong stuff', function()
 			local requested = false
 			local msg, level
-			helpers.requestDomoticzData = function(ip, port)
+			helpers.utils.requestDomoticzData = function(ip, port)
 				requested = true
 			end
 

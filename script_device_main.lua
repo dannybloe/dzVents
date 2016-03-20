@@ -13,7 +13,7 @@ LOG_DEBUG = 3
 LOG_ERROR = 1
 
 local EventHelpers = require('EventHelpers')
-local helpers = EventHelpers()
+local helpers = EventHelpers(settings)
 
 commandArray = helpers.dispatchDeviceEventsToScripts()
 

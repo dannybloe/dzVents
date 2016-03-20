@@ -1,7 +1,12 @@
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
 
-local helpers = require('event_helpers')
+local EventHelpers = require('EventHelpers')
+local Device = require('Device')
+local Variable = require('Variable')
+local Time = require('Time')
+local TimedCommand = require('TimedCommand')
+local utils = require('utils')
 
 LOG_INFO = 2
 LOG_DEBUG = 3
@@ -12,150 +17,6 @@ LOG_ERROR = 1
 
  ]]
 
-local function getDevicesPath()
-	return debug.getinfo(1).source:match("@?(.*/)") .. 'devices.lua'
-end
-
-local function readHttpDomoticzData()
-	local httpData = {
-		['result'] = {}
-	}
-
-	-- figure out what os this is
-	local sep = string.sub(package.config,1,1)
-	if (sep~='/') then return httpData end -- only on linux
-
-	if helpers.fileExists(getDevicesPath()) then
-		local ok, module
-
-		ok, module = pcall(require, 'devices')
-		if (ok) then
-			if (type(module) == 'table') then
-				httpData = module
-			end
-		else
-			-- cannot be loaded
-			log('devices.lua cannot be loaded', LOG_ERROR)
-			log(module, LOG_ERROR)
-		end
-	end
-	return httpData
-end
-
--- class for last update information
-local function Time(sDate)
-	local today = os.date('*t')
-	local time = {}
-	if (sDate ~= nil and sDate ~= '') then
-
-		local y,mon,d,h,min,s = string.match(sDate, "(%d+)%-(%d+)%-(%d+)% (%d+):(%d+):(%d+)")
-		local d = os.time{year=y,month=mon,day=d,hour=h,min=min,sec=s }
-		time = os.date('*t', d)
-
-		time.raw = sDate
-		time.isToday = (today.year == time.year and
-				today.month==time.month and
-				today.day==time.day)
-
-		-- calculate how many minutes that was from now
-		local tToday = os.time{
-			day=today.day,
-			year=today.year,
-			month=today.month,
-			hour=today.hour,
-			min=today.min,
-			sec=today.sec
-		}
-
-		local diff = math.floor((os.difftime(tToday, d) / 60))
-
-		time['minutesAgo'] = diff
-	end
-
-	local self = time
-	self['current'] = today
-
-	return self
-end
-
--- generic 'switch' class with timed options
--- supports chainging like:
--- switch(v1).for_min(v2).after_sec/min(v3)
--- switch(v1).within_min(v2).for_min(v3)
--- switch(v1).after_sec(v2).for_min(v3)
-
-local function TimedCommand(domoticz, name, value)
-	local valueValue = value
-	local afterValue, forValue, randomValue
-
-	local constructCommand = function()
-		local command = {}
-		table.insert(command, valueValue)
-		if (randomValue ~= nil) then
-			table.insert(command, 'RANDOM ' .. tostring(randomValue))
-		end
-		if (afterValue ~= nil) then
-			table.insert(command, 'AFTER ' .. tostring(afterValue))
-		end
-		if (forValue ~= nil) then
-			table.insert(command, 'FOR ' .. tostring(forValue))
-		end
-
-		local sCommand = table.concat(command, " ")
-		log('Constructed command: ' .. sCommand, LOG_DEBUG)
-		return sCommand
-	end
-
-	local latest, command, sValue = domoticz.sendCommand(name, constructCommand())
-	return {
-		['after_sec'] = function(seconds)
-			afterValue = seconds
-			latest[command] = constructCommand()
-			return {
-				['for_min'] = function(minutes)
-					forValue = minutes
-					latest[command] = constructCommand()
-				end
-			}
-		end,
-		['after_min'] = function(minutes)
-			afterValue = minutes * 60
-			latest[command] = constructCommand()
-			return {
-				['for_min'] = function(minutes)
-					forValue = minutes
-					latest[command] = constructCommand()
-				end
-			}
-		end,
-		['for_min'] = function(minutes)
-			forValue = minutes
-			latest[command] = constructCommand()
-			return {
-				['after_sec'] = function(seconds)
-					afterValue = seconds
-					latest[command] = constructCommand()
-				end,
-				['after_min'] = function(minutes)
-					afterValue = minutes * 60
-					latest[command] = constructCommand()
-				end
-
-			}
-		end,
-		['within_min'] = function(minutes)
-			randomValue = minutes
-			latest[command] = constructCommand()
-			return {
-				['for_minutes'] = function(minutes)
-					forValue = minutes
-					latest[command] = constructCommand()
-				end
-			}
-		end
-	}
-end
-
 -- simple string splitting method
 -- coz crappy LUA doesn't have this natively... *sigh*
 function string:split(sep)
@@ -165,310 +26,12 @@ function string:split(sep)
 	return fields
 end
 
--- Class for devices
-local function Device(domoticz, name, state)
-
-	local changedAttributes = {} -- storage for changed attributes
-
-	local self = {
-		['name'] = name,
-		['changed'] = (devicechanged~=nil and devicechanged[name] ~= nil)
-	}
-
-	-- some states will be 'booleanized'
-	local function stateToBool(state)
-		state = string.lower(state)
-		if (state == 'open' or
-				state == 'on' or
-				state == 'active' or
-				state == 'activated' or
-				state == 'motion') then
-			return true
-		end
-		if (state == 'closed' or
-				state == 'off' or
-				state == 'inactive' or
-				state == 'deactived') then
-			return false
-		end
-
-		return nil
-	end
-
-	-- extract dimming levels for dimming devices
-	local level
-	if (string.find(state, 'Set Level')) then
-		level = string.match(state, "%d+") -- extract dimming value
-		state = 'On' -- consider the device to be on
-	end
-
-	if (level) then self['level'] = level end
-
-	if (state~=nil) then -- not all devices have a state like sensors
-		if (type(state)=='string') then -- just to be sure
-			self['state'] = state
-			self['bState'] = stateToBool(self['state'])
-		else
-			self['state'] = state
-		end
-	end
-
-	-- generic state update method
-	function self.setState(newState)
-		return TimedCommand(domoticz, self.name, newState)
-	end
-
-	-- some convenient methods
-	function self.switchOn()
-		return TimedCommand(domoticz, self.name, 'On')
-	end
-
-	function self.switchOff()
-		return TimedCommand(domoticz, self.name, 'Off')
-	end
-
-	function self.close()
-		return TimedCommand(domoticz, self.name, 'Close')
-	end
-
-	function self.open()
-		return TimedCommand(domoticz, self.name, 'Open')
-	end
-
-	function self.activate()
-		return TimedCommand(domoticz, self.name, 'Activate')
-	end
-
-	function self.deactivate()
-		return TimedCommand(domoticz, self.name, 'Deactivate')
-	end
-
-	function self.dimTo(percentage)
-		return TimedCommand(domoticz, self.name, 'Set Level ' .. tostring(percentage))
-	end
-
-	function self.switchSelector(level)
-		return TimedCommand(domoticz, self.name, 'Set Level ' .. tostring(level))
-	end
-	-- generic update method for non-switching devices
-	-- each part of the update data can be passed as a separate argument e.g.
-	-- device.update(12,34,54) will result in a command like
-	-- ['UpdateDevice'] = '<id>|12|34|54'
-	function self.update(...)
-		local command = self.id
-		for i,v in ipairs({...}) do
-			command = command .. '|' .. tostring(v)
-		end
-
-		domoticz.sendCommand('UpdateDevice', command)
-	end
-
-	-- update specials
-	-- see http://www.domoticz.com/wiki/Domoticz_API/JSON_URL%27s
-	function self.updateTemperature(temperature)
-		self.update(0, temperature)
-	end
-
-	--[[
-		status can be
-	 	domoticz.HUM_NORMAL
-		domoticz.HUM_COMFORTABLE
-		domoticz.HUM_DRY
-		domoticz.HUM_WET
-	 ]]
-	function self.updateHumidity(humidity, status)
-		self.update(humidity, status)
-	end
-
-	--[[
-		forecast:
-	 	domoticz.BARO_STABLE
-		domoticz.BARO_SUNNY
-		domoticz.BARO_CLOUDY
-		domoticz.BARO_UNSTABLE
-		domoticz.BARO_THUNDERSTORM
-		domoticz.BARO_UNKNOWN
-		domoticz.BARO_CLOUDY_RAIN
-	 ]]
-	function self.updateBarometer(pressure, forecast)
-		self.update(0, tostring(pressure) .. ';' .. tostring(forecast))
-	end
-
-	function self.updateTempHum(temperature, humidity, status)
-		local value = tostring(temperature) .. ';' .. tostring(humidity) .. ';' .. tostring(status)
-		self.update(0, value)
-	end
-
-	function self.updateTempHumBaro(temperature, humidity, status, pressure, forecast)
-		local value = tostring(temperature) .. ';' ..
-				tostring(humidity) .. ';' ..
-				tostring(status) .. ';' ..
-				tostring(pressure)  .. ';' ..
-				tostring(forecast)
-		self.update(0, value)
-	end
-
-	function self.updateRain(rate, counter)
-		self.update(0, tostring(rate) .. ';' .. tostring(counter))
-	end
-
-	function self.updateWind(bearing, direction, speed, gust, temperature, chill)
-		local value = tostring(bearing) .. ';' ..
-				tostring(direction) .. ';' ..
-				tostring(speed) .. ';' ..
-				tostring(gust)  .. ';' ..
-				tostring(temperature)  .. ';' ..
-				tostring(chill)
-		self.update(0, value)
-	end
-
-	function self.updateUV(uv)
-		local value = tostring(uv) .. ';0'
-		self.update(0, value)
-	end
-
-	function self.updateCounter(value)
-		self.update(value) -- no 0??
-	end
-
-	function self.updateElectricity(power, energy)
-		self.update(0, tostring(power) .. ';' .. tostring(energy))
-	end
-
-	--[[
-		USAGE1= energy usage meter tariff 1
-		USAGE2= energy usage meter tariff 2
-		RETURN1= energy return meter tariff 1
-		RETURN2= energy return meter tariff 2
-		CONS= actual usage power (Watt)
-		PROD= actual return power (Watt)
-		USAGE and RETURN are counters (they should only count up).
-		For USAGE and RETURN supply the data in total Wh with no decimal point.
-		(So if your meter displays f.i. USAGE1= 523,66 KWh you need to send 523660)
-	 ]]
-	function self.updateP1(usage1, usage2, return1, return2, cons, prod)
-		local value = tostring(usage1) .. ';' ..
-				tostring(usage2) .. ';' ..
-				tostring(return1) .. ';' ..
-				tostring(return2)  .. ';' ..
-				tostring(cons)  .. ';' ..
-				tostring(prod)
-		self.update(0, value)
-	end
-
-	function self.updateAirQuality(quality)
-		self.update(quality)
-	end
-
-	function self.updatePressure(pressure)
-		self.update(0, pressure)
-	end
-
-	function self.updatePercentage(percentage)
-		self.update(0, percentage)
-	end
-
-	--[[
-		USAGE= Gas usage in liter (1000 liter = 1 m³)
-		So if your gas meter shows f.i. 145,332 m³ you should send 145332.
-		The USAGE is the total usage in liters from start, not f.i. the daily usage.
-	 ]]
-	function self.updateGas(usage)
-		self.update(0, usage)
-	end
-
-	function self.updateLux(lux)
-		self.update(lux)
-	end
-
-	function self.updateVoltage(voltage)
-		self.update(0, voltage)
-	end
-
-	function self.updateText(text)
-		self.update(0, text)
-	end
-
-	--[[ level can be
-	 	domoticz.ALERTLEVEL_GREY
-	 	domoticz.ALERTLEVEL_GREEN
-		domoticz.ALERTLEVEL_YELLOW
-		domoticz.ALERTLEVEL_ORANGE
-		domoticz.ALERTLEVEL_RED
-	]]
-	function self.updateAlertSensor(level, text)
-		self.update(level, text)
-	end
-
-	--[[
-	 distance in cm or inches, can be in decimals. For example 12.6
-	 ]]
-	function self.updateDistance(distance)
-		self.update(0, distance)
-	end
-
-	-- returns true if an attribute is marked as changed
-	function self.attributeChanged(attribute)
-		return (changedAttributes[attribute] == true)
-	end
-
-	-- mark an attribute as being changed
-	function self.setAttributeChanged(attribute)
-		changedAttributes[attribute] = true
-	end
-
-	-- add attribute to this device
-	function self.addAttribute(attribute, value)
-		self[attribute] = value
-	end
-
-	return self
-end
-
--- class for variables
-local function Variable(domoticz, name, value)
-	local self = {
-		['nValue'] = tonumber(value),
-		['value'] = value,
-		['lastUpdate'] = Time(uservariables_lastupdate[name])
-	}
-
-	-- send an update to domoticz
-	function self.set(value)
-		domoticz.sendCommand('Variable:' .. name, tostring(value))
-	end
-
-	return self
-end
-
-function setIterators(context, collection)
-	collection['forEach'] = function(func)
-		for i, item in pairs(collection) do
-			if (type(item) ~= 'function' and type(i)~='number') then
-				func(item, i)
-			end
-		end
-	end
-
-	collection['filter'] = function(filter)
-		local res = {}
-		for i, item in pairs(collection) do
-			if (type(item) ~= 'function' and type(i)~='number') then
-				if (filter(item)) then
-					res[i] = item
-				end
-			end
-		end
-		setIterators(res, res)
-		return res
-	end
-end
-
 -- main class
-local function Domoticz()
+local function Domoticz(settings)
 
 	-- the new instance
 	local self = {
+		['settings'] = settings,
 		['commandArray']= {},
 		['devices'] = {},
 		['changedDevices']={},
@@ -531,6 +94,29 @@ local function Domoticz()
 		['LOG_ERROR'] = 1,
 	}
 
+	local function setIterators(context, collection)
+		collection['forEach'] = function(func)
+			for i, item in pairs(collection) do
+				if (type(item) ~= 'function' and type(i)~='number') then
+					func(item, i)
+				end
+			end
+		end
+
+		collection['filter'] = function(filter)
+			local res = {}
+			for i, item in pairs(collection) do
+				if (type(item) ~= 'function' and type(i)~='number') then
+					if (filter(item)) then
+						res[i] = item
+					end
+				end
+			end
+			setIterators(res, res)
+			return res
+		end
+	end
+
 	setIterators(self, self.devices)
 	setIterators(self, self.changedDevices)
 	setIterators(self, self.variables)
@@ -575,10 +161,9 @@ local function Domoticz()
 	end
 
 	function self.fetchHttpDomoticzData()
-		local settings = require('dzVents_settings')
-		helpers.requestDomoticzData(
-			settings['Domoticz ip'],
-			settings['Domoticz port']
+		utils.requestDomoticzData(
+			self.settings['Domoticz ip'],
+			self.settings['Domoticz port']
 		)
 	end
 
@@ -665,6 +250,32 @@ local function Domoticz()
 		print('Device: ' .. device.name)
 		print('----------------------------')
 		dumpTable(device, '> ')
+	end
+
+	local function readHttpDomoticzData()
+		local httpData = {
+			['result'] = {}
+		}
+
+		-- figure out what os this is
+		local sep = string.sub(package.config,1,1)
+		if (sep~='/') then return httpData end -- only on linux
+
+		if utils.fileExists(utils.getDevicesPath()) then
+			local ok, module
+
+			ok, module = pcall(require, 'devices')
+			if (ok) then
+				if (type(module) == 'table') then
+					httpData = module
+				end
+			else
+				-- cannot be loaded
+				log('devices.lua cannot be loaded', LOG_ERROR)
+				log(module, LOG_ERROR)
+			end
+		end
+		return httpData
 	end
 
 	local function createDevices()
