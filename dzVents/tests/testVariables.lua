@@ -54,4 +54,10 @@ describe('variables', function()
 		assert.is_same({ ['Variable:myVar'] = 'dzVents rocks' }, commandArray[1])
 	end)
 
+	it('should not fail when trying to cast a string', function()
+		local var = Variable(domoticz, 'myVar', 'some value')
+		assert.is_nil(var.nValue)
+		assert.is_same('some value', var.value)
+	end)
+
 end)
