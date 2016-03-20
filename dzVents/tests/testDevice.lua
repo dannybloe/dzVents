@@ -77,12 +77,12 @@ describe('device', function()
 		device = Device(domoticz, 'myDevice', 'On', false)
 		assert.is_true(device.bState)
 
-		local states = device._bStates
+		local states = device._States
 
 		_.forEach(states, function(value, key)
-			-- print(key, value)
+--			print(key, value)
 			device = Device(domoticz, 'myDevice', key, false)
-			if (value) then
+			if (value.b) then
 				assert.is_true(device.bState)
 			else
 				assert.is_false(device.bState)
@@ -269,5 +269,22 @@ describe('device', function()
 	it('should add an attribute', function()
 		device.addAttribute('temperature', 20)
 		assert.is_same(device.temperature, 20)
+	end)
+
+	it('should toggle a switch', function()
+		local cmd = device.toggleSwitch()
+		assert.is_same({["myDevice"]="Off"}, cmd._latest)
+
+		device = Device(domoticz, 'myDevice', 'Off', false)
+		cmd = device.toggleSwitch()
+		assert.is_same({["myDevice"]="On"}, cmd._latest)
+
+		device = Device(domoticz, 'myDevice', 'Playing', false)
+		cmd = device.toggleSwitch()
+		assert.is_same({["myDevice"]="Pause"}, cmd._latest)
+
+		device = Device(domoticz, 'myDevice', 'Chime', false)
+		cmd = device.toggleSwitch() -- shouldn't do anything
+		assert.is_nil(cmd)
 	end)
 end)

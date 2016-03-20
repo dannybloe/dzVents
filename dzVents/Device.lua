@@ -7,34 +7,34 @@ local function Device(domoticz, name, state, wasChanged)
 	local self = {
 		['name'] = name,
 		['changed'] = wasChanged,
-		['_bStates'] = {
-			on = true,
-			open = true,
-			['group on'] = true,
-			panic = true,
-			normal = true,
-			alarm = true,
-			chime = true,
-			video = true,
-			audio = true,
-			photo = true,
-			playing = true,
-			motion = true,
-			off = false,
-			closed = false,
-			['group off'] = false,
-			['panic end'] = false,
-			['no motion'] = false,
-			stop = false,
-			stopped = false,
-			paused =false
+		['_States'] = {
+			on = { b = true, inv='Off'},
+			open = { b = true, inv='Closed'},
+			['group on'] = { b = true },
+			panic = { b = true, inv='Off'},
+			normal = { b = true, inv='Alarm'},
+			alarm = { b = true, inv='Normal'},
+			chime = { b = true },
+			video = { b = true },
+			audio = { b = true },
+			photo = { b = true },
+			playing = { b = true, inv='Pause'},
+			motion = { b = true },
+			off = { b = false, inv='On'},
+			closed = { b = false, inv='Open'},
+			['group off'] = { b = false },
+			['panic end'] = { b = false },
+			['no motion'] = { b = false, inv='Off'},
+			stop = { b = false, inv='Open'},
+			stopped = { b = false},
+			paused ={ b = false, inv='Play'}
 		}
 	}
 
 	-- some states will be 'booleanized'
 	local function stateToBool(state)
 		state = string.lower(state)
-		local b = self._bStates[state]
+		local b = self._States[state]['b']
 		if (b==nil) then b = false end
 		return b
 	end
@@ -55,6 +55,20 @@ local function Device(domoticz, name, state, wasChanged)
 		else
 			self['state'] = state
 		end
+	end
+
+	function self.toggleSwitch()
+		local current, inv
+		if (self.state~=nil) then
+			current = self._States[string.lower(self.state)]
+			if (current~=nil) then
+				inv = current.inv
+				if (inv~=nil) then
+					return TimedCommand(domoticz, self.name, inv)
+				end
+			end
+		end
+		return nil
 	end
 
 	function self.setState(newState)
