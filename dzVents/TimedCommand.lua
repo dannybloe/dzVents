@@ -9,25 +9,37 @@ local function TimedCommand(domoticz, name, value)
 	local afterValue, forValue, randomValue
 
 	local constructCommand = function()
-		local command = {}
+
+		local command = {} -- array of command parts
+
 		table.insert(command, valueValue)
+
 		if (randomValue ~= nil) then
 			table.insert(command, 'RANDOM ' .. tostring(randomValue))
 		end
+
 		if (afterValue ~= nil) then
 			table.insert(command, 'AFTER ' .. tostring(afterValue))
 		end
+
 		if (forValue ~= nil) then
 			table.insert(command, 'FOR ' .. tostring(forValue))
 		end
 
 		local sCommand = table.concat(command, " ")
+
 		log('Constructed command: ' .. sCommand, LOG_DEBUG)
+
 		return sCommand
 	end
 
+	-- get a reference to the latest entry in the commandArray so we can
+	-- keep modifying it here.
 	local latest, command, sValue = domoticz.sendCommand(name, constructCommand())
+
 	return {
+		['_constructCommand'] = constructCommand, -- for testing purposes
+		['_latest'] = latest, -- for testing purposes
 		['after_sec'] = function(seconds)
 			afterValue = seconds
 			latest[command] = constructCommand()
@@ -67,7 +79,7 @@ local function TimedCommand(domoticz, name, value)
 			randomValue = minutes
 			latest[command] = constructCommand()
 			return {
-				['for_minutes'] = function(minutes)
+				['for_min'] = function(minutes)
 					forValue = minutes
 					latest[command] = constructCommand()
 				end

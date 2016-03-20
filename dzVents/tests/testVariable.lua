@@ -18,6 +18,7 @@ describe('variables', function()
 
 	setup(function()
 		_G.logLevel = 1
+
 		_G['uservariables_lastupdate'] = {
 			['myVar'] = '2016-03-20 12:23:00'
 		}
