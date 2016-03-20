@@ -25,6 +25,7 @@ local function Time(sDate)
 		local diff = math.floor((os.difftime(tToday, d) / 60))
 
 		time['minutesAgo'] = diff
+		time['secondsAgo'] = diff * 60
 	end
 
 	local self = time

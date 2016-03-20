@@ -1,6 +1,7 @@
 [..]
 * Added SMS method.
 * Added toggleSwitch() method to devices that support it.
+* Added secondsAgo to the lastUpdate attribute
 
 [0.9.13]
 * Fixed some timer functions
