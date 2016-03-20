@@ -252,6 +252,7 @@ The domoticz object holds all information about your Domoticz system. It has a c
  - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
  - **sendCommand(command, value)**: *Function*. Generic command method (adds it to the commandArray) to the list of commands that are being sent back to domoticz. *There is likely no need to use this directly. Use any of the device methods instead (see below).*
  - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
+ - **sms(message)**: *Function*. Sends an sms if it is configured in Domoticz. 
  - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
 
 ### Iterators
@@ -357,13 +358,12 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
 
 ### Device methods
 
- - **activate()**: *Function*.  Activate the device if it supports it. Supports timing options. See below.
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g. `device.attributeChanged('temperature')`.
  - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See below.
- - **deactive()**: *Function*.  Deactivate the device if it supports it. Supports timing options. See below.
  - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See below.
  - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See below.
  - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See below.
+ - **stop()**: *Function*.  Set device to Stop if it supports it (e.g. blinds). Supports timing options. See below.
  - **switchOff()**: *Function*.  Switch device off it is supports it. Supports timing options. See below.
  - **switchOn()**: *Function*.  Switch device on if it supports it. Supports timing options. See below.
  - **switchSelector(level)**:  *Function*. Switches a selector switch to a specific level (numeric value, see the edit page in Domoticz for such a switch to get a list of the values). Supports timing options. See below.

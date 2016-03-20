@@ -145,6 +145,11 @@ local function Domoticz(settings)
 		self.sendCommand('SendEmail', subject .. '#' .. message .. '#' .. mailTo)
 	end
 
+	-- have domoticz send an sms
+	function self.sms(message)
+		self.sendCommand('SendSMS', message)
+	end
+
 	-- have domoticz open a url
 	function self.openURL(url)
 		self.sendCommand('OpenURL', url)
@@ -281,7 +286,8 @@ local function Domoticz(settings)
 	local function createDevices()
 		-- first create the device objects
 		for name, state in pairs(otherdevices) do
-			self.devices[name] = Device(self, name, state)
+			local wasChanged = (devicechanged~=nil and devicechanged[name] ~= nil)
+			self.devices[name] = Device(self, name, state, wasChanged)
 		end
 
 		-- then fill them with attributes from the

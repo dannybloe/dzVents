@@ -1,56 +1,67 @@
-local function Device(domoticz, name, state)
+local TimedCommand = require('TimedCommand')
+
+local function Device(domoticz, name, state, wasChanged)
 
 	local changedAttributes = {} -- storage for changed attributes
 
 	local self = {
 		['name'] = name,
-		['changed'] = (devicechanged~=nil and devicechanged[name] ~= nil)
+		['changed'] = wasChanged,
+		['_bStates'] = {
+			on = true,
+			open = true,
+			['group on'] = true,
+			panic = true,
+			normal = true,
+			alarm = true,
+			chime = true,
+			video = true,
+			audio = true,
+			photo = true,
+			playing = true,
+			motion = true,
+			off = false,
+			closed = false,
+			['group off'] = false,
+			['panic end'] = false,
+			['no motion'] = false,
+			stop = false,
+			stopped = false,
+			paused =false
+		}
 	}
 
 	-- some states will be 'booleanized'
 	local function stateToBool(state)
 		state = string.lower(state)
-		if (state == 'open' or
-				state == 'on' or
-				state == 'active' or
-				state == 'activated' or
-				state == 'motion') then
-			return true
-		end
-		if (state == 'closed' or
-				state == 'off' or
-				state == 'inactive' or
-				state == 'deactived') then
-			return false
-		end
-
-		return nil
+		local b = self._bStates[state]
+		if (b==nil) then b = false end
+		return b
 	end
 
 	-- extract dimming levels for dimming devices
 	local level
-	if (string.find(state, 'Set Level')) then
+	if (state and string.find(state, 'Set Level')) then
 		level = string.match(state, "%d+") -- extract dimming value
 		state = 'On' -- consider the device to be on
 	end
 
-	if (level) then self['level'] = level end
+	if (level) then self['level'] = tonumber(level) end
 
 	if (state~=nil) then -- not all devices have a state like sensors
-	if (type(state)=='string') then -- just to be sure
-	self['state'] = state
-	self['bState'] = stateToBool(self['state'])
-	else
-		self['state'] = state
-	end
+		if (type(state)=='string') then -- just to be sure
+			self['state'] = state
+			self['bState'] = stateToBool(self['state'])
+		else
+			self['state'] = state
+		end
 	end
 
-	-- generic state update method
 	function self.setState(newState)
+		-- generic state update method
 		return TimedCommand(domoticz, self.name, newState)
 	end
 
-	-- some convenient methods
 	function self.switchOn()
 		return TimedCommand(domoticz, self.name, 'On')
 	end
@@ -60,20 +71,17 @@ local function Device(domoticz, name, state)
 	end
 
 	function self.close()
-		return TimedCommand(domoticz, self.name, 'Close')
+		return TimedCommand(domoticz, self.name, 'Closed')
 	end
 
 	function self.open()
 		return TimedCommand(domoticz, self.name, 'Open')
 	end
 
-	function self.activate()
-		return TimedCommand(domoticz, self.name, 'Activate')
+	function self.stop() -- blinds
+		return TimedCommand(domoticz, self.name, 'Stop')
 	end
 
-	function self.deactivate()
-		return TimedCommand(domoticz, self.name, 'Deactivate')
-	end
 
 	function self.dimTo(percentage)
 		return TimedCommand(domoticz, self.name, 'Set Level ' .. tostring(percentage))
@@ -82,11 +90,12 @@ local function Device(domoticz, name, state)
 	function self.switchSelector(level)
 		return TimedCommand(domoticz, self.name, 'Set Level ' .. tostring(level))
 	end
-	-- generic update method for non-switching devices
-	-- each part of the update data can be passed as a separate argument e.g.
-	-- device.update(12,34,54) will result in a command like
-	-- ['UpdateDevice'] = '<id>|12|34|54'
+
 	function self.update(...)
+		-- generic update method for non-switching devices
+		-- each part of the update data can be passed as a separate argument e.g.
+		-- device.update(12,34,54) will result in a command like
+		-- ['UpdateDevice'] = '<id>|12|34|54'
 		local command = self.id
 		for i,v in ipairs({...}) do
 			command = command .. '|' .. tostring(v)
@@ -101,28 +110,28 @@ local function Device(domoticz, name, state)
 		self.update(0, temperature)
 	end
 
-	--[[
-		status can be
-	 	domoticz.HUM_NORMAL
-		domoticz.HUM_COMFORTABLE
-		domoticz.HUM_DRY
-		domoticz.HUM_WET
-	 ]]
 	function self.updateHumidity(humidity, status)
+		--[[
+			status can be
+			 domoticz.HUM_NORMAL
+			domoticz.HUM_COMFORTABLE
+			domoticz.HUM_DRY
+			domoticz.HUM_WET
+		 ]]
 		self.update(humidity, status)
 	end
 
-	--[[
-		forecast:
-	 	domoticz.BARO_STABLE
-		domoticz.BARO_SUNNY
-		domoticz.BARO_CLOUDY
-		domoticz.BARO_UNSTABLE
-		domoticz.BARO_THUNDERSTORM
-		domoticz.BARO_UNKNOWN
-		domoticz.BARO_CLOUDY_RAIN
-	 ]]
 	function self.updateBarometer(pressure, forecast)
+		--[[
+			forecast:
+			 domoticz.BARO_STABLE
+			domoticz.BARO_SUNNY
+			domoticz.BARO_CLOUDY
+			domoticz.BARO_UNSTABLE
+			domoticz.BARO_THUNDERSTORM
+			domoticz.BARO_UNKNOWN
+			domoticz.BARO_CLOUDY_RAIN
+		 ]]
 		self.update(0, tostring(pressure) .. ';' .. tostring(forecast))
 	end
 
@@ -167,18 +176,18 @@ local function Device(domoticz, name, state)
 		self.update(0, tostring(power) .. ';' .. tostring(energy))
 	end
 
-	--[[
-		USAGE1= energy usage meter tariff 1
-		USAGE2= energy usage meter tariff 2
-		RETURN1= energy return meter tariff 1
-		RETURN2= energy return meter tariff 2
-		CONS= actual usage power (Watt)
-		PROD= actual return power (Watt)
-		USAGE and RETURN are counters (they should only count up).
-		For USAGE and RETURN supply the data in total Wh with no decimal point.
-		(So if your meter displays f.i. USAGE1= 523,66 KWh you need to send 523660)
-	 ]]
 	function self.updateP1(usage1, usage2, return1, return2, cons, prod)
+		--[[
+			USAGE1= energy usage meter tariff 1
+			USAGE2= energy usage meter tariff 2
+			RETURN1= energy return meter tariff 1
+			RETURN2= energy return meter tariff 2
+			CONS= actual usage power (Watt)
+			PROD= actual return power (Watt)
+			USAGE and RETURN are counters (they should only count up).
+			For USAGE and RETURN supply the data in total Wh with no decimal point.
+			(So if your meter displays f.i. USAGE1= 523,66 KWh you need to send 523660)
+		 ]]
 		local value = tostring(usage1) .. ';' ..
 				tostring(usage2) .. ';' ..
 				tostring(return1) .. ';' ..
@@ -200,12 +209,12 @@ local function Device(domoticz, name, state)
 		self.update(0, percentage)
 	end
 
-	--[[
-		USAGE= Gas usage in liter (1000 liter = 1 m³)
-		So if your gas meter shows f.i. 145,332 m³ you should send 145332.
-		The USAGE is the total usage in liters from start, not f.i. the daily usage.
-	 ]]
 	function self.updateGas(usage)
+		--[[
+			USAGE= Gas usage in liter (1000 liter = 1 m³)
+			So if your gas meter shows f.i. 145,332 m³ you should send 145332.
+			The USAGE is the total usage in liters from start, not f.i. the daily usage.
+		 ]]
 		self.update(0, usage)
 	end
 
@@ -221,36 +230,36 @@ local function Device(domoticz, name, state)
 		self.update(0, text)
 	end
 
-	--[[ level can be
-	 	domoticz.ALERTLEVEL_GREY
-	 	domoticz.ALERTLEVEL_GREEN
-		domoticz.ALERTLEVEL_YELLOW
-		domoticz.ALERTLEVEL_ORANGE
-		domoticz.ALERTLEVEL_RED
-	]]
 	function self.updateAlertSensor(level, text)
+		--[[ level can be
+			 domoticz.ALERTLEVEL_GREY
+			 domoticz.ALERTLEVEL_GREEN
+			domoticz.ALERTLEVEL_YELLOW
+			domoticz.ALERTLEVEL_ORANGE
+			domoticz.ALERTLEVEL_RED
+		]]
 		self.update(level, text)
 	end
 
-	--[[
-	 distance in cm or inches, can be in decimals. For example 12.6
-	 ]]
 	function self.updateDistance(distance)
+		--[[
+		 distance in cm or inches, can be in decimals. For example 12.6
+		 ]]
 		self.update(0, distance)
 	end
 
-	-- returns true if an attribute is marked as changed
 	function self.attributeChanged(attribute)
+		-- returns true if an attribute is marked as changed
 		return (changedAttributes[attribute] == true)
 	end
 
-	-- mark an attribute as being changed
 	function self.setAttributeChanged(attribute)
+		-- mark an attribute as being changed
 		changedAttributes[attribute] = true
 	end
 
-	-- add attribute to this device
 	function self.addAttribute(attribute, value)
+		-- add attribute to this device
 		self[attribute] = value
 	end
 
