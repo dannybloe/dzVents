@@ -1,10 +1,16 @@
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
+
 local helpers = require('event_helpers')
 
 LOG_INFO = 2
 LOG_DEBUG = 3
 LOG_ERROR = 1
+
+--[[
+	todo: minutesago, toggle
+
+ ]]
 
 local function getDevicesPath()
 	return debug.getinfo(1).source:match("@?(.*/)") .. 'devices.lua'

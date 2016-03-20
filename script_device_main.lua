@@ -1,6 +1,7 @@
 -- make sure we can find our modules
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
+package.path = package.path .. ';' .. scriptPath .. '/dzVents/?.lua'
 
 local settings = require('dzVents_settings')
 -- create a global for the log level
@@ -11,16 +12,9 @@ LOG_INFO = 2
 LOG_DEBUG = 3
 LOG_ERROR = 1
 
-local Domoticz = require('Domoticz')
-local domoticz = Domoticz()
+local EventHelpers = require('EventHelpers')
+local helpers = EventHelpers()
 
-local EventHelpers = require('event_helpers')
+commandArray = helpers.dispatchDeviceEventsToScripts()
 
-local helpers = EventHelpers(domoticz)
-
-helpers.dispatchDeviceEventsToScripts(devicechanged)
-
-helpers.dumpCommandArray(domoticz.commandArray)
-
-commandArray = domoticz.commandArray
 return commandArray

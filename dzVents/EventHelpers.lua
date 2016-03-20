@@ -1,6 +1,8 @@
 local SCRIPTFOLDER = '/scripts'
 local MAIN_METHOD = 'execute'
 
+
+
 -- global log function
 LOG_INFO = 2
 LOG_DEBUG = 3
@@ -9,13 +11,21 @@ LOG_ERROR = 1
 local function EventHelpers(domoticz, scriptFolder, mainMethod)
 
 	local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
+	package.path = package.path .. ';' .. scriptPath .. '?.lua'
+	package.path = package.path .. ';' .. scriptPath .. scriptFolder .. '/?.lua'
+
+	if (domoticz == nil) then
+		local Domoticz = require('Domoticz')
+		local domoticz = Domoticz()
+	end
+
+
 
 	if (scriptFolder == nil) then
 		scriptFolder = SCRIPTFOLDER --default
 	end
 
-	package.path = package.path .. ';' .. scriptPath .. '?.lua'
-	package.path = package.path .. ';' .. scriptPath .. scriptFolder .. '/?.lua'
+
 
 	local self = {
 		['domoticz'] = domoticz,
@@ -312,10 +322,10 @@ local function EventHelpers(domoticz, scriptFolder, mainMethod)
 		end
 	end
 
-	-- accepts a table of timeDefs, if one of them matches with the
-	-- current time, then it returns true
-	-- otherwise it returns false
 	function self.checkTimeDefs(timeDefs, testTime)
+		-- accepts a table of timeDefs, if one of them matches with the
+		-- current time, then it returns true
+		-- otherwise it returns false
 		for i, timeDef in pairs(timeDefs) do
 			if (self.evalTimeTrigger(timeDef, testTime)) then
 				return true
@@ -515,12 +525,16 @@ local function EventHelpers(domoticz, scriptFolder, mainMethod)
 		return nil
 	end
 
-	function self.dispatchDeviceEventsToScripts(devicechanged)
+	function self.dispatchDeviceEventsToScripts(changedDevices)
+		if (changedDevices == nil) then
+			-- get it from the globals
+			changedDevices = devicechanged
+		end
 
 		local allEventScripts = self.getEventBindings()
 
-		if (devicechanged~=nil) then
-			for changedDeviceName, changedDeviceValue in pairs(devicechanged) do
+		if (changedDevices ~=nil) then
+			for changedDeviceName, changedDeviceValue in pairs(changedDevices) do
 
 				self.log('Event in devicechanged: ' .. changedDeviceName .. ' value: ' .. changedDeviceValue, LOG_DEBUG)
 				local scriptsToExecute
@@ -550,6 +564,8 @@ local function EventHelpers(domoticz, scriptFolder, mainMethod)
 				end
 			end
 		end
+		self.dumpCommandArray(self.domoticz.commandArray)
+		return self.domoticz.commandArray
 	end
 
 	return self

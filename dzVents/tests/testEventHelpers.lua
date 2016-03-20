@@ -2,6 +2,7 @@
 local _ = require 'lodash'
 
 package.path = package.path .. ";../?.lua"
+package.path = package.path .. ";../?.lua"
 
 local LOG_INFO = 2
 local LOG_DEBUG = 3
@@ -41,7 +42,7 @@ describe('event helpers', function()
 	setup(function()
 		_G.logLevel = 1
 		--_G.log = print
-		EventHelpers = require('event_helpers')
+		EventHelpers = require('EventHelpers')
 		helpers = EventHelpers(domoticz, 'tests/scripts')
 	end)
 
@@ -579,6 +580,7 @@ describe('event helpers', function()
 		it('should dispatch all event scripts', function()
 			local scripts = {}
 			local devices = {}
+			local dumped = false
 
 			local devicechanged = {
 				['onscript1'] = 10,
@@ -588,6 +590,10 @@ describe('event helpers', function()
 				['on_script_5_Temperature'] = 50,
 				['mydevice'] = 60 --script 6 triggers by this device' id
 			}
+
+			helpers.dumpCommandArray = function()
+				dumped = true
+			end
 
 			helpers.handleEvents = function(_scripts, _device)
 				_.forEach(_scripts, function(s)
@@ -618,6 +624,9 @@ describe('event helpers', function()
 				"onscript4",
 				"someweirddevice",
 				"wildcard"}, devices)
+
+			assert.is_true(dumped)
+
 		end)
 
 	end)
