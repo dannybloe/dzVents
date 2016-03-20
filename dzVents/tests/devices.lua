@@ -1,0 +1,28 @@
+--return
+--{
+--	["ActTime"]= 1458496801,
+--	["ServerTime"]= "2016-03-20 19:00:01",
+--	["Sunrise"]= "06:39",
+--	["Sunset"]= "18:49",
+--	["result"]= {
+--		{
+--			["Data"]= "Off",
+--			["Description"]= "",
+--			["Favorite"]= 0,
+--			["LastUpdate"]= "2016-01-29 15:45:52",
+--			["Name"]= "Avond",
+--			["PlanID"]= "",
+--			["PlanIDs"]= { 0 },
+--			["Protected"]= false,
+--			["Status"]= "Off",
+--			["Type"]= "Scene",
+--			["TypeImg"]= "scene",
+--			["UsedByCamera"]= false,
+--			["XOffset"]= 0,
+--			["YOffset"]= 0,
+--			["idx"]= "1"
+--		}
+--	},
+--	["status"]= "OK",
+--	["title"]= "Devices"
+--}

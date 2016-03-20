@@ -11,7 +11,11 @@ function self.fileExists(name)
 end
 
 function self.getDevicesPath()
-	return debug.getinfo(1).source:match("@?(.*/)") .. 'devices.lua'
+	if (_G.TESTMODE) then
+		return debug.getinfo(1).source:match("@?(.*/)") .. '/tests/devices.lua'
+	else
+		return debug.getinfo(1).source:match("@?(.*/)") .. 'devices.lua'
+	end
 end
 
 function self.osExecute(cmd)

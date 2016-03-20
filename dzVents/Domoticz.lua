@@ -12,11 +12,6 @@ LOG_INFO = 2
 LOG_DEBUG = 3
 LOG_ERROR = 1
 
---[[
-	todo: minutesago, toggle
-
- ]]
-
 -- simple string splitting method
 -- coz crappy LUA doesn't have this natively... *sigh*
 function string:split(sep)
@@ -142,7 +137,13 @@ local function Domoticz(settings)
 
 	-- have domoticz send an email
 	function self.email(subject, message, mailTo)
-		self.sendCommand('SendEmail', subject .. '#' .. message .. '#' .. mailTo)
+		if (mailTo==nil) then
+			log('No mail to is provide', LOG_DEBUG)
+		else
+			if (subject == nil) then subject = '' end
+			if (message == nil) then message = '' end
+			self.sendCommand('SendEmail', subject .. '#' .. message .. '#' .. mailTo)
+		end
 	end
 
 	-- have domoticz send an sms
@@ -163,6 +164,12 @@ local function Domoticz(settings)
 	-- send a group switch command
 	function self.switchGroup(group, value)
 		return TimedCommand(self, 'Group:' .. group, value)
+	end
+
+	if (_G.TESTMODE) then
+		function self._getUtilsInstance()
+			return utils
+		end
 	end
 
 	function self.fetchHttpDomoticzData()
