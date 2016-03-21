@@ -8,9 +8,6 @@ local Time = require('Time')
 local TimedCommand = require('TimedCommand')
 local utils = require('utils')
 
-LOG_INFO = 2
-LOG_DEBUG = 3
-LOG_ERROR = 1
 
 -- simple string splitting method
 -- coz crappy LUA doesn't have this natively... *sigh*
@@ -84,9 +81,9 @@ local function Domoticz(settings)
 		['SECURITY_DISARMED'] = 'Disarmed',
 		['SECURITY_ARMEDAWAY'] = 'Armed Away',
 		['SECURITY_ARMEDHOME'] = 'Armed Home',
-		['LOG_INFO'] = 2,
-		['LOG_DEBUG'] = 3,
-		['LOG_ERROR'] = 1,
+		['LOG_INFO'] = utils.LOG_INFO,
+		['LOG_DEBUG'] = utils.LOG_DEBUG,
+		['LOG_ERROR'] = utils.LOG_ERROR,
 	}
 
 	local function setIterators(context, collection)
@@ -138,7 +135,7 @@ local function Domoticz(settings)
 	-- have domoticz send an email
 	function self.email(subject, message, mailTo)
 		if (mailTo==nil) then
-			log('No mail to is provide', LOG_DEBUG)
+			utils.log('No mail to is provide', utils.LOG_DEBUG)
 		else
 			if (subject == nil) then subject = '' end
 			if (message == nil) then message = '' end
@@ -180,7 +177,7 @@ local function Domoticz(settings)
 	end
 
 	function self.log(message, level)
-		log(message, level)
+		utils.log(message, level)
 	end
 
 	-- bootstrap the variables section
@@ -196,14 +193,14 @@ local function Domoticz(settings)
 	-- set the attribute on the appropriate device object
 	local function setDeviceAttribute(otherdevicesTable, attribute, tableName)
 		for name, value in pairs(otherdevicesTable) do
-			-- log('otherdevices table :' .. name .. ' value: ' .. value, LOG_DEBUG)
+			-- utils.log('otherdevices table :' .. name .. ' value: ' .. value, utils.LOG_DEBUG)
 			if (name ~= nil and name ~= '') then -- sometimes domoticz seems to do this!! ignore...
 
 				-- get the device
 				local device = self.devices[name]
 
 				if (device == nil) then
-					log('Cannot find the device. Skipping:  ' .. name .. ' ' .. value, LOG_ERROR)
+					utils.log('Cannot find the device. Skipping:  ' .. name .. ' ' .. value, utils.LOG_ERROR)
 				else
 					if (attribute == 'lastUpdate') then
 						device.addAttribute(attribute, Time(value))
@@ -283,8 +280,8 @@ local function Domoticz(settings)
 				end
 			else
 				-- cannot be loaded
-				log('devices.lua cannot be loaded', LOG_ERROR)
-				log(module, LOG_ERROR)
+				utils.log('devices.lua cannot be loaded', utils.LOG_ERROR)
+				utils.log(module, utils.LOG_ERROR)
 			end
 		end
 		return httpData
@@ -307,7 +304,7 @@ local function Domoticz(settings)
 
 			-- only deal with global <otherdevices_*> tables
 			if (string.find(tableName, 'otherdevices_')~=nil) then
-				log('Found ' .. tableName .. ' adding this as a possible attribute', LOG_DEBUG)
+				utils.log('Found ' .. tableName .. ' adding this as a possible attribute', utils.LOG_DEBUG)
 				-- extract the part after 'otherdevices_'
 				-- That is the unprocesses attribute name
 				local oriAttribute = string.sub(tableName, 14)

@@ -52,6 +52,19 @@ return
 			['HardwareTypeVal'] = 4,
 			['SwitchType'] = 'Security',
 			['SwitchTypeVal'] = 0,
+		},
+		{
+			['idx'] = '5',
+			['BatteryLevel'] = 40,
+			['SignalLevel'] = '-',
+			['SubType'] = 'kWh',
+			['Type'] = 'General',
+			['HardwareName'] = 'hw4',
+			['HardwareType'] = 'ht4',
+			['HardwareID'] = 4,
+			['HardwareTypeVal'] = 4,
+			['SwitchType'] = 'Security',
+			['SwitchTypeVal'] = 0,
 		}
 	}
 }

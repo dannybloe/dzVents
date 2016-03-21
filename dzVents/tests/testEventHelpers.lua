@@ -2,10 +2,6 @@ local _ = require 'lodash'
 
 package.path = package.path .. ";../?.lua"
 
-local LOG_INFO = 2
-local LOG_DEBUG = 3
-local LOG_ERROR = 1
-
 local function keys(t)
 	local keys = _.keys(t)
 	return _.sortBy(keys, function(k)
@@ -21,7 +17,7 @@ end
 
 describe('event helpers', function()
 
-	local EventHelpers, helpers
+	local EventHelpers, helpers, utils
 
 	local domoticz = {
 		['settings'] = {},
@@ -40,62 +36,25 @@ describe('event helpers', function()
 	setup(function()
 		local settings = {}
 		_G.logLevel = 1
-		--_G.log = print
+		_G.TESTMODE = true
+
 		EventHelpers = require('EventHelpers')
-		helpers = EventHelpers(settings, domoticz, 'tests/scripts')
 	end)
 
 	teardown(function()
 		helpers = nil
 	end)
 
-	describe("Logging", function()
-		it('should have created a global log function', function()
-			assert.is_not_nil(_G.log)
-		end)
+	before_each(function()
+		_G.logLevel = 1
+		helpers = EventHelpers(settings, domoticz, 'tests/scripts')
+		utils = helpers._getUtilsInstance()
+		utils.print = function()  end
+	end)
 
-		it('should print using the global log function', function()
-			local printed
-			helpers.print = function(msg)
-				printed = msg
-			end
-
-			log('abc', LOG_ERROR)
-			assert.is_same('abc', printed)
-		end)
-
-		it('shoud log INFO by default', function()
-			local printed
-			helpers.print = function(msg)
-				printed = msg
-			end
-
-			_G.logLevel = LOG_INFO
-
-			helpers.log('something')
-
-			assert.is_same('something', printed)
-		end)
-
-		it('shoud not log above level', function()
-			local printed
-			helpers.print = function(msg)
-				printed = msg
-			end
-
-			_G.logLevel = LOG_INFO
-
-			helpers.log('something', LOG_DEBUG)
-			assert.is_nil(printed)
-
-			_G.logLevel = LOG_ERROR
-			helpers.log('error', LOG_INFO)
-			assert.is_nil(printed)
-
-			_G.logLevel = 0
-			helpers.log('error', LOG_ERROR)
-			assert.is_nil(printed)
-		end)
+	after_each(function()
+		helpers = nil
+		utils = nil
 	end)
 
 	describe('Reverse find', function()
@@ -303,7 +262,7 @@ describe('event helpers', function()
 
 		it('should detect erroneous modules', function()
 			local err = false
-			helpers.log = function(msg,level)
+			utils.log = function(msg,level)
 				if (level == 1) then
 					err = true
 				end
@@ -323,7 +282,7 @@ describe('event helpers', function()
 		it('should detect non-table modules', function()
 
 			local err = false
-			helpers.log = function(msg,level)
+			utils.log = function(msg,level)
 				if (level == 1) then
 					if ( string.find(msg, 'not a valid module') ~= nil) then
 						err = true
@@ -344,7 +303,7 @@ describe('event helpers', function()
 
 		it('should detect modules without on section', function()
 			local err = false
-			helpers.log = function(msg,level)
+			utils.log = function(msg,level)
 				if (level == 1) then
 					if ( string.find(msg, 'lua has no "on" and/or') ~= nil) then
 						err = true
@@ -433,7 +392,7 @@ describe('event helpers', function()
 				return true
 			end
 
-			helpers.log = function(m, l)
+			utils.log = function(m, l)
 				msg = m
 				level = l
 			end
@@ -441,7 +400,7 @@ describe('event helpers', function()
 			helpers.fetchHttpDomoticzData()
 			assert.is_false(requested)
 			assert.is_same('Invalid ip for contacting Domoticz', msg)
-			assert.is_same(LOG_ERROR, level)
+			assert.is_same(utils.LOG_ERROR, level)
 
 		end)
 	end)
@@ -450,7 +409,7 @@ describe('event helpers', function()
 		it('should dump the command array', function()
 			local messages = {}
 
-			helpers.log = function(m, l)
+			utils.log = function(m, l)
 				table.insert(messages, m)
 			end
 
@@ -491,7 +450,7 @@ describe('event helpers', function()
 
 
 			local err = false
-			helpers.log = function(msg,level)
+			utils.log = function(msg,level)
 				if (level == 1) then
 					err = true
 				end

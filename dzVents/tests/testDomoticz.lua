@@ -27,13 +27,15 @@ describe('Domoticz', function()
 		}
 		_G.devicechanged = {
 			['device1'] = 'On',
-			['device2'] = 'Off'
+			['device2'] = 'Off',
+			['device1_Temperature'] = 123
 		}
 		_G.otherdevices = {
 			['device1'] = 'On',
 			['device2'] = 'Off',
 			['device3'] = 120,
-			['device4'] = 'Set Level 5%'
+			['device4'] = 'Set Level 5%',
+			['device5'] = 'On'
 		}
 
 		_G.otherdevices_temperature = {
@@ -78,15 +80,17 @@ describe('Domoticz', function()
 			['device1'] = 1,
 			['device2'] = 2,
 			['device3'] = 3,
-			['device4'] = 4
+			['device4'] = 4,
+			['device5'] = 5
 
 		}
 
 		_G.otherdevices_svalues = {
 			['device1'] = '1;2;3',
 			['device2'] = '4;5;6',
-			['device3'] = '7;8;9',
-			['device4'] = '10;11;12'
+			['device3'] = '7;8;9;10;11',
+			['device4'] = '10;11;12',
+			['device5'] = '13;14;15'
 
 		}
 		_G.uservariables = {
@@ -323,7 +327,7 @@ describe('Domoticz', function()
 		it('should have set rawData', function()
 			assert.is_same({'1','2','3'}, d1.rawData)
 			assert.is_same({'4','5','6'}, d2.rawData)
-			assert.is_same({'7','8','9'}, d3.rawData)
+			assert.is_same({'7','8','9', '10', '11'}, d3.rawData)
 			assert.is_same({'10','11','12'}, d4.rawData)
 		end)
 
@@ -364,16 +368,31 @@ describe('Domoticz', function()
 		end).forEach)
 	end)
 
+	it('should have a working filter and foreach', function()
+		local devices = {}
+		domoticz.devices.filter(function(d)
+			return (d.id == 1 or d.id == 3)
+		end).forEach(function(d)
+			table.insert(devices, d.id)
+		end)
+
+		table.sort(devices)
+		assert.is_same({1,3}, devices)
+	end)
+
 	it('should have created variables', function()
 		assert.is_same(1, domoticz.variables['x'].nValue)
 		assert.is_same(2, domoticz.variables['y'].nValue)
 	end)
 
 	it('should log', function()
+		local utils = domoticz._getUtilsInstance()
 		local logged = false
-		_G.log = function()
+
+		utils.log = function(msg, level)
 			logged = true
 		end
+
 		domoticz.log('boeh', 1)
 		assert.is_true(logged)
 	end)
@@ -423,6 +442,49 @@ describe('Domoticz', function()
 			assert.is_same('hw3', d3.hardwareName)
 			assert.is_same('hw4', d4.hardwareName)
 
+			assert.is_same('ht1', d1.hardwareType)
+			assert.is_same('ht2', d2.hardwareType)
+			assert.is_same('ht3', d3.hardwareType)
+			assert.is_same('ht4', d4.hardwareType)
+
+			assert.is_same(1, d1.hardwareId)
+			assert.is_same(2, d2.hardwareId)
+			assert.is_same(3, d3.hardwareId)
+			assert.is_same(4, d4.hardwareId)
+
+			assert.is_same(1, d1.hardwareTypeVal)
+			assert.is_same(2, d2.hardwareTypeVal)
+			assert.is_same(3, d3.hardwareTypeVal)
+			assert.is_same(4, d4.hardwareTypeVal)
+
+			assert.is_same('Contact', d1.switchType)
+			assert.is_same('Motion Sensor', d2.switchType)
+			assert.is_same('On/Off', d3.switchType)
+			assert.is_same('Security', d4.switchType)
+
+			assert.is_same(2, d1.switchTypeValue)
+			assert.is_same(8, d2.switchTypeValue)
+			assert.is_same(0, d3.switchTypeValue)
+			assert.is_same(0, d4.switchTypeValue)
+
+			assert.is_same(2, d1.setPoint)
+			assert.is_same('3', d1.heatingMode)
+
+			assert.is_same(4, d2.lux)
+
+			local d5 = domoticz.devices['device5']
+			assert.is_same(14, d5.WhTotal)
+			assert.is_same(13, d5.WhToday)
+
+			assert.is_same(11, d3.WActual)
+
+			assert.is_same(10, d4.setPoint)
+
 		end)
+
+		it('should have noted that the attribute was changed', function()
+			assert.is_true(d1.attributeChanged('temperature'))
+		end)
+
 	end)
 end)

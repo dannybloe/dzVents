@@ -3,11 +3,6 @@ local MAIN_METHOD = 'execute'
 
 local utils = require('utils')
 
--- global log function
-LOG_INFO = 2
-LOG_DEBUG = 3
-LOG_ERROR = 1
-
 local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 
 	local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
@@ -41,25 +36,6 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		}
 	}
 
-	function self.print(msg)
-		print(msg)
-	end
-
-	-- global function
-	function self.log(msg, level)
-
-		if (level == nil) then level = LOG_INFO end
-
-		local lLevel = _G.logLevel==nil and 1 or _G.logLevel
-
-		if (level <= lLevel) then
-			self.print(msg)
-		end
-	end
-
-	-- make a global log
-	log = self.log
-
 	function self.callEventHandler(eventHandler, device)
 		if (eventHandler[self.mainMethod] ~= nil) then
 			local ok, res = pcall(eventHandler[self.mainMethod], self.domoticz, device)
@@ -67,11 +43,11 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 				eventHandler['__called'] = true
 				return res
 			else
-				self.log('An error occured when calling event handler ' .. eventHandler.name, LOG_ERROR)
-				self.log(res, LOG_ERROR) -- error info
+				utils.log('An error occured when calling event handler ' .. eventHandler.name, utils.LOG_ERROR)
+				utils.log(res, utils.LOG_ERROR) -- error info
 			end
 		else
-			self.log('No' .. self.mainMethod .. 'function found in event handler ' .. eventHandler, LOG_ERROR)
+			utils.log('No' .. self.mainMethod .. 'function found in event handler ' .. eventHandler, utils.LOG_ERROR)
 		end
 	end
 
@@ -134,7 +110,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 
 			if (pos and pos > 0 ) then
 				table.insert(t, string.sub(filename, 1, pos-1))
-				self.log('Found module in ' .. self.scriptFolder .. ' folder: ' .. t[#t], LOG_DEBUG)
+				utils.log('Found module in ' .. self.scriptFolder .. ' folder: ' .. t[#t], utils.LOG_DEBUG)
 			end
 
 		end
@@ -151,7 +127,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		end
 
 		local lookup = {'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' }
-		self.log('Current day .. ' .. lookup[d], LOG_DEBUG)
+		utils.log('Current day .. ' .. lookup[d], utils.LOG_DEBUG)
 		return lookup[d]
 	end
 
@@ -160,7 +136,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 			local timenow = os.date("*t")
 			return timenow
 		else
-			self.log('h=' .. testTime.hour .. ' m=' .. testTime.min)
+			utils.log('h=' .. testTime.hour .. ' m=' .. testTime.min)
 			return testTime
 		end
 	end
@@ -212,18 +188,18 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 			elseif (th~='*' and tm~='*') then
 				return (tonumber(tm) == time.min and tonumber(th) == time.hour)
 			else
-				self.log('wrong time format', LOG_ERROR)
+				utils.log('wrong time format', utils.LOG_ERROR)
 				return false
 			end
 
 		else
-			self.log('Wrong time format, should be hh:mm ' .. tostring(t), LOG_DEBUG)
+			utils.log('Wrong time format, should be hh:mm ' .. tostring(t), utils.LOG_DEBUG)
 			return false
 		end
 	end
 
 	function self.evalTimeTrigger(t, testTime)
-		if (testTime) then self.log(t) end
+		if (testTime) then utils.log(t, utils.LOG_INFO) end
 
 		-- t is a single timer definition
 		t = string.lower(t) -- normalize
@@ -276,14 +252,14 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 				if (m ~= nil) then
 					return self.isTriggerByMinute(m, testTime)
 				else
-					self.log(t .. ' is not a valid timer definition', LOG_ERROR)
+					utils.log(t .. ' is not a valid timer definition', utils.LOG_ERROR)
 				end
 			elseif (words[3] == 'hours') then
 				h = tonumber(words[2])
 				if (h ~= nil) then
 					return self.isTriggerByHour(h, testTime)
 				else
-					self.log(t .. ' is not a valid timer definition', LOG_ERROR)
+					utils.log(t .. ' is not a valid timer definition', utils.LOG_ERROR)
 				end
 			end
 		elseif (words[1] == 'at' or words[1] == 'at:') then
@@ -300,21 +276,21 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 
 		for eventIdx, eventHandler in pairs(events) do
 			if (not eventHandler.__called) then
-				self.log('=====================================================', LOG_INFO)
-				self.log('>>> Handler: ' .. eventHandler.name , LOG_INFO)
+				utils.log('=====================================================', utils.LOG_INFO)
+				utils.log('>>> Handler: ' .. eventHandler.name , utils.LOG_INFO)
 				if (device) then
-					self.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), LOG_INFO)
+					utils.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), utils.LOG_INFO)
 				end
 
-				self.log('.....................................................', LOG_INFO)
+				utils.log('.....................................................', utils.LOG_INFO)
 
 				self.callEventHandler(eventHandler, device)
 
-				self.log('.....................................................', LOG_INFO)
-				self.log('<<< Done ', LOG_INFO)
-				self.log('-----------------------------------------------------', LOG_INFO)
+				utils.log('.....................................................', utils.LOG_INFO)
+				utils.log('<<< Done ', utils.LOG_INFO)
+				utils.log('-----------------------------------------------------', utils.LOG_INFO)
 			else
-				self.log('Skipping ' .. eventHandler.name .. '. Already executed', LOG_INFO)
+				utils.log('Skipping ' .. eventHandler.name .. '. Already executed', utils.LOG_INFO)
 			end
 		end
 	end
@@ -337,7 +313,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		local ok, modules, moduleName, i, event, j, device
 		ok, modules = pcall( self.scandir, scriptPath .. self.scriptFolder)
 		if (not ok) then
-			self.log(modules, LOG_ERROR)
+			utils.log(modules, utils.LOG_ERROR)
 			return nil
 		end
 
@@ -392,17 +368,17 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 								end
 							end
 						else
-							self.log('Script ' .. moduleName .. '.lua has no "on" and/or "' .. self.mainMethod .. '" section. Skipping', LOG_ERROR)
+							utils.log('Script ' .. moduleName .. '.lua has no "on" and/or "' .. self.mainMethod .. '" section. Skipping', utils.LOG_ERROR)
 							table.insert(errModules, moduleName)
 						end
 					end
 				else
-					self.log('Script ' .. moduleName .. '.lua is not a valid module. Skipping', LOG_ERROR)
+					utils.log('Script ' .. moduleName .. '.lua is not a valid module. Skipping', utils.LOG_ERROR)
 					table.insert(errModules, moduleName)
 				end
 			else
 				table.insert(errModules, moduleName)
-				self.log(module, LOG_ERROR)
+				utils.log(module, utils.LOG_ERROR)
 			end
 		end
 
@@ -419,7 +395,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		if (sep ~= '/') then return end -- only on linux
 
 		if (ip == nil or port == nil) then
-			self.log('Invalid ip for contacting Domoticz', LOG_ERROR)
+			utils.log('Invalid ip for contacting Domoticz', utils.LOG_ERROR)
 			return
 		end
 
@@ -434,20 +410,20 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		for k,v in pairs(commandArray) do
 			if (type(v)=='table') then
 				for kk,vv in pairs(v) do
-					self.log('[' .. k .. '] = ' .. kk .. ': ' .. vv, LOG_INFO)
+					utils.log('[' .. k .. '] = ' .. kk .. ': ' .. vv, utils.LOG_INFO)
 				end
 			else
-				self.log(k .. ': ' .. v, LOG_INFO)
+				utils.log(k .. ': ' .. v, utils.LOG_INFO)
 			end
 			printed = true
 		end
-		if(printed) then self.log('=====================================================', LOG_INFO) end
+		if(printed) then utils.log('=====================================================', utils.LOG_INFO) end
 	end
 
 	function self.findScriptForChangedDevice(changedDeviceName, allEventScripts)
 		-- event could be like: myPIRLivingRoom
 		-- or myPir(.*)
-		self.log('Searching for scripts for changed device: '.. changedDeviceName, LOG_DEBUG)
+		utils.log('Searching for scripts for changed device: '.. changedDeviceName, utils.LOG_DEBUG)
 
 		for scriptTrigger, scripts in pairs(allEventScripts) do
 			if (string.find(scriptTrigger, '*')) then -- a wild-card was use
@@ -480,7 +456,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		if (changedDevices ~=nil) then
 			for changedDeviceName, changedDeviceValue in pairs(changedDevices) do
 
-				self.log('Event in devicechanged: ' .. changedDeviceName .. ' value: ' .. changedDeviceValue, LOG_DEBUG)
+				utils.log('Event in devicechanged: ' .. changedDeviceName .. ' value: ' .. changedDeviceValue, utils.LOG_DEBUG)
 				local scriptsToExecute
 
 				-- find the device for this name
@@ -498,7 +474,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 						scriptsToExecute = allEventScripts[device.id]
 					end
 					if (scriptsToExecute ~=nil) then
-						self.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', LOG_INFO)
+						utils.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', utils.LOG_INFO)
 						self.handleEvents(scriptsToExecute, device)
 					end
 
@@ -510,6 +486,12 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		end
 		self.dumpCommandArray(self.domoticz.commandArray)
 		return self.domoticz.commandArray
+	end
+
+	if (_G.TESTMODE) then
+		function self._getUtilsInstance()
+			return utils
+		end
 	end
 
 	return self
