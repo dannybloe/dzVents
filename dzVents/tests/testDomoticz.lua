@@ -6,10 +6,7 @@ describe('Domoticz', function()
 	local Domoticz, domoticz, settings, d1, d2, d3, d4
 
 	setup(function()
-		_G.logLevel = 1
-		_G.log = function()	end
 		_G.TESTMODE = true
-
 
 		_G.timeofday = {
 			Daytime = 'dt',

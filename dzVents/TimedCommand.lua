@@ -1,3 +1,8 @@
+local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
+package.path    = package.path .. ';' .. scriptPath .. '?.lua'
+
+local utils = require('utils')
+
 -- generic 'switch' class with timed options
 -- supports chainging like:
 -- switch(v1).for_min(v2).after_sec/min(v3)
@@ -28,7 +33,7 @@ local function TimedCommand(domoticz, name, value)
 
 		local sCommand = table.concat(command, " ")
 
-		log('Constructed command: ' .. sCommand, LOG_DEBUG)
+		utils.log('Constructed command: ' .. sCommand, utils.LOG_DEBUG)
 
 		return sCommand
 	end

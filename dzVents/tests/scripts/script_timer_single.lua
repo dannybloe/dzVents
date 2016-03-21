@@ -4,7 +4,8 @@ return {
 	on = {
 		['timer'] = 'every ' .. min
 	},
-	execute = function(domoticz, device)
+	execute = function(domoticz)
+		domoticz.notify('Me')
 		return 'script_timer_table'
 	end
 }

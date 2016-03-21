@@ -48,7 +48,7 @@ describe('event helpers', function()
 	end)
 
 	before_each(function()
-		helpers = EventHelpers(settings, domoticz, 'tests/scripts')
+		helpers = EventHelpers(settings, domoticz)
 		utils = helpers._getUtilsInstance()
 		utils.print = function()  end
 	end)
@@ -442,7 +442,6 @@ describe('event helpers', function()
 			-- should pass the arguments to the execute function
 			-- and catch the results from the function
 			assert.is_same('script1: domoticz device', res)
-			bindings['onscript1'][1].__called = false --reset
 		end)
 
 		it('should catch errors', function()
@@ -473,27 +472,8 @@ describe('event helpers', function()
 
 			helpers.handleEvents(script1)
 			assert.is_same({"script1", "script3", "script_combined"}, called)
-
 		end)
 
-		it('should handle events only once', function()
-			local bindings = helpers.getEventBindings()
-			local script4 = bindings['onscript4']
-
-			local called = {}
-			helpers.callEventHandler = function(script)
-				script.__called = true
-				table.insert(called, script.name)
-			end
-
-			helpers.handleEvents(script4)
-			assert.is_same({"script4"}, called)
-
-			-- now again
-			called = {}
-			helpers.handleEvents(script4)
-			assert.is_same({}, called)
-		end)
 	end)
 
 	describe('Event dispatching', function()

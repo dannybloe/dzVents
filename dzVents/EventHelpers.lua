@@ -3,7 +3,13 @@ local MAIN_METHOD = 'execute'
 
 local utils = require('utils')
 
-local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
+local function EventHelpers(settings, domoticz, mainMethod)
+
+	local scriptFolder = SCRIPTFOLDER
+
+	if (_G.TESTMODE) then
+		scriptFolder = 'tests/scripts'
+	end
 
 	local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 	package.path = package.path .. ';' .. scriptPath .. '?.lua'
@@ -19,10 +25,6 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 	if (domoticz == nil) then
 		local Domoticz = require('Domoticz')
 		domoticz = Domoticz(settings)
-	end
-
-	if (scriptFolder == nil) then
-		scriptFolder = SCRIPTFOLDER --default
 	end
 
 	local self = {
@@ -48,7 +50,6 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		if (eventHandler[self.mainMethod] ~= nil) then
 			local ok, res = pcall(eventHandler[self.mainMethod], self.domoticz, device)
 			if (ok) then
-				eventHandler['__called'] = true
 				return res
 			else
 				utils.log('An error occured when calling event handler ' .. eventHandler.name, utils.LOG_ERROR)
@@ -283,23 +284,19 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		end
 
 		for eventIdx, eventHandler in pairs(events) do
-			if (not eventHandler.__called) then
-				utils.log('=====================================================', utils.LOG_INFO)
-				utils.log('>>> Handler: ' .. eventHandler.name , utils.LOG_INFO)
-				if (device) then
-					utils.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), utils.LOG_INFO)
-				end
-
-				utils.log('.....................................................', utils.LOG_INFO)
-
-				self.callEventHandler(eventHandler, device)
-
-				utils.log('.....................................................', utils.LOG_INFO)
-				utils.log('<<< Done ', utils.LOG_INFO)
-				utils.log('-----------------------------------------------------', utils.LOG_INFO)
-			else
-				utils.log('Skipping ' .. eventHandler.name .. '. Already executed', utils.LOG_INFO)
+			utils.log('=====================================================', utils.LOG_INFO)
+			utils.log('>>> Handler: ' .. eventHandler.name , utils.LOG_INFO)
+			if (device) then
+				utils.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), utils.LOG_INFO)
 			end
+
+			utils.log('.....................................................', utils.LOG_INFO)
+
+			self.callEventHandler(eventHandler, device)
+
+			utils.log('.....................................................', utils.LOG_INFO)
+			utils.log('<<< Done ', utils.LOG_INFO)
+			utils.log('-----------------------------------------------------', utils.LOG_INFO)
 		end
 	end
 

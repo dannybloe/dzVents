@@ -2,10 +2,6 @@ local _ = require 'lodash'
 
 package.path = package.path .. ";../?.lua"
 
-local LOG_INFO = 2
-local LOG_DEBUG = 3
-local LOG_ERROR = 1
-
 describe('timed commands', function()
 	local TimeCommand
 	local commandArray = {}
@@ -19,10 +15,8 @@ describe('timed commands', function()
 	}
 
 	setup(function()
-		_G.logLevel = 1
-		_G.log = function()	end
+		_G.logLevel = 0
 		TimedCommand = require('TimedCommand')
-
 	end)
 
 	teardown(function()
