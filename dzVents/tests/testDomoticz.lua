@@ -2,10 +2,6 @@ local _ = require 'lodash'
 
 package.path = package.path .. ";../?.lua"
 
-local LOG_INFO = 2
-local LOG_DEBUG = 3
-local LOG_ERROR = 1
-
 describe('Domoticz', function()
 	local Domoticz, domoticz, settings, d1, d2, d3, d4
 

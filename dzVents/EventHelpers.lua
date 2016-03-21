@@ -7,11 +7,18 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 
 	local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 	package.path = package.path .. ';' .. scriptPath .. '?.lua'
+	package.path = package.path .. ';' .. scriptPath .. '/../?.lua'
 	package.path = package.path .. ';' .. scriptPath .. scriptFolder .. '/?.lua'
+
+	if (settings == nil) then
+		settings = require('dzVents_settings')
+	end
+
+	_G.logLevel = settings['Log level']
 
 	if (domoticz == nil) then
 		local Domoticz = require('Domoticz')
-		local domoticz = Domoticz(settings)
+		domoticz = Domoticz(settings)
 	end
 
 	if (scriptFolder == nil) then
@@ -21,6 +28,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 	local self = {
 		['utils'] = utils, -- convenient for testing and stubbing
 		['domoticz'] = domoticz,
+		['settings'] = settings,
 		['scriptFolder'] = scriptFolder,
 		['mainMethod'] = mainMethod or MAIN_METHOD,
 		['deviceValueExtentions'] = {
@@ -485,6 +493,29 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 			end
 		end
 		self.dumpCommandArray(self.domoticz.commandArray)
+		return self.domoticz.commandArray
+	end
+
+	function self.autoFetchHttpDomoticzData()
+		-- this is indirectly triggered by the timer script
+		if (settings['Enable http fetch']) then
+			self.fetchHttpDomoticzData(
+				settings['Domoticz ip'],
+				settings['Domoticz port'],
+				settings['Fetch interval']
+			)
+		end
+	end
+
+	function self.dispatchTimerEventsToScripts()
+		local scriptsToExecute = self.getTimerHandlers()
+
+		self.handleEvents(scriptsToExecute)
+
+		self.autoFetchHttpDomoticzData()
+
+		self.dumpCommandArray(self.domoticz.commandArray)
+
 		return self.domoticz.commandArray
 	end
 

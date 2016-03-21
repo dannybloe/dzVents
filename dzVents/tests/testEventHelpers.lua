@@ -34,8 +34,10 @@ describe('event helpers', function()
 	}
 
 	setup(function()
-		local settings = {}
-		_G.logLevel = 1
+		local settings = {
+			['Log level'] = 1
+		}
+
 		_G.TESTMODE = true
 
 		EventHelpers = require('EventHelpers')
@@ -46,7 +48,6 @@ describe('event helpers', function()
 	end)
 
 	before_each(function()
-		_G.logLevel = 1
 		helpers = EventHelpers(settings, domoticz, 'tests/scripts')
 		utils = helpers._getUtilsInstance()
 		utils.print = function()  end
@@ -497,14 +498,6 @@ describe('event helpers', function()
 
 	describe('Event dispatching', function()
 
-		setup(function()
-
-		end)
-
-		teardown(function()
-
-		end)
-
 		it('should dispatch all event scripts', function()
 			local scripts = {}
 			local devices = {}
@@ -530,7 +523,7 @@ describe('event helpers', function()
 				table.insert(devices, _device.name)
 			end
 
-			helpers.dispatchDeviceEventsToScripts(devicechanged)
+			local res = helpers.dispatchDeviceEventsToScripts(devicechanged)
 
 			table.sort(scripts)
 			table.sort(devices)
@@ -557,5 +550,57 @@ describe('event helpers', function()
 
 		end)
 
+		it('should dispatch all timer events', function()
+			local scripts = {}
+			local dumped = false
+			local fetched = false
+
+			helpers.dumpCommandArray = function()
+				dumped = true
+			end
+
+			helpers.handleEvents = function(_scripts)
+				_.forEach(_scripts, function(s)
+					table.insert(scripts, s.name)
+				end)
+			end
+
+			helpers.fetchHttpDomoticzData = function()
+				fetched = true
+			end
+
+			local res = helpers.dispatchTimerEventsToScripts()
+
+			table.sort(scripts)
+
+			assert.is_same({
+				'script_timer_classic',
+				'script_timer_single',
+				'script_timer_table'
+			}, scripts)
+
+			assert.is_true(dumped)
+			assert.is_true(fetched)
+		end)
+
+
+		it('should auto fetch http data', function()
+			local fetched = false
+
+			helpers.fetchHttpDomoticzData = function()
+				fetched = true
+			end
+
+			helpers.settings['Enable http fetch'] = true
+
+			helpers.autoFetchHttpDomoticzData()
+			assert.is_true(fetched)
+
+			fetched = false
+			helpers.settings['Enable http fetch'] = false
+
+			helpers.autoFetchHttpDomoticzData()
+			assert.is_false(fetched) -- should still be false
+		end)
 	end)
 end)

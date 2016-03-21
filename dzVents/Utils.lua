@@ -1,4 +1,8 @@
-local self = {}
+local self = {
+	LOG_INFO = 2,
+	LOG_DEBUG = 3,
+	LOG_ERROR = 1
+}
 
 function self.fileExists(name)
 	local f=io.open(name,"r")
@@ -53,8 +57,23 @@ function self.requestDomoticzData(ip, port)
 			" | " .. sed6 .. " > " .. filePath .. " 2>/dev/null &"
 
 	-- this will create a lua-requirable file with fetched data
-	log('Fetching Domoticz data: ' .. cmd, LOG_DEBUG)
+	self.log('Fetching Domoticz data: ' .. cmd, self.LOG_DEBUG)
 	self.osExecute(cmd)
+end
+
+function self.print(msg)
+	print(msg)
+end
+
+function self.log(msg, level)
+
+	if (level == nil) then level = self.LOG_INFO end
+
+	local lLevel = _G.logLevel==nil and 1 or _G.logLevel
+
+	if (level <= lLevel) then
+		self.print(msg)
+	end
 end
 
 return self
