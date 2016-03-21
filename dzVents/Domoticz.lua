@@ -264,7 +264,7 @@ local function Domoticz(settings)
 		dumpTable(device, '> ')
 	end
 
-	local function readHttpDomoticzData()
+	function readHttpDomoticzData()
 		local httpData = {
 			['result'] = {}
 		}
@@ -288,6 +288,10 @@ local function Domoticz(settings)
 			end
 		end
 		return httpData
+	end
+
+	if (_G.TESTMODE) then
+		self._readHttpDomoticzData = readHttpDomoticzData
 	end
 
 	local function createDevices()
@@ -333,8 +337,8 @@ local function Domoticz(settings)
 
 		if (httpData) then
 			for i, httpDevice in pairs(httpData.result) do
-				if (self.devices[httpDevice['Name']]) then
-					local device = self.devices[httpDevice['Name']]
+				if (self.devices[tonumber(httpDevice['idx'])]) then
+					local device = self.devices[tonumber(httpDevice['idx'])]
 					device['batteryLevel'] = httpDevice.BatteryLevel
 					device['signalLevel'] = httpDevice.SignalLevel
 					device['deviceSubType'] = httpDevice.SubType

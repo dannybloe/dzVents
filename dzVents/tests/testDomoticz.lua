@@ -7,14 +7,14 @@ local LOG_DEBUG = 3
 local LOG_ERROR = 1
 
 describe('Domoticz', function()
-	local Domoticz, domoticz, settings
+	local Domoticz, domoticz, settings, d1, d2, d3, d4
 
 	setup(function()
 		_G.logLevel = 1
 		_G.log = function()	end
 		_G.TESTMODE = true
 
-		_G.globalvariables = {}
+
 		_G.timeofday = {
 			Daytime = 'dt',
 			Nighttime = 'nt',
@@ -25,20 +25,74 @@ describe('Domoticz', function()
 		_G.globalvariables = {
 			Security = 'sec'
 		}
-		_G.devicechanged = {}
-		_G.otherdevices = {}
-		_G.otherdevices_temperature = {}
-		_G.otherdevices_dewpoint = {}
-		_G.otherdevices_humidity = {}
-		_G.otherdevices_barometer = {}
-		_G.otherdevices_utility = {}
-		_G.otherdevices_weather = {}
-		_G.otherdevices_rain = {}
-		_G.otherdevices_rain_lasthour = {}
-		_G.otherdevices_uv = {}
-		_G.otherdevices_lastupdate = {}
-		_G.otherdevices_idx = {}
-		_G.uservariables = {}
+		_G.devicechanged = {
+			['device1'] = 'On',
+			['device2'] = 'Off'
+		}
+		_G.otherdevices = {
+			['device1'] = 'On',
+			['device2'] = 'Off',
+			['device3'] = 120,
+			['device4'] = 'Set Level 5%'
+		}
+
+		_G.otherdevices_temperature = {
+			['device1'] = 37,
+			['device2'] = 12
+		}
+
+		_G.otherdevices_dewpoint = {
+			['device1'] = 55,
+			['device2'] = 66
+		}
+		_G.otherdevices_humidity = {
+			['device1'] = 66,
+			['device2'] = 67
+		}
+
+		_G.otherdevices_barometer = {
+			['device4'] = 333,
+		}
+		_G.otherdevices_utility = {
+			['device4'] = 123,
+		}
+		_G.otherdevices_weather = {
+			['device4'] = 'Nice',
+		}
+		_G.otherdevices_rain = {
+			['device4'] = 666
+		}
+		_G.otherdevices_rain_lasthour = {
+			['device4'] = 12
+		}
+		_G.otherdevices_uv = {
+			['device3'] = 23
+		}
+		_G.otherdevices_lastupdate = {
+			['device1'] = '2016-03-20 12:23:00',
+			['device2'] = '2016-03-20 12:23:00',
+			['device3'] = '2016-03-20 12:23:00',
+			['device4'] = '2016-03-20 12:23:00'
+		}
+		_G.otherdevices_idx = {
+			['device1'] = 1,
+			['device2'] = 2,
+			['device3'] = 3,
+			['device4'] = 4
+
+		}
+
+		_G.otherdevices_svalues = {
+			['device1'] = '1;2;3',
+			['device2'] = '4;5;6',
+			['device3'] = '7;8;9',
+			['device4'] = '10;11;12'
+
+		}
+		_G.uservariables = {
+			x = 1,
+			y = 2
+		}
 
 		_G['uservariables_lastupdate'] = {
 			['myVar'] = '2016-03-20 12:23:00'
@@ -64,6 +118,10 @@ describe('Domoticz', function()
 
 	before_each(function()
 		domoticz = Domoticz(settings)
+		d1 = domoticz.devices['device1']
+		d2 = domoticz.devices['device2']
+		d3 = domoticz.devices['device3']
+		d4 = domoticz.devices['device4']
 	end)
 
 	after_each(function()
@@ -224,16 +282,91 @@ describe('Domoticz', function()
 
 	end)
 
-	it('should fetch http data from domoticz', function()
-		local utils = domoticz._getUtilsInstance()
-		local ip, port
-		utils.requestDomoticzData = function(i, p)
-			ip = i
-			port = p
-		end
-		domoticz.fetchHttpDomoticzData()
-		assert.is_same(settings['Domoticz ip'], ip)
-		assert.is_same(settings['Domoticz port'], port)
+	describe('devices', function()
+
+		it('should create devices', function()
+			assert.is_not_nil(d1)
+			assert.is_not_nil(d2)
+			assert.is_not_nil(d3)
+			assert.is_not_nil(d4)
+		end)
+
+		it('should have set their ids', function()
+			assert.is_same(1, d1.id)
+			assert.is_same(2, d2.id)
+			assert.is_same(3, d3.id)
+			assert.is_same(4, d4.id)
+		end)
+
+		it('should have set value extentions', function()
+			assert.is_same(37, d1.temperature)
+			assert.is_same(12, d2.temperature)
+			assert.is_same(55, d1.dewpoint)
+			assert.is_same(66, d2.dewpoint)
+			assert.is_same(66, d1.humidity)
+			assert.is_same(67, d2.humidity)
+			assert.is_same(333, d4.barometer)
+			assert.is_same(123, d4.utility)
+			assert.is_same('Nice', d4.weather)
+			assert.is_same(666, d4.rain)
+			assert.is_same(12, d4.rainLastHour)
+			assert.is_same(23, d3.uv)
+		end)
+
+		it('should have set last update info', function()
+			assert.is_same('2016-03-20 12:23:00', d1.lastUpdate.raw)
+			assert.is_same('2016-03-20 12:23:00', d2.lastUpdate.raw)
+			assert.is_same('2016-03-20 12:23:00', d3.lastUpdate.raw)
+			assert.is_same('2016-03-20 12:23:00', d4.lastUpdate.raw)
+		end)
+
+		it('should have set rawData', function()
+			assert.is_same({'1','2','3'}, d1.rawData)
+			assert.is_same({'4','5','6'}, d2.rawData)
+			assert.is_same({'7','8','9'}, d3.rawData)
+			assert.is_same({'10','11','12'}, d4.rawData)
+		end)
+
+		it('should have created id entries', function()
+			assert.is_equal(d1, domoticz.devices[1])
+			assert.is_equal(d2, domoticz.devices[2])
+			assert.is_equal(d3, domoticz.devices[3])
+			assert.is_equal(d4, domoticz.devices[4])
+		end)
+
+		it('should have created changedDevices collection', function()
+			assert.is_equal(d1, domoticz.changedDevices[1])
+			assert.is_equal(d2, domoticz.changedDevices[2])
+			assert.is_equal(d1, domoticz.changedDevices['device1'])
+			assert.is_equal(d2, domoticz.changedDevices['device2'])
+			assert.is_nil(domoticz.changedDevices[3])
+			assert.is_nil(domoticz.changedDevices[4])
+			assert.is_nil(domoticz.changedDevices['device3'])
+			assert.is_nil(domoticz.changedDevices['device4'])
+		end)
+
+	end)
+
+	it('should have created iterators', function()
+		assert.is_function(domoticz.devices.forEach)
+		assert.is_function(domoticz.devices.filter)
+		assert.is_function(domoticz.devices.filter(function()
+		end).forEach)
+
+		assert.is_function(domoticz.changedDevices.forEach)
+		assert.is_function(domoticz.changedDevices.filter)
+		assert.is_function(domoticz.changedDevices.filter(function()
+		end).forEach)
+
+		assert.is_function(domoticz.variables.forEach)
+		assert.is_function(domoticz.variables.filter)
+		assert.is_function(domoticz.variables.filter(function()
+		end).forEach)
+	end)
+
+	it('should have created variables', function()
+		assert.is_same(1, domoticz.variables['x'].nValue)
+		assert.is_same(2, domoticz.variables['y'].nValue)
 	end)
 
 	it('should log', function()
@@ -243,5 +376,53 @@ describe('Domoticz', function()
 		end
 		domoticz.log('boeh', 1)
 		assert.is_true(logged)
+	end)
+
+	describe('http data', function()
+
+		it('should fetch http data from domoticz', function()
+			local utils = domoticz._getUtilsInstance()
+			local ip, port
+			utils.requestDomoticzData = function(i, p)
+				ip = i
+				port = p
+			end
+			domoticz.fetchHttpDomoticzData()
+			assert.is_same(settings['Domoticz ip'], ip)
+			assert.is_same(settings['Domoticz port'], port)
+		end)
+
+		it('should read http data', function()
+			local data = domoticz._readHttpDomoticzData()
+			_.print(res)
+		end)
+
+		it('should have processed http data', function()
+			assert.is_same(10, d1.batteryLevel)
+			assert.is_same(20, d2.batteryLevel)
+			assert.is_same(30, d3.batteryLevel)
+			assert.is_same(40, d4.batteryLevel)
+
+			assert.is_same('10', d1.signalLevel)
+			assert.is_same('20', d2.signalLevel)
+			assert.is_same('30', d3.signalLevel)
+			assert.is_same('-', d4.signalLevel)
+
+			assert.is_same('Zone', d1.deviceSubType)
+			assert.is_same('Lux', d2.deviceSubType)
+			assert.is_same('Energy', d3.deviceSubType)
+			assert.is_same('SetPoint', d4.deviceSubType)
+
+			assert.is_same('Heating', d1.deviceType)
+			assert.is_same('Lux', d2.deviceType)
+			assert.is_same('P1 Smart Meter', d3.deviceType)
+			assert.is_same('Thermostat', d4.deviceType)
+
+			assert.is_same('hw1', d1.hardwareName)
+			assert.is_same('hw2', d2.hardwareName)
+			assert.is_same('hw3', d3.hardwareName)
+			assert.is_same('hw4', d4.hardwareName)
+
+		end)
 	end)
 end)

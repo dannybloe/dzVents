@@ -28,7 +28,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 		['domoticz'] = domoticz,
 		['scriptFolder'] = scriptFolder,
 		['mainMethod'] = mainMethod or MAIN_METHOD,
-		['deviceValueExtenstions'] = {
+		['deviceValueExtentions'] = {
 			['_Temperature'] = true,
 			['_Dewpoint'] = true,
 			['_Humidity'] = true,
@@ -107,7 +107,7 @@ local function EventHelpers(settings, domoticz, scriptFolder, mainMethod)
 			local valueExtension = string.sub(event, pos)
 
 			-- only peel away the first part if the extension is known
-			if (self.deviceValueExtenstions[valueExtension]) then
+			if (self.deviceValueExtentions[valueExtension]) then
 				name = string.sub(event, 1, pos - 1)
 			end
 		end
