@@ -1,20 +1,16 @@
-local SCRIPTFOLDER = '/scripts'
 local MAIN_METHOD = 'execute'
 
 local utils = require('utils')
 
 local function EventHelpers(settings, domoticz, mainMethod)
 
-	local scriptFolder = SCRIPTFOLDER
+	local currentPath = debug.getinfo(1).source:match("@?(.*/)")
 
 	if (_G.TESTMODE) then
-		scriptFolder = 'tests/scripts'
+		scriptsFolderPath = currentPath ..'tests/scripts'
+		package.path = package.path .. ';' .. currentPath .. '/tests/scripts/?.lua'
+		package.path = package.path .. ';' .. currentPath .. '/../?.lua'
 	end
-
-	local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
-	package.path = package.path .. ';' .. scriptPath .. '?.lua'
-	package.path = package.path .. ';' .. scriptPath .. '/../?.lua'
-	package.path = package.path .. ';' .. scriptPath .. scriptFolder .. '/?.lua'
 
 	if (settings == nil) then
 		settings = require('dzVents_settings')
@@ -31,7 +27,6 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		['utils'] = utils, -- convenient for testing and stubbing
 		['domoticz'] = domoticz,
 		['settings'] = settings,
-		['scriptFolder'] = scriptFolder,
 		['mainMethod'] = mainMethod or MAIN_METHOD,
 		['deviceValueExtentions'] = {
 			['_Temperature'] = true,
@@ -89,12 +84,12 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 		local name = event
 		if (pos ~= nil and pos > 1) then -- cannot start with _ (we use that for our _always script)
-			local valueExtension = string.sub(event, pos)
+		local valueExtension = string.sub(event, pos)
 
-			-- only peel away the first part if the extension is known
-			if (self.deviceValueExtentions[valueExtension]) then
-				name = string.sub(event, 1, pos - 1)
-			end
+		-- only peel away the first part if the extension is known
+		if (self.deviceValueExtentions[valueExtension]) then
+			name = string.sub(event, 1, pos - 1)
+		end
 		end
 		return name
 	end
@@ -119,7 +114,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 			if (pos and pos > 0 ) then
 				table.insert(t, string.sub(filename, 1, pos-1))
-				utils.log('Found module in ' .. self.scriptFolder .. ' folder: ' .. t[#t], utils.LOG_DEBUG)
+				utils.log('Found module in ' .. directory .. ' folder: ' .. t[#t], utils.LOG_DEBUG)
 			end
 
 		end
@@ -316,7 +311,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		local bindings = {}
 		local errModules = {}
 		local ok, modules, moduleName, i, event, j, device
-		ok, modules = pcall( self.scandir, scriptPath .. self.scriptFolder)
+		ok, modules = pcall( self.scandir, scriptsFolderPath)
 		if (not ok) then
 			utils.log(modules, utils.LOG_ERROR)
 			return nil
@@ -432,13 +427,13 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 		for scriptTrigger, scripts in pairs(allEventScripts) do
 			if (string.find(scriptTrigger, '*')) then -- a wild-card was use
-				-- turn it into a valid regexp
-				scriptTrigger = string.gsub(scriptTrigger, "*", ".*")
+			-- turn it into a valid regexp
+			scriptTrigger = string.gsub(scriptTrigger, "*", ".*")
 
-				if (string.match(changedDeviceName, scriptTrigger)) then
-					-- there is trigger for this changedDeviceName
-					return scripts
-				end
+			if (string.match(changedDeviceName, scriptTrigger)) then
+				-- there is trigger for this changedDeviceName
+				return scripts
+			end
 			else
 				if (scriptTrigger == changedDeviceName) then
 					-- there is trigger for this changedDeviceName

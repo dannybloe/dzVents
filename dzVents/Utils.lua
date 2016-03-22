@@ -23,6 +23,7 @@ function self.getDevicesPath()
 end
 
 function self.osExecute(cmd)
+	if (_G.TESTMODE) then return end
 	os.execute(cmd)
 end
 
@@ -62,6 +63,7 @@ function self.requestDomoticzData(ip, port)
 end
 
 function self.print(msg)
+	if (_G.TESTMODE) then return end
 	print(msg)
 end
 

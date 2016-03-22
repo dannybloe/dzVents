@@ -16,7 +16,6 @@ local function values(t)
 end
 
 describe('event helpers', function()
-
 	local EventHelpers, helpers, utils
 
 	local domoticz = {

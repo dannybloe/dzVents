@@ -34,7 +34,12 @@ local function Device(domoticz, name, state, wasChanged)
 	-- some states will be 'booleanized'
 	local function stateToBool(state)
 		state = string.lower(state)
-		local b = self._States[state]['b']
+		local info = self._States[state]
+		local b
+		if (info) then
+			b = self._States[state]['b']
+		end
+
 		if (b==nil) then b = false end
 		return b
 	end

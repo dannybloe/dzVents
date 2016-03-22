@@ -74,13 +74,17 @@ describe('device', function()
 		local device = Device(domoticz, 'myDevice', 'Set Level 55%', false)
 		assert.is_true(device.bState)
 
+		device = Device(domoticz, 'myDevice', '', false)
+		assert.is_false(device.bState)
+
+
 		device = Device(domoticz, 'myDevice', 'On', false)
 		assert.is_true(device.bState)
 
 		local states = device._States
 
 		_.forEach(states, function(value, key)
---			print(key, value)
+			--			print(key, value)
 			device = Device(domoticz, 'myDevice', key, false)
 			if (value.b) then
 				assert.is_true(device.bState)
