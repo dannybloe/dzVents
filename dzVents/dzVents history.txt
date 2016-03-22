@@ -1,6 +1,7 @@
 [..]
 * Added SMS method.
 * Added toggleSwitch() method to devices that support it.
+* Added more switch states that control device.bState (e.g. on == true, open == true etc)
 * Added secondsAgo to the lastUpdate attribute
 * Added tests
 * Refactored code significantly
