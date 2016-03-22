@@ -14,12 +14,7 @@ return {
 	execute = function(domoticz)
 
 		local pump = domoticz.devices['Pond']
-
-		if (pump.state == 'On') then
-			pump.switchOff()
-		else
-			pump.switchOn()
-		end
+		pump.toggleSwitch()
 
 	end
 }
