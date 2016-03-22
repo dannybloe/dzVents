@@ -1,5 +1,3 @@
-Please use the latest release instead of this master branch.
-====
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of contents**
@@ -85,14 +83,32 @@ Installing
 =============
 *First of all, installing dzVents will not affect any of the scripts you have already in place so you can try dzVents without disrupting things.*
 
-Copy the following to the Domoticz script folder:  `/path/to/domoticz/scripts/lua`:
+Note: this code is *not* tested on a non-linux machine like Windows. I'm almost certain you will have complications. 
 
- -  `event_helpers.lua`
+Download the latest release from [GitHub](https://github.com/dannybloe/dzVents/releases), unzip it. 
+Form the extracted zip folder copy the following to the Domoticz script folder (`/path/to/domoticz/scripts/lua`):
+
+ -  The `dzVents` folder. This folder contains all the dzVents logic
  - `script_time_main.lua`
  - `script_device_main.lua`
- - `Domoticz.lua`
  - `dzVents_settings.lua` and 
  - the folder `scripts` 
+
+After doing so you will have this structure:
+```
+domoticz/
+	scripts/
+		lua/
+			dzVents/
+				... <dzVents files> ...
+				examples/ 
+				tests/
+			scripts/
+			script_time_main.lua
+			script_device_main.lua
+			dzVents_settings.lua
+			... <other stuff that was already there> ...
+```
 
 Edit the file `dzVents_settings.lua` and enter the ip number and port number of your Domoticz instance. Make sure that you don't need a username/password for local networks (see Domoticz settings) or dzVents will not be able to fetch additional data like battery status and device type information! If you don't want  or need this then you can set `['Enable http fetch']` to `false`.
 
@@ -103,8 +119,8 @@ Quickstart
 After you placed the dzVents files in the right location we can do a quick test if everything works:
 
  - Pick a switch in your Domoticz system. Note down the exact name of the switch. If you don't have a switch then you can create a Dummy switch and use that one.
- - Create a new script in the scripts folder. Call it `test.lua`.
- - Open test.lua in an editor and fill it with this code and change `<exact name of the switch>` with the .. you guessed it... exact name of the switch device:
+ - Create a new script in the `scripts/` folder. Call it `test.lua`.
+ - Open `test.lua` in an editor and fill it with this code and change `<exact name of the switch>` with the .. you guessed it... exact name of the switch device:
  
 ```
 return {
@@ -129,7 +145,7 @@ return {
  - You can watch the log in Domoticz and it should show you that indeed it triggered your script.
  - Assuming of course that you have configured the notify options in Domoticz. Otherwise you can change the lines with `domoticz.notify` to `domoticz.email(<your address>)`.
 
-The [examples folder](/examples) has a couple of example scripts
+The [examples folder](/dzVents/examples) has a couple of example scripts
 
 How does it to work?
 ============
@@ -168,7 +184,7 @@ Simply said, if you want to turn your existing script into a script that can be 
 
 So, the module returns a table with these sections (keys):
 
-* **on**: (don't confuse this with **on**/off, it's like: **on** < some event > **execute** < code >). This is a table (or array) with **one or more** trigger events:
+* **on**: (*don't confuse this with **on**/off, it is more like: **on** < some event > **execute** < code >*). This is a table (or array) with **one or more** trigger events:
     * The name of your device between string quotes. **You can use the asterisk (\*) wild-card here e.g. `PIR_*` or `*_PIR` .** Note that in one cycle several devices could have been updated. If you have a script with a wild-card trigger that matches all the names of these changed devices, then this script will be executed *for all these changed devices*.  
     * The index of your device (the name may change, the index will usually stay the same), 
     * The string or table 'timer' which makes the script execute every minute (see the section **timer trigger options** [below](#timer-trigger-options)). 
@@ -176,8 +192,8 @@ So, the module returns a table with these sections (keys):
      
     So you can put as many triggers in there as you like and only if one of those is met, then the **execute** part is executed by dzVents.
 * **active**: this can either be:
-	* a boolean value (true or false, no quotes!). When set to false, the script will not be called. This is handy for when you are still writing the script and you don't want it to be executed just yet or when you simply want to disable it. 
-	* A function returning true or false. The function will receive the domoticz object with all the information about you domoticz instance: `active = function(domoticz) .... end`. So for example you could check for a Domoticz variable or switch and prevent the script from being executed. **However, be aware that for *every script* in your scripts folder, this active function will be called, every cycle!! So, it is better to put all your logic in the execute function instead of in the active function.** Maybe it is better to not allow a function here at all... /me wonders.
+	* a boolean value (`true` or `false`, no quotes!). When set to `false`, the script will not be called. This is handy for when you are still writing the script and you don't want it to be executed just yet or when you simply want to disable it. 
+	* A function returning `true` or `false`. The function will receive the domoticz object with all the information about you domoticz instance: `active = function(domoticz) .... end`. So for example you could check for a Domoticz variable or switch and prevent the script from being executed. **However, be aware that for *every script* in your scripts folder, this active function will be called, every cycle!! So, it is better to put all your logic in the execute function instead of in the active function.** Maybe it is better to not allow a function here at all... /me wonders.
 * **execute**: This is the actual logic of your script. You can copy the code from your existing script into this section. What is special is that dzVents will pass the [domoticz object](#domoticz-object-api) and, for device triggers, the actual [device](#device-object-api) causing the script to be called. These two objects are all you need to access almost everything in your Domoticz system including all methods to manipulate them like modifying switches or sending notifications. *There shouldn't be any need to manipulate the commandArray anymore.* (If there is a need, please let me know and I'll fix it). More about the domoticz object below.
 
 **Note**: if you have a script with *both a device trigger and a timer trigger* then only in the case of when a device update occurs, the changed device is passed into the execute function. When the timer triggers the script then this second parameter is `nil`. You will have to check for this situation in you script. 
