@@ -1,4 +1,3 @@
--- Version 0.9.10
 -- See README.md for instructions
 
 return {
