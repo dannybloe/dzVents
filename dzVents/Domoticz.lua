@@ -6,7 +6,7 @@ local Device = require('Device')
 local Variable = require('Variable')
 local Time = require('Time')
 local TimedCommand = require('TimedCommand')
-local utils = require('utils')
+local utils = require('Utils')
 
 
 -- simple string splitting method

@@ -1,7 +1,7 @@
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
 package.path    = package.path .. ';' .. scriptPath .. '?.lua'
 
-local utils = require('utils')
+local utils = require('Utils')
 
 -- generic 'switch' class with timed options
 -- supports chainging like:

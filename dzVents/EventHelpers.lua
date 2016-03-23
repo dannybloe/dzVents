@@ -1,6 +1,6 @@
 local MAIN_METHOD = 'execute'
 
-local utils = require('utils')
+local utils = require('Utils')
 
 local function EventHelpers(settings, domoticz, mainMethod)
 
