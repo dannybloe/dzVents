@@ -12,7 +12,7 @@ describe('event helpers', function()
 	setup(function()
 		_G.logLevel = 1
 		_G.log = function()	end
-		utils = require('Utils')
+		utils = require('utils')
 	end)
 
 	teardown(function()

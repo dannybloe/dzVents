@@ -256,8 +256,9 @@ describe('event helpers', function()
 				'onscript2',
 				'onscript4',
 				'some*device',
+				'somedevice',
 				'wild*' }, keys(modules))
-			assert.are.same(7, _.size(modules))
+			assert.are.same(8, _.size(modules))
 		end)
 
 		it('should detect erroneous modules', function()

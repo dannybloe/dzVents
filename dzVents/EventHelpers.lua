@@ -1,14 +1,21 @@
 local MAIN_METHOD = 'execute'
+local GLOBAL_DATA_MODULE = 'global_data'
+local GLOBAL = false
+local LOCAL = true
 
 local utils = require('Utils')
+local persistence = require('persistence')
 
 local function EventHelpers(settings, domoticz, mainMethod)
+	local scriptsFolderPath
+	local globalsDefinition
 
 	local currentPath = debug.getinfo(1).source:match("@?(.*/)")
 
 	if (_G.TESTMODE) then
 		scriptsFolderPath = currentPath ..'tests/scripts'
 		package.path = package.path .. ';' .. currentPath .. '/tests/scripts/?.lua'
+		package.path = package.path .. ';' .. currentPath .. '/tests/scripts/storage/?.lua'
 		package.path = package.path .. ';' .. currentPath .. '/../?.lua'
 	end
 
@@ -41,10 +48,124 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		}
 	}
 
+	function self.getStorageContext(eventHandler, isLocal)
+
+		local storageDef = eventHandler and eventHandler.storage
+		local storageContext = {}
+		local fileStorage, value
+		local module = eventHandler and eventHandler.dataFileName
+
+		if (not isLocal) then
+			module = scriptsFolderPath .. '/storage/__data_global_data'
+			storageDef = globalsDefinition
+		end
+
+		if (storageDef ~= nil) then
+			-- load the datafile for this module
+			ok, fileStorage = pcall(require, module)
+			if (ok) then
+				-- only transfer data as defined in storageDef
+				for var,def in pairs(storageDef) do
+					storageContext[var] = fileStorage[var]
+				end
+			else
+				for var,def in pairs(storageDef) do
+
+					if (storageDef[var].initial ~= nil) then
+						storageContext[var] = storageDef[var].initial
+					else
+						storageContext[var] = nil
+					end
+				end
+			end
+		end
+		fileStorage = nil
+		return storageContext
+	end
+
+	function self.writeStorageContext(eventHandler, storageContext, isLocal)
+		-- todo geen eventhandler meegeven maar de daadwerkelijk waardes die ertoe doen
+		local storageDef = eventHandler and eventHandler.storage
+		local dataFilePath = eventHandler and eventHandler.dataFilePath
+		local dataFileModuleName = eventHandler and eventHandler.dataFileName
+
+		if (not isLocal) then
+			storageDef = globalsDefinition
+			dataFileModuleName = scriptsFolderPath .. '/storage/__data_global_data'
+			dataFilePath = scriptsFolderPath .. '/storage/__data_global_data.lua'
+		end
+
+		local data = {}
+
+		if (storageDef ~= nil) then
+			-- transfer only stuf as described in storageDef
+			for var, def in pairs(storageDef) do
+				data[var] = storageContext[var]
+			end
+
+			if (not utils.fileExists(scriptsFolderPath .. '/storage')) then
+				os.execute('mkdir ' .. scriptsFolderPath .. '/storage')
+			end
+
+			persistence.store(dataFilePath, data)
+
+			-- make sure there is no cache for this 'data' module
+			package.loaded[dataFileModuleName] = nil
+
+			ok, err = pcall(persistence.store, dataFilePath, data)
+			if (not ok) then
+				utils.log('There was a problem writing the storage values', utils.LOG_ERROR)
+				utils.log(err, utils.LOG_ERROR)
+			end
+		end
+	end
+
 	function self.callEventHandler(eventHandler, device)
+		local useStorage = false
 		if (eventHandler[self.mainMethod] ~= nil) then
+
+			-- ==================
+			-- Prepare storage
+			-- ==================
+			if (eventHandler.storage ~= nil) then
+				useStorage = true
+				local localStorageContext = self.getStorageContext(eventHandler, LOCAL)
+
+				if (localStorageContext) then
+					self.domoticz.storage = localStorageContext
+				else
+					self.domoticz.storage = {}
+				end
+			end
+
+			if (globalsDefinition) then
+				local globalStorageContext = self.getStorageContext(nil, GLOBAL)
+				self.domoticz.globalStorage = globalStorageContext
+			else
+				self.domoticz.globalStorage = {}
+			end
+
+			-- ==================
+			-- Run script
+			-- ==================
 			local ok, res = pcall(eventHandler[self.mainMethod], self.domoticz, device)
 			if (ok) then
+
+				-- ==================
+				-- Persist storage
+				-- ==================
+
+				if (useStorage) then
+					self.writeStorageContext(eventHandler, self.domoticz.storage, LOCAL)
+				end
+
+				if (globalsDefinition) then
+					self.writeStorageContext(nil, self.domoticz.globalStorage, GLOBAL)
+				end
+
+				self.domoticz.storage = nil
+				self.domoticz.globalStorage = nil
+
 				return res
 			else
 				utils.log('An error occured when calling event handler ' .. eventHandler.name, utils.LOG_ERROR)
@@ -53,6 +174,10 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		else
 			utils.log('No' .. self.mainMethod .. 'function found in event handler ' .. eventHandler, utils.LOG_ERROR)
 		end
+
+		self.domoticz.storage = nil
+		self.domoticz.globalStorage = nil
+
 	end
 
 	function self.reverseFind(s, target)
@@ -321,60 +446,72 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 			local module, skip
 			ok, module = pcall(require, moduleName)
-			if (ok) then
-				if (type(module) == 'table') then
-					skip = false
-					if (module.active ~= nil) then
-						local active = false
-						if (type(module.active) == 'function') then
-							active = module.active(self.domoticz)
-						else
-							active = module.active
-						end
 
-						if (not active) then
-							skip = true
-						end
-					end
-					if (not skip) then
-						if ( module.on ~= nil and module[self.mainMethod]~= nil ) then
-							module.name = moduleName
-							for j, event in pairs(module.on) do
-								if (mode == 'timer') then
-									if (type(j) == 'number' and type(event) == 'string' and event == 'timer') then
-										-- { 'timer' }
-										-- execute every minute (old style)
-										table.insert(bindings, module)
-									elseif (type(j) == 'string' and j=='timer' and type(event) == 'string') then
-										-- { ['timer'] = 'every minute' }
-										if (self.evalTimeTrigger(event)) then
-											table.insert(bindings, module)
-										end
-									elseif (type(j) == 'string' and j=='timer' and type(event) == 'table') then
-										-- { ['timer'] = { 'every minute ', 'every hour' } }
-										if (self.checkTimeDefs(event)) then
-											-- this one can be executed
-											table.insert(bindings, module)
-										end
-									end
-								else
-									if (event ~= 'timer' and j~='timer') then
-										-- let's not try to resolve indexes to names here for performance reasons
-										if (bindings[event] == nil) then
-											bindings[event] = {}
-										end
-										table.insert(bindings[event], module)
-									end
-								end
-							end
-						else
-							utils.log('Script ' .. moduleName .. '.lua has no "on" and/or "' .. self.mainMethod .. '" section. Skipping', utils.LOG_ERROR)
-							table.insert(errModules, moduleName)
-						end
+			if (ok) then
+
+				if (moduleName == GLOBAL_DATA_MODULE) then
+					if (module.storage ~= nil) then
+						globalsDefinition = module.storage
+					else
+						utils.log('Globals module has no storage section', utils.LOG_ERROR)
 					end
 				else
-					utils.log('Script ' .. moduleName .. '.lua is not a valid module. Skipping', utils.LOG_ERROR)
-					table.insert(errModules, moduleName)
+					if (type(module) == 'table') then
+						skip = false
+						if (module.active ~= nil) then
+							local active = false
+							if (type(module.active) == 'function') then
+								active = module.active(self.domoticz)
+							else
+								active = module.active
+							end
+
+							if (not active) then
+								skip = true
+							end
+						end
+						if (not skip) then
+							if ( module.on ~= nil and module[self.mainMethod]~= nil ) then
+								module.name = moduleName
+								module.dataFileName = '__data_' .. moduleName
+								module.dataFilePath = scriptsFolderPath .. '/storage/__data_' .. moduleName .. '.lua'
+								for j, event in pairs(module.on) do
+									if (mode == 'timer') then
+										if (type(j) == 'number' and type(event) == 'string' and event == 'timer') then
+											-- { 'timer' }
+											-- execute every minute (old style)
+											table.insert(bindings, module)
+										elseif (type(j) == 'string' and j=='timer' and type(event) == 'string') then
+											-- { ['timer'] = 'every minute' }
+											if (self.evalTimeTrigger(event)) then
+												table.insert(bindings, module)
+											end
+										elseif (type(j) == 'string' and j=='timer' and type(event) == 'table') then
+											-- { ['timer'] = { 'every minute ', 'every hour' } }
+											if (self.checkTimeDefs(event)) then
+												-- this one can be executed
+												table.insert(bindings, module)
+											end
+										end
+									else
+										if (event ~= 'timer' and j~='timer') then
+											-- let's not try to resolve indexes to names here for performance reasons
+											if (bindings[event] == nil) then
+												bindings[event] = {}
+											end
+											table.insert(bindings[event], module)
+										end
+									end
+								end
+							else
+								utils.log('Script ' .. moduleName .. '.lua has no "on" and/or "' .. self.mainMethod .. '" section. Skipping', utils.LOG_ERROR)
+								table.insert(errModules, moduleName)
+							end
+						end
+					else
+						utils.log('Script ' .. moduleName .. '.lua is not a valid module. Skipping', utils.LOG_ERROR)
+						table.insert(errModules, moduleName)
+					end
 				end
 			else
 				table.insert(errModules, moduleName)

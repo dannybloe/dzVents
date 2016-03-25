@@ -89,3 +89,4 @@ crashlytics.properties
 crashlytics-build.properties
 dzVents/tests/luacov.stats.out
 dzVents/tests/luacov.report.out
+dzVents/tests/scripts/storage/*
