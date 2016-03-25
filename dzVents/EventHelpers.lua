@@ -7,7 +7,7 @@ local utils = require('Utils')
 local persistence = require('persistence')
 
 local function EventHelpers(settings, domoticz, mainMethod)
-	local scriptsFolderPath
+
 	local globalsDefinition
 
 	local currentPath = debug.getinfo(1).source:match("@?(.*/)")
@@ -56,13 +56,15 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		local module = eventHandler and eventHandler.dataFileName
 
 		if (not isLocal) then
-			module = scriptsFolderPath .. '/storage/__data_global_data'
+--			module = scriptsFolderPath .. '/storage/__data_global_data'
+			module = '__data_global_data'
 			storageDef = globalsDefinition
 		end
 
 		if (storageDef ~= nil) then
 			-- load the datafile for this module
 			ok, fileStorage = pcall(require, module)
+			package.loaded[module] = nil -- no caching
 			if (ok) then
 				-- only transfer data as defined in storageDef
 				for var,def in pairs(storageDef) do
@@ -107,12 +109,10 @@ local function EventHelpers(settings, domoticz, mainMethod)
 				os.execute('mkdir ' .. scriptsFolderPath .. '/storage')
 			end
 
-			persistence.store(dataFilePath, data)
+			ok, err = pcall(persistence.store, dataFilePath, data)
 
 			-- make sure there is no cache for this 'data' module
 			package.loaded[dataFileModuleName] = nil
-
-			ok, err = pcall(persistence.store, dataFilePath, data)
 			if (not ok) then
 				utils.log('There was a problem writing the storage values', utils.LOG_ERROR)
 				utils.log(err, utils.LOG_ERROR)
