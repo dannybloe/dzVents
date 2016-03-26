@@ -86,7 +86,7 @@ local function Domoticz(settings)
 		['LOG_ERROR'] = utils.LOG_ERROR,
 	}
 
-	local function setIterators(context, collection)
+	local function setIterators(collection)
 		collection['forEach'] = function(func)
 			for i, item in pairs(collection) do
 				if (type(item) ~= 'function' and type(i)~='number') then
@@ -104,14 +104,14 @@ local function Domoticz(settings)
 					end
 				end
 			end
-			setIterators(res, res)
+			setIterators(res)
 			return res
 		end
 	end
 
-	setIterators(self, self.devices)
-	setIterators(self, self.changedDevices)
-	setIterators(self, self.variables)
+	setIterators(self.devices)
+	setIterators(self.changedDevices)
+	setIterators(self.variables)
 
 
 	-- add domoticz commands to the commandArray

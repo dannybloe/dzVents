@@ -56,7 +56,6 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		local module = eventHandler and eventHandler.dataFileName
 
 		if (not isLocal) then
---			module = scriptsFolderPath .. '/storage/__data_global_data'
 			module = '__data_global_data'
 			storageDef = globalsDefinition
 		end

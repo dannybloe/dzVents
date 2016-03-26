@@ -1,6 +1,8 @@
 _G._ = require 'lodash'
 local GLOBAL = false
 local LOCAL = true
+_G.TESMODE = true
+
 package.path = package.path .. ";../?.lua"
 
 local clock = os.clock
@@ -22,7 +24,7 @@ local function values(t)
 	return values
 end
 
-describe('event helpers', function()
+describe('event helper storage', function()
 	local EventHelpers, helpers, utils
 
 	local domoticz = {
@@ -177,5 +179,131 @@ describe('event helpers', function()
 		assert.is_same(false, globalContext.h)
 	end)
 
+	describe('#only Historical storage', function()
+		local HS = require('HistoricalStorage')
+		local data = {}
+
+		function getTime(minHours)
+			local now = os.date('*t')
+			local d = os.time(now) - (minHours * 3600)   -- minus 5 minutes
+
+			past = os.date('*t', d)
+			raw = tostring(past.year) .. '-' ..
+					tostring(past.month) .. '-' ..
+					tostring(past.day) .. ' ' ..
+					tostring(past.hour) .. ':' ..
+					tostring(past.min) .. ':' ..
+					tostring(past.sec)
+
+			return raw
+		end
+
+		before_each(function()
+			local i
+			for i=0, 9 do
+				table.insert(data, {
+					time = getTime(i),
+					value = (10-i)
+				})
+			end
+		end)
+
+		after_each(function()
+			data = {}
+		end)
+
+		it('should instantiate with nothing', function()
+			local hs = HS()
+
+			assert.is_same(0, hs.size)
+		end)
+
+		it('should instantiate with data', function()
+			local hs = HS(data)
+
+			assert.is_same(10, hs.size)
+		end)
+
+		it('should respect max items', function()
+			local hs = HS(data,2)
+			assert.is_same(2, hs.size)
+		end)
+
+		it('should respect max hours', function()
+			local hs = HS(data,nil, 3)
+			assert.is_same(4, hs.size)
+			assert.is_same(0, hs.storage[1].time.hoursAgo)
+			assert.is_same(1, hs.storage[2].time.hoursAgo)
+			assert.is_same(2, hs.storage[3].time.hoursAgo)
+			assert.is_same(3, hs.storage[4].time.hoursAgo)
+		end)
+
+		it('should set a value', function()
+			local hs = HS(data)
+			hs.setNew(10)
+			assert.is_same(10, hs.newValue)
+		end)
+
+		it('should return the new value', function()
+			local hs = HS(data)
+			hs.setNew(10)
+			assert.is_same(10, hs.getNew())
+		end)
+
+		it('should return a stored value', function()
+			local hs = HS(data)
+			local value, time = hs.getPrevious(1)
+			assert.is_same(data[1].time, time.raw)
+			assert.is_same(data[1].value, value)
+
+			value, time = hs.getPrevious(4)
+			assert.is_same(data[4].time, time.raw)
+			assert.is_same(data[4].value, value)
+
+		end)
+
+		it('should get the latest', function()
+			local hs = HS(data)
+			local value, time = hs.getLatest()
+			assert.is_same(data[1].time, time.raw)
+			assert.is_same(data[1].value, value)
+		end)
+
+		it('should get the oldest', function()
+			local hs = HS(data)
+			local value, time = hs.getOldest()
+
+			assert.is_same(data[10].time, time.raw)
+			assert.is_same(data[10].value, value)
+		end)
+
+		it('should return a subset', function()
+			local hs = HS(data)
+			local sub = hs.getSubSet(2,4)
+			local values = {}
+			local count = sub.reduce(function(acc, s)
+				acc = acc + 1
+				return acc
+			end, 0)
+
+			sub.forEach(function(item)
+				table.insert(values, item.value)
+			end)
+
+			assert.is_same(3, count)
+			assert.is_same({9,8,7}, values)
+		end)
+
+		it('should return data for storage', function()
+			local hs = HS(data)
+			hs.setNew(11)
+			-- oldest value is ditched, rest is shifted, new one is number 1 now
+			local newData = hs._getForStorage()
+			assert.is_same(11, newData[1].value)
+			assert.is_same(10, _.size(newData))
+			assert.is_same(2, newData[10].value)
+		end)
+
+	end)
 
 end)

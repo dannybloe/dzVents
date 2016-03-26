@@ -2,7 +2,6 @@ local function Time(sDate)
 	local today = os.date('*t')
 	local time = {}
 	if (sDate ~= nil and sDate ~= '') then
-
 		local y,mon,d,h,min,s = string.match(sDate, "(%d+)%-(%d+)%-(%d+)% (%d+):(%d+):(%d+)")
 		local d = os.time{year=y,month=mon,day=d,hour=h,min=min,sec=s }
 		time = os.date('*t', d)
@@ -26,6 +25,7 @@ local function Time(sDate)
 
 		time['minutesAgo'] = diff
 		time['secondsAgo'] = diff * 60
+		time['hoursAgo'] = math.floor(diff / 60)
 	end
 
 	local self = time
