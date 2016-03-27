@@ -179,16 +179,13 @@ describe('event helper storage', function()
 		assert.is_same(false, globalContext.h)
 	end)
 
-	describe('#only Historical storage', function()
+	describe('#onlyHistorical storage', function()
 		local HS = require('HistoricalStorage')
 		local data = {}
 
-		function getTime(minHours)
-			local now = os.date('*t')
-			local d = os.time(now) - (minHours * 3600)   -- minus 5 minutes
-
-			past = os.date('*t', d)
-			raw = tostring(past.year) .. '-' ..
+		local function getTime(minHours)
+			local past = os.date('!*t', os.time() - minHours * 3600)
+			local raw = tostring(past.year) .. '-' ..
 					tostring(past.month) .. '-' ..
 					tostring(past.day) .. ' ' ..
 					tostring(past.hour) .. ':' ..
@@ -279,7 +276,7 @@ describe('event helper storage', function()
 
 		it('should return a subset', function()
 			local hs = HS(data)
-			local sub = hs.getSubSet(2,4)
+			local sub = hs.subset(2,4)
 			local values = {}
 			local count = sub.reduce(function(acc, s)
 				acc = acc + 1
@@ -294,6 +291,31 @@ describe('event helper storage', function()
 			assert.is_same({9,8,7}, values)
 		end)
 
+		it('should return some more subsets', function()
+			local hs = HS(data)
+
+			assert.is_same(hs.storage, hs.subset(nil,nil, false))
+			assert.is_nil(hs.subset(2,1, false))
+			assert.is_nil(hs.subset(12,nil, false))
+			assert.is_same(hs.storage, hs.subset(1,12, false))
+		end)
+
+		it('should return a subset by period', function()
+			local hs = HS(data)
+			local subset = hs.subsetPeriod(0, 2, false)
+			assert.is_same({10,9,8}, _.pluck(subset, {'value'}))
+
+			subset = hs.subsetPeriod(59, nil , false)
+			assert.is_same({10}, _.pluck(subset, {'value'}))
+
+			subset = hs.subsetPeriod(nil, 1000 , false)
+			assert.is_same({10,9,8,7,6,5,4,3,2,1}, _.pluck(subset, {'value'}))
+
+			subset = hs.subsetPeriod(nil, nil , false)
+			assert.is_same({10}, _.pluck(subset, {'value'}))
+		end)
+
+
 		it('should return data for storage', function()
 			local hs = HS(data)
 			hs.setNew(11)
@@ -304,6 +326,125 @@ describe('event helper storage', function()
 			assert.is_same(2, newData[10].value)
 		end)
 
+		it('should return all when no new value is set', function()
+			local hs = HS(data)
+			local newData = hs._getForStorage()
+			assert.is_same(data, newData)
+		end)
+
+		it('should have iterators: forEach', function()
+			local hs = HS(data)
+
+			local sum = 0
+			hs.forEach(function(item)
+				sum = sum + item.value
+			end)
+			assert.is_same(55, sum)
+
+
+		end)
+
+		it('should have iterators: filter', function()
+			local hs = HS(data)
+
+			local res =	hs.filter(function(item)
+				return ((item.value/2) == math.floor(item.value/2))
+			end)
+
+			local sum = 0
+			res.forEach(function(item)
+				sum = sum + item.value
+			end)
+			assert.is_same(10, sum) -- all even values added
+		end)
+
+		it('should have iterators: reduce', function()
+			local hs = HS(data)
+
+			local sum =	hs.reduce(function(acc, item)
+				return acc + item.value
+			end, 0)
+			assert.is_same(55, sum)
+		end)
+
+		it('should have reduce a filtered set', function()
+			local hs = HS(data)
+
+			local res =	hs.filter(function(item)
+				return ((item.value/2) == math.floor(item.value/2))
+			end)
+
+			local sum =	res.reduce(function(acc, item)
+				return acc + item.value
+			end, 0)
+			assert.is_same(10, sum) -- all even values added
+		end)
+
+		it('should return the average', function()
+			local hs = HS(data)
+			assert.is_same(5.5, hs.avg(1,10))
+
+			assert.is_same(10, hs.avg(1,1))
+			assert.is_same(6, hs.avg(3,7))
+		end)
+
+
+		it('should return average over a time period', function()
+			local hs = HS(data)
+			local avg = hs.avgSince(0,2)
+			assert.is_same(9, avg) -- 10,9,8
+		end)
+
+		it('should avg over an attribute', function()
+			local data = {}
+			local i
+			for i=0, 9 do
+				table.insert(data, {
+					time = getTime(i),
+					value = {['bla'] = (10-i)}
+				})
+			end
+
+			local hs = HS(data)
+			local avg = hs.avgSince(0,2, 'bla')
+			assert.is_same(9, avg) -- 10,9,8
+		end)
+
+		it('should return the minimum value of a range', function()
+			data[5].value = -20
+			local hs = HS(data)
+			local min = hs.min()
+			assert.is_same(-20,min)
+
+			min = hs.min(1, 4)
+			assert.is_same(7,min) -- 10,9,8,7
+
+		end)
+
+		it('should return the minimum value over a period', function()
+			data[2].value = -20
+			local hs = HS(data)
+			local min = hs.minSince(0, 2) -- since 2 hours
+			assert.is_same(-20,min)
+		end)
+
+		it('should return the maximum value of a range', function()
+			data[5].value = 20
+			local hs = HS(data)
+			local min = hs.max()
+			assert.is_same(20,min)
+
+			min = hs.max(1, 4)
+			assert.is_same(10,min) -- 10,9,8,7
+
+		end)
+
+		it('should return the maximum value over a period', function()
+			data[2].value = 20
+			local hs = HS(data)
+			local min = hs.maxSince(0, 2) -- since 2 hours
+			assert.is_same(20,min)
+		end)
 	end)
 
 end)
