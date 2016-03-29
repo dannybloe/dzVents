@@ -9,26 +9,43 @@ end
 local function setIterators(object, collection)
 	object['forEach'] = function(func)
 		for i, item in ipairs(collection) do
-			if (type(item) ~= 'function') then
-				func(item, i)
-			end
+			func(item, i, collection)
 		end
 	end
 
 	object['reduce'] = function(func, accumulator)
 		for i, item in ipairs(collection) do
-			accumulator = func(accumulator, item, i)
+			accumulator = func(accumulator, item, i, collection)
 		end
 		return accumulator
+	end
+
+	object['find'] = function(func, direction)
+		local stop = false
+		local from, to
+		if (direction == -1) then
+			from = #collection -- last index in table
+			to = 1
+		else
+			direction = 1 -- to be sure
+			from = 1
+			to = #collection
+		end
+		for i = from, to, direction do
+			local item = collection[i]
+			stop = func(item, i, collection)
+			if (stop) then
+				return item, i
+			end
+		end
+		return nil, nil
 	end
 
 	object['filter'] = function(filter)
 		local res = {}
 		for i, item in ipairs(collection) do
-			if (type(item) ~= 'function') then
-				if (filter(item)) then
-					res[i] = item
-				end
+			if (filter(item, i, collection)) then
+				res[i] = item
 			end
 		end
 		setIterators(res, res)
@@ -119,36 +136,42 @@ local function HistoricalStorage(data, maxItems, maxHours)
 	end
 
 	function self._getForStorage()
+		-- create a new table with string time stamps
 		local res = {}
 
-		local to = self.size
-
-		if (newAdded and self.size == MAXLIMIT) then
-			-- drop the last item
-			to = self.size - 1
-		end
-
-		for i = 1, to do
-			table.insert(res, {
-				time = self.storage[i].time.raw,
-				value = self.storage[i].value
+		self.forEach(function(item)
+			table.insert(res,{
+				time = item.time.raw,
+				value = item.value
 			})
-		end
-
-		-- add the new one if there's any at the start
-		if (newAdded) then
-			table.insert(res, 1, {
-				-- create a UTC time stamp
-				time = os.date('!%Y-%m-%d %H:%M:%S'),
-				value = self.newValue
-			})
-		end
+		end)
 		return res
 	end
 
 	function self.setNew(value)
 		self.newValue = value
-		newAdded = true
+		if (newAdded) then
+			-- just replace the youngest value
+			self.storage[1].value = value
+
+		else
+			newAdded = true
+
+			-- see if we have reached the limit
+			if (self.size == MAXLIMIT) then
+				-- drop the last item
+				to = self.size - 1
+				table.remove(self.storage)
+			end
+
+			-- add the new one
+			local t = Time(os.date('!%Y-%m-%d %H:%M:%S'), true)
+			table.insert(self.storage, 1, {
+				time = t,
+				value = self.newValue
+			})
+			self.size = self.size + 1
+		end
 	end
 
 	function self.getNew(value)
@@ -162,6 +185,36 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		else
 			return item.value, item.time
 		end
+	end
+
+	function self.getAtTime(minsAgo, hoursAgo)
+		-- find the item closest to minsAgo+hoursAgo
+		local totalMinsAgo
+		local res = {}
+		minsAgo = minsAgo~=nil and minsAgo or 0
+		hoursAgo = hoursAgo~=nil and hoursAgo or 0
+
+		totalMinsAgo = hoursAgo*60 + minsAgo
+
+		for i = 1, self.size do
+			if (self.storage[i].time.minutesAgo > totalMinsAgo) then
+
+				if (i>1) then
+					local deltaWithPrevious = totalMinsAgo - self.storage[i-1].time.minutesAgo
+					local deltaWithCurrent = self.storage[i].time.minutesAgo - totalMinsAgo
+
+					if (deltaWithPrevious < deltaWithCurrent) then
+						-- the previous one was closer to the time we were looking for
+						return self.storage[i-1], i-1
+					else
+						return self.storage[i], i
+					end
+				else
+					return self.storage[i].time, i
+				end
+			end
+		end
+		return nil, nil
 	end
 
 	function self.getLatest()
@@ -191,7 +244,6 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		local sum = items.reduce(function(acc, item)
 			local val = _getItemValue(item, attribute)
 			count = count + 1
-
 			return acc + val
 		end, 0)
 		return sum, count
@@ -299,19 +351,28 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		else
 			to = itemIndex + variance
 		end
+
 		local avg = self.avg(from, to, attribute)
+
 		return avg
 	end
 
-	function self.delta(referenceValue, itemIndex, variance, attribute)
-		local value, item
+	function self.delta(fromIndex, toIndex, variance, attribute)
+		if (fromIndex<1 or fromIndex>self.size-1 or toIndex>self.size or toIndex<1 or fromIndex>toIndex or toIndex<fromIndex) then
+			return nil
+		end
+
+		local value, item, referenceValue
 		if (variance ~= nil) then
-			value = self.smoothItem(itemIndex, variance, attribute)
+			value = self.smoothItem(toIndex, variance, attribute)
+			referenceValue = self.smoothItem(fromIndex, variance, attribute)
 		else
-			value = _getItemValue(self.storage[itemIndex], attribute)
+			value = _getItemValue(self.storage[toIndex], attribute)
+			referenceValue = _getItemValue(self.storage[fromIndex], attribute)
 		end
 		return tonumber(referenceValue - value)
 	end
+
 
 	return self
 end

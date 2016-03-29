@@ -238,7 +238,7 @@ describe('event helper storage', function()
 		it('should set a value', function()
 			local hs = HS(data)
 			hs.setNew(10)
-			assert.is_same(10, hs.newValue)
+			assert.is_same(10, hs.storage[1].value)
 		end)
 
 		it('should return the new value', function()
@@ -367,6 +367,32 @@ describe('event helper storage', function()
 			assert.is_same(55, sum)
 		end)
 
+		it('should have iterators: find', function()
+			local hs = HS(data)
+
+			local item, index
+			item, index = hs.find(function(item, i, collection)
+				return (item.value == 5)
+			end)
+			assert.is_same(5, item.value)
+
+			-- inverse
+			item, index = hs.find(function(item, i, collection)
+				return (item.value == 2)
+			end, -1)
+			assert.is_same(9, index)
+			assert.is_same(2, item.value)
+
+			-- should return nil when not found
+			item, index = hs.find(function(item, i, collection)
+				return (item.value == 554)
+			end)
+
+			assert.is_nil(index)
+			assert.is_nil(item)
+		end)
+
+
 		it('should have reduce a filtered set', function()
 			local hs = HS(data)
 
@@ -482,15 +508,48 @@ describe('event helper storage', function()
 
 			avged = hs.smoothItem(1000, 0)
 			assert.is_nil(avged)
+
+			avged = hs.smoothItem(1, 2)
+			assert.is_same(9, avged)
 		end)
 
 		it('should return the delta value', function()
 			local hs = HS(data)
-			local nosmooth = hs.delta(20, 5)  -- 6 > 20 = 14
-			assert.is_same(14, nosmooth)
+			hs.setNew(20)
+			-- 20[1] 10[2], 9[3], 8[4], 7[5], 6[6], 5[7], 4[8], 3[9], 2[10] dropped: 1
 
-			local smooth = hs.delta(20, 9, 2)  -- 2.5 > 20 = 17.5
-			assert.is_same(17.5, smooth)
+			local nosmooth = hs.delta(1, 6)  -- 6 > 20 = 14
+			assert.is_same(14, nosmooth)
+			local smooth = hs.delta(1, 10, 2)  -- 3 > 13  = 10
+			assert.is_same(10, smooth)
+		end)
+
+		it('should return an item at a specific time', function()
+			local hs = HS(data)
+			local item, index = hs.getAtTime(2, 2)
+
+			assert.is_same(3, index)
+			assert.is_same(120, item.time.minutesAgo)
+
+			item, index = hs.getAtTime(30, 2)
+			assert.is_same(4, index)
+			assert.is_same(180, item.time.minutesAgo)
+
+			item, index = hs.getAtTime(0, 0)
+			assert.is_same(1, index)
+			assert.is_same(0, item.time.minutesAgo)
+
+			item, index = hs.getAtTime(0, 1200)
+			assert.is_nil(index)
+			assert.is_nil(item)
+		end)
+
+		it('should do seconds too', function()
+			assert.is_same(1, 2)
+		end)
+
+		it('should work with an empty set', function()
+			assert.is_same(1, 2)
 		end)
 	end)
 
