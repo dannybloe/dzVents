@@ -290,5 +290,10 @@ describe('device', function()
 		device = Device(domoticz, 'myDevice', 'Chime', false)
 		cmd = device.toggleSwitch() -- shouldn't do anything
 		assert.is_nil(cmd)
+
+		device = Device(domoticz, 'myDevice', 'All On', false)
+		cmd = device.toggleSwitch()
+		assert.is_same({["myDevice"]="All Off"}, cmd._latest)
+
 	end)
 end)

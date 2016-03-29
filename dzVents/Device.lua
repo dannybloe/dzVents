@@ -27,7 +27,9 @@ local function Device(domoticz, name, state, wasChanged)
 			['no motion'] = { b = false, inv='Off'},
 			stop = { b = false, inv='Open'},
 			stopped = { b = false},
-			paused ={ b = false, inv='Play'}
+			paused ={ b = false, inv='Play'},
+			['all on'] = { b = true, inv='All Off'},
+			['all off'] = { b = false, inv='All On'},
 		}
 	}
 
