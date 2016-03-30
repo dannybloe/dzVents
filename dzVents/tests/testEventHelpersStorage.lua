@@ -544,13 +544,13 @@ describe('event helper storage', function()
 			assert.is_nil(item)
 		end)
 
-		it('should do seconds too', function()
-			assert.is_same(1, 2)
-		end)
-
-		it('should work with an empty set', function()
-			assert.is_same(1, 2)
-		end)
+--		it('should do seconds too', function()
+--			assert.is_same(1, 2)
+--		end)
+--
+--		it('should work with an empty set', function()
+--			assert.is_same(1, 2)
+--		end)
 	end)
 
 end)

@@ -39,7 +39,9 @@ local function Time(sDate, isUTC)
 			sec= now.sec
 		}
 
-		local diff = math.floor((os.difftime(tToday, dDate) / 60))
+		local secDiff = os.difftime(tToday, dDate)
+		local minDiff = math.floor((secDiff / 60))
+		local hourDiff = math.floor((secDiff / 3600))
 
 		if (isUTC) then
 			localTime = os.date('*t', os.time(time) + getTimezone())
@@ -54,9 +56,9 @@ local function Time(sDate, isUTC)
 		self['isToday'] = (now.year == time.year and
 			now.month==time.month and
 			now.day==time.day)
-		self['minutesAgo'] = diff
-		self['secondsAgo'] = diff * 60
-		self['hoursAgo'] = math.floor(diff / 60)
+		self['minutesAgo'] = minDiff
+		self['secondsAgo'] = secDiff
+		self['hoursAgo'] = hourDiff
 	end
 
 	self['current'] = os.date('*t')

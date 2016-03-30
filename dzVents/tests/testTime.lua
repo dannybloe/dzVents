@@ -69,6 +69,18 @@ describe('Time', function()
 			assert.is_same(300, utcT.secondsAgo)
 		end)
 
+		it('should have hoursAgo', function()
+			local p = os.date('!*t', os.time() - 10800)
+			local raw = tostring(p.year) .. '-' ..
+					tostring(p.month) .. '-' ..
+					tostring(p.day) .. ' ' ..
+					tostring(p.hour) .. ':' ..
+					tostring(p.min) .. ':' ..
+					tostring(p.sec)
+			local t = Time(raw, true)
+			assert.is_same(3, t.hoursAgo)
+		end)
+
 		it('should have a raw time', function()
 			assert.is_same(utcRaw, utcT.raw)
 		end)
@@ -95,6 +107,7 @@ describe('Time', function()
 			assert.is_same(utcPast.sec, utcT.utcTime.sec)
 
 		end)
+
 		it('should have a utc system time', function()
 			assert.is_same(os.date('!*t'), utcT.utcSystemTime)
 		end)
@@ -111,6 +124,18 @@ describe('Time', function()
 
 		it('should have secondsAgo', function()
 			assert.is_same(300, localT.secondsAgo)
+		end)
+
+		it('should have hoursAgo', function()
+			local p = os.date('*t', os.time() - 10800)
+			local raw = tostring(p.year) .. '-' ..
+					tostring(p.month) .. '-' ..
+					tostring(p.day) .. ' ' ..
+					tostring(p.hour) .. ':' ..
+					tostring(p.min) .. ':' ..
+					tostring(p.sec)
+			local t = Time(raw, false)
+			assert.is_same(3, t.hoursAgo)
 		end)
 
 		it('should have a raw time', function()
