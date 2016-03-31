@@ -59,8 +59,8 @@ local function Time(sDate, isUTC)
 		self['minutesAgo'] = minDiff
 		self['secondsAgo'] = secDiff
 		self['hoursAgo'] = hourDiff
-	end
 
+	end
 	self['current'] = os.date('*t')
 
 	return self

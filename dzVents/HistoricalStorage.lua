@@ -99,39 +99,49 @@ local function HistoricalStorage(data, maxItems, maxHours)
 	setIterators(self, self.storage)
 
 	function self.subset(from, to, _setIterators)
+		local res = {}
+		local skip = false
+		local len = 0
+
 		if (from == nil or from < 1 ) then from = 1 end
-		if (from and from > self.size) then return nil end
-		if (to and from and to < from) then return nil end
+		if (from and from > self.size) then	skip = true	end
+		if (to and from and to < from) then skip = true end
 		if (to==nil or to > self.size) then to = self.size end
 
-		local res = {}
-		for i = from, to do
-			table.insert(res, self.storage[i])
-		end
-		if(_setIterators or _setIterators==nil) then
-			setIterators(res, res)
-		end
-		return res
-	end
-
-	function self.subsetSince(minsAgo, hoursAgo, _setIterators)
-		local totalMinsAgo
-		local res = {}
-		minsAgo = minsAgo~=nil and minsAgo or 0
-		hoursAgo = hoursAgo~=nil and hoursAgo or 0
-
-		totalMinsAgo = hoursAgo*60 + minsAgo
-
-		for i = 1, self.size do
-			if (self.storage[i].time.minutesAgo<=totalMinsAgo) then
+		if (not skip) then
+			for i = from, to do
 				table.insert(res, self.storage[i])
+				len = len + 1
 			end
 		end
 
 		if(_setIterators or _setIterators==nil) then
 			setIterators(res, res)
 		end
-		return res
+		return res, len
+	end
+
+	function self.subsetSince(secsAgo, minsAgo, hoursAgo, _setIterators)
+		local totalSecsAgo
+		local res = {}
+		local len = 0
+		secsAgo = secsAgo~=nil and secsAgo or 0
+		minsAgo = minsAgo~=nil and minsAgo or 0
+		hoursAgo = hoursAgo~=nil and hoursAgo or 0
+
+		totalSecsAgo = hoursAgo*3600 + minsAgo*60 + secsAgo
+
+		for i = 1, self.size do
+			if (self.storage[i].time.secondsAgo<=totalSecsAgo) then
+				table.insert(res, self.storage[i])
+				len = len + 1
+			end
+		end
+
+		if(_setIterators or _setIterators==nil) then
+			setIterators(res, res)
+		end
+		return res, len
 
 	end
 
@@ -187,21 +197,22 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		end
 	end
 
-	function self.getAtTime(minsAgo, hoursAgo)
+	function self.getAtTime(secsAgo, minsAgo, hoursAgo)
 		-- find the item closest to minsAgo+hoursAgo
-		local totalMinsAgo
+		local totalSecsAgo
 		local res = {}
+		secsAgo = secsAgo~=nil and secsAgo or 0
 		minsAgo = minsAgo~=nil and minsAgo or 0
 		hoursAgo = hoursAgo~=nil and hoursAgo or 0
 
-		totalMinsAgo = hoursAgo*60 + minsAgo
+		totalSecsAgo = hoursAgo*3600 + minsAgo*60 + secsAgo
 
 		for i = 1, self.size do
-			if (self.storage[i].time.minutesAgo > totalMinsAgo) then
+			if (self.storage[i].time.secondsAgo > totalSecsAgo) then
 
 				if (i>1) then
-					local deltaWithPrevious = totalMinsAgo - self.storage[i-1].time.minutesAgo
-					local deltaWithCurrent = self.storage[i].time.minutesAgo - totalMinsAgo
+					local deltaWithPrevious = totalSecsAgo - self.storage[i-1].time.secondsAgo
+					local deltaWithCurrent = self.storage[i].time.secondsAgo - totalSecsAgo
 
 					if (deltaWithPrevious < deltaWithCurrent) then
 						-- the previous one was closer to the time we were looking for
@@ -241,6 +252,7 @@ local function HistoricalStorage(data, maxItems, maxHours)
 
 	local function _sum(items, attribute)
 		local count = 0
+
 		local sum = items.reduce(function(acc, item)
 			local val = _getItemValue(item, attribute)
 			count = count + 1
@@ -250,25 +262,30 @@ local function HistoricalStorage(data, maxItems, maxHours)
 	end
 
 	local function _avg(items, attribute)
-		if (items == nil) then return nil end
-
 		local sum, count = _sum(items, attribute)
 		return sum/count
 	end
 
 	function self.avg(from, to, attribute)
-		local subset = self.subset(from, to)
-		return _avg(subset, attribute)
+		local subset, length = self.subset(from, to)
+
+		if (length == 0) then
+			return nil
+		else
+			return _avg(subset, attribute)
+		end
 	end
 
-	function self.avgSince(minsAgo, hoursAgo, attribute)
-		local subset = self.subsetSince(minsAgo, hoursAgo, attribute)
-		return _avg(subset, attribute)
+	function self.avgSince(secsAgo, minsAgo, hoursAgo, attribute)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+		if (length == 0) then
+			return nil
+		else
+			return _avg(subset, attribute)
+		end
 	end
 
 	local function _min(items, attribute)
-		if (items == nil) then return nil end
-
 		local min = items.reduce(function(acc, item)
 			local val = _getItemValue(item, attribute)
 			if (acc == nil) then
@@ -285,18 +302,24 @@ local function HistoricalStorage(data, maxItems, maxHours)
 	end
 
 	function self.min(from, to, attribute)
-		local subset = self.subset(from, to)
-		return _min(subset, attribute)
+		local subset, length = self.subset(from, to)
+		if (length == 0) then
+			return nil
+		else
+			return _min(subset, attribute)
+		end
 	end
 
-	function self.minSince(minsAgo, hoursAgo, attribute)
-		local subset = self.subsetSince(minsAgo, hoursAgo, attribute)
-		return _min(subset, attribute)
+	function self.minSince(secsAgo, minsAgo, hoursAgo, attribute)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+		if (length==0) then
+			return nil
+		else
+			return _min(subset, attribute)
+		end
 	end
 
 	local function _max(items, attribute)
-		if (items == nil) then return nil end
-
 		local max = items.reduce(function(acc, item)
 			local val = _getItemValue(item, attribute)
 			if (acc == nil) then
@@ -313,23 +336,39 @@ local function HistoricalStorage(data, maxItems, maxHours)
 	end
 
 	function self.max(from, to, attribute)
-		local subset = self.subset(from, to)
-		return _max(subset, attribute)
+		local subset, length = self.subset(from, to)
+		if (length==0) then
+			return nil
+		else
+			return _max(subset, attribute)
+		end
 	end
 
-	function self.maxSince(minsAgo, hoursAgo, attribute)
-		local subset = self.subsetSince(minsAgo, hoursAgo, attribute)
-		return _max(subset, attribute)
+	function self.maxSince(secsAgo, minsAgo, hoursAgo, attribute)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+		if (length==0) then
+			return nil
+		else
+			return _max(subset, attribute)
+		end
 	end
 
 	function self.sum(from, to, attribute)
-		local subset = self.subset(from, to)
-		return _sum(subset, attribute)
+		local subset, length = self.subset(from, to)
+		if (length==0) then
+			return nil
+		else
+			return _sum(subset, attribute)
+		end
 	end
 
-	function self.sumSince(minsAgo, hoursAgo, attribute)
-		local subset = self.subsetSince(minsAgo, hoursAgo, attribute)
-		return _sum(subset, attribute)
+	function self.sumSince(secsAgo, minsAgo, hoursAgo, attribute)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+		if (length==0) then
+			return nil
+		else
+			return _sum(subset, attribute)
+		end
 	end
 
 	function self.smoothItem(itemIndex, variance, attribute)
