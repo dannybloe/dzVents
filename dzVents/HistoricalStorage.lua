@@ -236,6 +236,12 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		return self.get(self.size)
 	end
 
+	function self.reset()
+		self.storage = {}
+		self.size = 0
+		self.newValue = nil
+	end
+
 	local function _getItemValue(item, attribute)
 		local val
 		if (attribute) then
