@@ -72,9 +72,9 @@ describe('event helper storage', function()
 	it('should get a default local storage context', function()
 		local bindings = helpers.getEventBindings()
 		local script_data = bindings['somedevice'][1]
-		local context = helpers.getStorageContext(script_data, LOCAL)
+		local context = helpers.getStorageContext(script_data.data, script_data.dataFileName)
 
-		assert.is_same({'a','b','c', 'g'}, keys(context))
+		assert.is_same({'a','b','c','d','e','g'}, keys(context))
 		assert.is_same('', context.a)
 		assert.is_same(1, context.b)
 		assert.is_same({x=1, y=2}, context.c)
@@ -84,26 +84,35 @@ describe('event helper storage', function()
 	it('should write a storage context', function()
 		local bindings = helpers.getEventBindings()
 		local script_data = bindings['somedevice'][1]
-		local context = helpers.getStorageContext(script_data, LOCAL)
+		local context = helpers.getStorageContext(script_data.data, script_data.dataFileName)
 
 		context['a'] = 'a new value'
 		context['b'] = 100
 		context['c'] = {x=12, y=23 }
+		context['d'].setNew(100)
+		context['e'].setNew(200)
 		context['g'] = 22
-		context['d'] = 'should not be stored'
+		context['p'] = 'should not be stored'
 
-		helpers.writeStorageContext(script_data, context, LOCAL)
+		--helpers.writeStorageContext(script_data, context, LOCAL)
+		helpers.writeStorageContext(
+			script_data.data,
+			script_data.dataFilePath,
+			script_data.dataFileName,
+			context)
 
 		local exists = utils.fileExists(script_data.dataFilePath)
 
 		assert.is_true(exists)
 		-- check if it was properly stored
 
-		local newContext = helpers.getStorageContext(script_data, LOCAL)
-		assert.is_same({'a','b','c', 'g'}, keys(newContext))
+		local newContext = helpers.getStorageContext(script_data.data, script_data.dataFileName)
+		assert.is_same({'a','b','c', 'd', 'e', 'g'}, keys(newContext))
 		assert.is_same('a new value', newContext.a)
 		assert.is_same(100, newContext.b)
 		assert.is_same({x=12, y=23}, newContext.c)
+		assert.is_same(100, newContext.d.getLatest())
+		assert.is_same(200, newContext.e.getLatest())
 		assert.is_same(22, newContext.g)
 	end)
 
@@ -115,11 +124,12 @@ describe('event helper storage', function()
 
 		-- should pass the arguments to the execute function
 		-- and catch the results from the function
-		local newContext = helpers.getStorageContext(script_data, LOCAL)
-
-		assert.is_same({'a','b','c', 'g'}, keys(newContext))
+		local newContext = helpers.getStorageContext(script_data.data, script_data.dataFileName)
+		assert.is_same({'a','b','c','d','e','g'}, keys(newContext))
 		assert.is_same('this is set from script', newContext.a)
 		assert.is_same(245, newContext.b)
+		assert.is_same(123, newContext.d.getLatest())
+		assert.is_same(456, newContext.e.getLatest())
 		assert.is_same(87, newContext.g)
 		assert.is_same({x=10, y=20}, newContext.c)
 
@@ -128,7 +138,7 @@ describe('event helper storage', function()
 	it('should have a default global context', function()
 		local bindings = helpers.getEventBindings()
 		local script_data = bindings['somedevice'][1]
-		local context = helpers.getStorageContext(script_data, GLOBAL)
+		local context = helpers.getStorageContext(helpers.globalsDefinition, '__data_global_data')
 
 		assert.is_same({'g','h'}, keys(context))
 		assert.is_same(666, context.g)
@@ -137,20 +147,25 @@ describe('event helper storage', function()
 
 	it('should write a global storage context', function()
 		local bindings = helpers.getEventBindings()
-		local context = helpers.getStorageContext(nil, GLOBAL)
+		local context = helpers.getStorageContext(helpers.globalsDefinition, '__data_global_data')
 
 		context['g'] = 777
 		context['h'] = false
 		context['d'] = 'should not be stored'
 
-		helpers.writeStorageContext(nil, context, GLOBAL)
+		helpers.writeStorageContext(
+			helpers.globalsDefinition,
+			helpers.scriptsFolderPath .. '/storage/__data_global_data.lua',
+			helpers.scriptsFolderPath .. '/storage/__data_global_data',
+			context)
+
 
 		local exists = utils.fileExists('../tests/scripts/storage/__data_global_data.lua')
 
 		assert.is_true(exists)
 		-- check if it was properly stored
 
-		local newContext = helpers.getStorageContext(nil, GLOBAL)
+		local newContext = helpers.getStorageContext(helpers.globalsDefinition, '__data_global_data')
 		assert.is_same({'g','h'}, keys(newContext))
 		assert.is_same(777, newContext.g)
 		assert.is_same(false, newContext.h)
@@ -165,10 +180,10 @@ describe('event helper storage', function()
 
 		-- should pass the arguments to the execute function
 		-- and catch the results from the function
-		local localContext = helpers.getStorageContext(script_data, LOCAL)
-		local globalContext = helpers.getStorageContext(nil, GLOBAL)
+		local localContext = helpers.getStorageContext(script_data.data,script_data.dataFileName)
+		local globalContext = helpers.getStorageContext(helpers.globalsDefinition, '__data_global_data')
 
-		assert.is_same({'a','b','c', 'g'}, keys(localContext))
+		assert.is_same({'a','b','c','d','e','g'}, keys(localContext))
 		assert.is_same('this is set from script', localContext.a)
 		assert.is_same(245, localContext.b)
 		assert.is_same(87, localContext.g)

@@ -3,8 +3,13 @@ local GLOBAL_DATA_MODULE = 'global_data'
 local GLOBAL = false
 local LOCAL = true
 
+local SCRIPT_DATA = 'data'
+local GLOBAL_DATA = 'globalData'
+
 local utils = require('Utils')
 local persistence = require('persistence')
+
+local HistoricalStorage = require('HistoricalStorage')
 
 local function EventHelpers(settings, domoticz, mainMethod)
 
@@ -48,17 +53,14 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		}
 	}
 
-	function self.getStorageContext(eventHandler, isLocal)
+	if (_G.TESTMODE) then
+		self.scriptsFolderPath = scriptsFolderPath
+	end
 
-		local storageDef = eventHandler and eventHandler.storage
+	function self.getStorageContext(storageDef, module)
+
 		local storageContext = {}
 		local fileStorage, value
-		local module = eventHandler and eventHandler.dataFileName
-
-		if (not isLocal) then
-			module = '__data_global_data'
-			storageDef = globalsDefinition
-		end
 
 		if (storageDef ~= nil) then
 			-- load the datafile for this module
@@ -67,16 +69,28 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			if (ok) then
 				-- only transfer data as defined in storageDef
 				for var,def in pairs(storageDef) do
-					storageContext[var] = fileStorage[var]
+
+					if ( def.history~=nil and def.history == true ) then
+						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours)
+					else
+						storageContext[var] = fileStorage[var]
+					end
+
 				end
 			else
 				for var,def in pairs(storageDef) do
 
-					if (storageDef[var].initial ~= nil) then
-						storageContext[var] = storageDef[var].initial
+					if ( def.history~=nil and def.history == true ) then
+						-- no initial value, just an empty history
+						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours)
 					else
-						storageContext[var] = nil
+						if (storageDef[var].initial ~= nil) then
+							storageContext[var] = storageDef[var].initial
+						else
+							storageContext[var] = nil
+						end
 					end
+
 				end
 			end
 		end
@@ -84,24 +98,19 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		return storageContext
 	end
 
-	function self.writeStorageContext(eventHandler, storageContext, isLocal)
-		-- todo geen eventhandler meegeven maar de daadwerkelijk waardes die ertoe doen
-		local storageDef = eventHandler and eventHandler.storage
-		local dataFilePath = eventHandler and eventHandler.dataFilePath
-		local dataFileModuleName = eventHandler and eventHandler.dataFileName
-
-		if (not isLocal) then
-			storageDef = globalsDefinition
-			dataFileModuleName = scriptsFolderPath .. '/storage/__data_global_data'
-			dataFilePath = scriptsFolderPath .. '/storage/__data_global_data.lua'
-		end
+	function self.writeStorageContext(storageDef, dataFilePath,  dataFileModuleName, storageContext)
 
 		local data = {}
 
 		if (storageDef ~= nil) then
 			-- transfer only stuf as described in storageDef
 			for var, def in pairs(storageDef) do
-				data[var] = storageContext[var]
+				if ( def.history~=nil and def.history == true ) then
+					data[var] = storageContext[var]._getForStorage()
+				else
+					data[var] = storageContext[var]
+				end
+
 			end
 
 			if (not utils.fileExists(scriptsFolderPath .. '/storage')) then
@@ -126,22 +135,22 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			-- ==================
 			-- Prepare storage
 			-- ==================
-			if (eventHandler.storage ~= nil) then
+			if (eventHandler.data ~= nil) then
 				useStorage = true
-				local localStorageContext = self.getStorageContext(eventHandler, LOCAL)
+				local localStorageContext = self.getStorageContext(eventHandler.data, eventHandler.dataFileName)
 
 				if (localStorageContext) then
-					self.domoticz.storage = localStorageContext
+					self.domoticz[SCRIPT_DATA] = localStorageContext
 				else
-					self.domoticz.storage = {}
+					self.domoticz[SCRIPT_DATA] = {}
 				end
 			end
 
 			if (globalsDefinition) then
-				local globalStorageContext = self.getStorageContext(nil, GLOBAL)
-				self.domoticz.globalStorage = globalStorageContext
+				local globalStorageContext = self.getStorageContext(globalsDefinition, '__data_global_data')
+				self.domoticz[GLOBAL_DATA] = globalStorageContext
 			else
-				self.domoticz.globalStorage = {}
+				self.domoticz[GLOBAL_DATA] = {}
 			end
 
 			-- ==================
@@ -155,15 +164,23 @@ local function EventHelpers(settings, domoticz, mainMethod)
 				-- ==================
 
 				if (useStorage) then
-					self.writeStorageContext(eventHandler, self.domoticz.storage, LOCAL)
+					self.writeStorageContext(
+						eventHandler.data,
+						eventHandler.dataFilePath,
+						eventHandler.dataFileName,
+						self.domoticz[SCRIPT_DATA])
 				end
 
 				if (globalsDefinition) then
-					self.writeStorageContext(nil, self.domoticz.globalStorage, GLOBAL)
+					self.writeStorageContext(
+						globalsDefinition,
+						scriptsFolderPath .. '/storage/__data_global_data.lua',
+						scriptsFolderPath .. '/storage/__data_global_data',
+						self.domoticz[GLOBAL_DATA])
 				end
 
-				self.domoticz.storage = nil
-				self.domoticz.globalStorage = nil
+				self.domoticz[SCRIPT_DATA] = nil
+				self.domoticz[GLOBAL_DATA] = nil
 
 				return res
 			else
@@ -174,8 +191,8 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			utils.log('No' .. self.mainMethod .. 'function found in event handler ' .. eventHandler, utils.LOG_ERROR)
 		end
 
-		self.domoticz.storage = nil
-		self.domoticz.globalStorage = nil
+		self.domoticz[SCRIPT_DATA] = nil
+		self.domoticz[GLOBAL_DATA] = nil
 
 	end
 
@@ -449,8 +466,11 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			if (ok) then
 
 				if (moduleName == GLOBAL_DATA_MODULE) then
-					if (module.storage ~= nil) then
-						globalsDefinition = module.storage
+					if (module.data ~= nil) then
+						globalsDefinition = module.data
+						if (_G.TESTMODE) then
+							self.globalsDefinition = globalsDefinition
+						end
 					else
 						utils.log('Globals module has no storage section', utils.LOG_ERROR)
 					end
