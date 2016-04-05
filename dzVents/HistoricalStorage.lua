@@ -1,5 +1,5 @@
 local Time = require('Time')
-local MAXLIMIT = 1000
+local MAXLIMIT = 100
 local utils = require('Utils')
 
 if (_G.TESTMODE) then
@@ -130,7 +130,6 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		hoursAgo = hoursAgo~=nil and hoursAgo or 0
 
 		totalSecsAgo = hoursAgo*3600 + minsAgo*60 + secsAgo
-
 		for i = 1, self.size do
 			if (self.storage[i].time.secondsAgo<=totalSecsAgo) then
 				table.insert(res, self.storage[i])
@@ -166,12 +165,12 @@ local function HistoricalStorage(data, maxItems, maxHours)
 
 		else
 			newAdded = true
-
 			-- see if we have reached the limit
-			if (self.size == MAXLIMIT) then
+			if (self.size == maxItems) then
 				-- drop the last item
 				to = self.size - 1
 				table.remove(self.storage)
+				self.size = self.size - 1
 			end
 
 			-- add the new one
