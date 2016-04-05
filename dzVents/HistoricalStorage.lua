@@ -220,7 +220,7 @@ local function HistoricalStorage(data, maxItems, maxHours)
 						return self.storage[i], i
 					end
 				else
-					return self.storage[i].time, i
+					return self.storage[i], i
 				end
 			end
 		end
@@ -271,20 +271,20 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		return sum/count
 	end
 
-	function self.avg(from, to, attribute)
+	function self.avg(from, to, attribute, default)
 		local subset, length = self.subset(from, to)
 
 		if (length == 0) then
-			return nil
+			return default
 		else
 			return _avg(subset, attribute)
 		end
 	end
 
-	function self.avgSince(secsAgo, minsAgo, hoursAgo, attribute)
+	function self.avgSince(secsAgo, minsAgo, hoursAgo, attribute, default)
 		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
 		if (length == 0) then
-			return nil
+			return default
 		else
 			return _avg(subset, attribute)
 		end
@@ -401,9 +401,14 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		return avg
 	end
 
-	function self.delta(fromIndex, toIndex, variance, attribute)
-		if (fromIndex<1 or fromIndex>self.size-1 or toIndex>self.size or toIndex<1 or fromIndex>toIndex or toIndex<fromIndex) then
-			return nil
+	function self.delta(fromIndex, toIndex, variance, attribute, default)
+		if (fromIndex < 1 or
+			fromIndex > self.size-1 or
+			toIndex > self.size or
+			toIndex < 1 or
+			fromIndex > toIndex or
+			toIndex < fromIndex) then
+			return default
 		end
 
 		local value, item, referenceValue
@@ -417,6 +422,15 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		return tonumber(referenceValue - value)
 	end
 
+	function self.deltaSince(secsAgo, minsAgo, hoursAgo, variance, attribute, default)
+		local item, index = self.getAtTime(secsAgo, minsAgo, hoursAgo)
+
+		if (item ~= nil) then
+			return self.delta(1, index, variance, attribute, default)
+		end
+
+		return default
+	end
 
 	return self
 end

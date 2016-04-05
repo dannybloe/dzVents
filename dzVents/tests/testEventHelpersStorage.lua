@@ -639,8 +639,22 @@ describe('event helper storage', function()
 			local smooth = hs.delta(1, 10, 2)  -- 3 > 13  = 10
 			assert.is_same(10, smooth)
 
+			smooth = hs.delta(2, 10, 2)  -- 3 > 13  = 10
+			assert.is_same(8.75, smooth)
+
 			hs = HS()
 			assert.is_nil(hs.delta(1, 4))
+
+		end)
+
+		it('should return a delta value since a specifc time', function()
+			local hs = HS(data)
+			local smooth = hs.deltaSince(0,0,5,2)
+			assert.is_same(4, smooth)
+
+			smooth = hs.deltaSince(0, 0, 15, 2, nil, 22)
+			-- beyond the limits, return default value (22)
+			assert.is_same(22, smooth)
 		end)
 
 		it('should return an item at a specific time', function()
@@ -658,7 +672,7 @@ describe('event helper storage', function()
 			assert.is_same(4, index)
 			assert.is_same(10800, item.time.secondsAgo)
 
-			item, index = hs.getAtTime(0, 0, 0)
+			item, index = hs.getAtTime(-1, 0, 0)
 			assert.is_same(1, index)
 			assert.is_same(0, item.time.secondsAgo)
 
