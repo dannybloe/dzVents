@@ -98,6 +98,14 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 	-- extend with filter and forEach
 	setIterators(self, self.storage)
 
+	local function getSecondsAgo(t)
+		local hoursAgo, minsAgo, secsAgo = string.match(t, "(%d+):(%d+):(%d+)")
+		secsAgo = secsAgo~=nil and secsAgo or 0
+		minsAgo = minsAgo~=nil and minsAgo or 0
+		hoursAgo = hoursAgo~=nil and hoursAgo or 0
+		return hoursAgo*3600 + minsAgo*60 + secsAgo
+	end
+
 	function self.subset(from, to, _setIterators)
 		local res = {}
 		local skip = false
@@ -121,15 +129,11 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		return res, len
 	end
 
-	function self.subsetSince(secsAgo, minsAgo, hoursAgo, _setIterators)
-		local totalSecsAgo
+	function self.subsetSince(timeAgo, _setIterators)
+		local totalSecsAgo = getSecondsAgo(ago)
 		local res = {}
 		local len = 0
-		secsAgo = secsAgo~=nil and secsAgo or 0
-		minsAgo = minsAgo~=nil and minsAgo or 0
-		hoursAgo = hoursAgo~=nil and hoursAgo or 0
 
-		totalSecsAgo = hoursAgo*3600 + minsAgo*60 + secsAgo
 		for i = 1, self.size do
 			if (self.storage[i].time.secondsAgo<=totalSecsAgo) then
 				table.insert(res, self.storage[i])
@@ -196,15 +200,10 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		end
 	end
 
-	function self.getAtTime(secsAgo, minsAgo, hoursAgo)
+	function self.getAtTime(timeAgo)
 		-- find the item closest to minsAgo+hoursAgo
-		local totalSecsAgo
+		local totalSecsAgo = getSecondsAgo(timeAgo)
 		local res = {}
-		secsAgo = secsAgo~=nil and secsAgo or 0
-		minsAgo = minsAgo~=nil and minsAgo or 0
-		hoursAgo = hoursAgo~=nil and hoursAgo or 0
-
-		totalSecsAgo = hoursAgo*3600 + minsAgo*60 + secsAgo
 
 		for i = 1, self.size do
 			if (self.storage[i].time.secondsAgo > totalSecsAgo) then
@@ -291,8 +290,8 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		end
 	end
 
-	function self.avgSince(secsAgo, minsAgo, hoursAgo, default)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
+	function self.avgSince(timeAgo, default)
+		local subset, length = self.subsetSince(timeAgo)
 		if (length == 0) then
 			return default
 		else
@@ -326,8 +325,8 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		end
 	end
 
-	function self.minSince(secsAgo, minsAgo, hoursAgo)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
+	function self.minSince(timeAgo)
+		local subset, length = self.subsetSince(timeAgo)
 		if (length==0) then
 			return nil
 		else
@@ -361,8 +360,8 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		end
 	end
 
-	function self.maxSince(secsAgo, minsAgo, hoursAgo)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
+	function self.maxSince(timeAgo)
+		local subset, length = self.subsetSince(timeAgo)
 		if (length==0) then
 			return nil
 		else
@@ -379,8 +378,8 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		end
 	end
 
-	function self.sumSince(secsAgo, minsAgo, hoursAgo)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
+	function self.sumSince(timeAgo)
+		local subset, length = self.subsetSince(timeAgo)
 		if (length==0) then
 			return nil
 		else
@@ -436,8 +435,8 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		return tonumber(referenceValue - value)
 	end
 
-	function self.deltaSince(secsAgo, minsAgo, hoursAgo, variance,default)
-		local item, index = self.getAtTime(secsAgo, minsAgo, hoursAgo)
+	function self.deltaSince(timeAgo, variance, default)
+		local item, index = self.getAtTime(timeAgo)
 
 		if (item ~= nil) then
 			return self.delta(1, index, variance, default)

@@ -355,26 +355,26 @@ describe('event helper storage', function()
 
 		it('should return a subset since period ago', function()
 			local hs = HS(data)
-			local subset = hs.subsetSince(0, 0, 2, false)
+			local subset = hs.subsetSince('2:0:0', false)
 			assert.is_same({10,9,8}, _.pluck(subset, {'data'}))
 
-			subset = hs.subsetSince(60, 59, 0, false)
+			subset = hs.subsetSince('0:59:60', false)
 			assert.is_same({10,9}, _.pluck(subset, {'data'}))
 
-			subset = hs.subsetSince(60, 59, 1, false)
+			subset = hs.subsetSince('1:59:60', false)
 			assert.is_same({10,9,8}, _.pluck(subset, {'data'}))
 
-			subset = hs.subsetSince(0, 59, nil , false)
+			subset = hs.subsetSince('0:59:0', nil , false)
 			assert.is_same({10}, _.pluck(subset, {'data'}))
 
-			subset = hs.subsetSince(nil, nil, 1000 , false)
+			subset = hs.subsetSince('1000:0:0', false)
 			assert.is_same({10,9,8,7,6,5,4,3,2,1}, _.pluck(subset, {'data'}))
 
-			subset = hs.subsetSince(nil, nil, nil , false)
+			subset = hs.subsetSince('0:0:0' , false)
 			assert.is_same({10}, _.pluck(subset, {'data'}))
 
 			hs = HS()
-			local subset, length = hs.subsetSince(nil,nil,nil,false)
+			local subset, length = hs.subsetSince('0:0:0', false)
 			assert.is_same({}, subset)
 			assert.is_same(0, length)
 		end)
@@ -546,11 +546,11 @@ describe('event helper storage', function()
 
 		it('should return average over a time period', function()
 			local hs = HS(data)
-			local avg = hs.avgSince(0, 0, 2)
+			local avg = hs.avgSince('2:0:0')
 			assert.is_same(9, avg) -- 10,9,8
 
 			hs = HS()
-			assert.is_same(nil, hs.avgSince(1,10))
+			assert.is_same(nil, hs.avgSince('0:10:1'))
 		end)
 
 		it('should return the minimum value of a range', function()
@@ -569,14 +569,14 @@ describe('event helper storage', function()
 		it('should return the minimum value over a period', function()
 			data[4].data = -20
 			local hs = HS(data)
-			local min = hs.minSince(0, 0, 4) -- since 2 hours
+			local min = hs.minSince('4:0:0') -- since 2 hours
 			assert.is_same(-20,min)
 
-			min = hs.minSince(0, 120, 0) -- since 3 hours
+			min = hs.minSince('0:120:0') -- since 3 hours
 			assert.is_same(8,min)
 
 			hs = HS()
-			assert.is_nil(hs.minSince(1, 4))
+			assert.is_nil(hs.minSince('0:4:1'))
 
 		end)
 
@@ -596,11 +596,11 @@ describe('event helper storage', function()
 		it('should return the maximum value over a period', function()
 			data[5].data = 20
 			local hs = HS(data)
-			local max = hs.maxSince(0, 60, 3)
+			local max = hs.maxSince('3:60:0')
 			assert.is_same(20,max)
 
 			hs = HS()
-			assert.is_nil(hs.maxSince())
+			assert.is_nil(hs.maxSince(''))
 		end)
 
 		it('should return the sum of a range', function()
@@ -615,11 +615,11 @@ describe('event helper storage', function()
 		it('should return the sum over a period', function()
 			data[5].data = 20
 			local hs = HS(data)
-			local sum = hs.sumSince(0, 60, 3) -- since 2 hours
+			local sum = hs.sumSince('3:60:0') -- since 2 hours
 			assert.is_same(54,sum)
 
 			hs = HS()
-			assert.is_nil(hs.sumSince(1))
+			assert.is_nil(hs.sumSince('0:0:1'))
 		end)
 
 		it('should smooth an item with its neighbours', function()
@@ -666,39 +666,39 @@ describe('event helper storage', function()
 
 		it('should return a delta value since a specifc time', function()
 			local hs = HS(data)
-			local smooth = hs.deltaSince(0,0,5,2)
+			local smooth = hs.deltaSince('5:0:0', 2)
 			assert.is_same(4, smooth)
 
-			smooth = hs.deltaSince(0, 0, 15, 2, 22)
+			smooth = hs.deltaSince('15:0:0', 2, 22)
 			-- beyond the limits, return default value (22)
 			assert.is_same(22, smooth)
 		end)
 
 		it('should return an item at a specific time', function()
 			local hs = HS(data)
-			local item, index = hs.getAtTime(0, 2, 2)
+			local item, index = hs.getAtTime('2:2:0')
 
 			assert.is_same(3, index)
 			assert.is_same(7200, item.time.secondsAgo)
 
-			item, index = hs.getAtTime(0, 30, 2)
+			item, index = hs.getAtTime('2:30:0')
 			assert.is_same(4, index)
 			assert.is_same(10800, item.time.secondsAgo)
 
-			item, index = hs.getAtTime(60, 89, 1)
+			item, index = hs.getAtTime('1:89:60')
 			assert.is_same(4, index)
 			assert.is_same(10800, item.time.secondsAgo)
 
-			item, index = hs.getAtTime(-1, 0, 0)
+			item, index = hs.getAtTime('0:0:-1')
 			assert.is_same(1, index)
 			assert.is_same(0, item.time.secondsAgo)
 
-			item, index = hs.getAtTime(0, 0, 1200)
+			item, index = hs.getAtTime('1200:0:0')
 			assert.is_nil(index)
 			assert.is_nil(item)
 
 			hs = HS()
-			assert.is_nil(hs.getAtTime(60, 89, 1))
+			assert.is_nil(hs.getAtTime('1:89:60'))
 		end)
 
 	end)
