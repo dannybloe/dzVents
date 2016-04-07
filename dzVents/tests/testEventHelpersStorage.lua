@@ -129,7 +129,7 @@ describe('event helper storage', function()
 		assert.is_same('this is set from script', newContext.a)
 		assert.is_same(245, newContext.b)
 		assert.is_same(123, newContext.d.getLatest())
-		assert.is_same(456, newContext.e.getLatest())
+		assert.is_same({num=456}, newContext.e.getLatest())
 		assert.is_same(87, newContext.g)
 		assert.is_same({x=10, y=20}, newContext.c)
 
@@ -190,7 +190,7 @@ describe('event helper storage', function()
 		assert.is_same({x=10, y=20}, localContext.c)
 
 		assert.is_same({'g', 'h'}, keys(globalContext))
-		assert.is_same(999, globalContext.g)
+		assert.is_same(456, globalContext.g)
 		assert.is_same(false, globalContext.h)
 	end)
 
@@ -500,6 +500,38 @@ describe('event helper storage', function()
 			assert.is_same(10, sum) -- all even values added
 		end)
 
+		it('should use a valueGetter', function()
+			local getter = function(item)
+				return item.value.num
+			end
+
+			local hs = HS(nil, nil, nil, getter)
+			hs.setNew({num=10})
+
+			assert.is_same(10, hs.sum(1,1))
+		end)
+
+		it('valueGetter should return nil', function()
+			local getter = function(item)
+				return 'bla' -- a string and not a number, should trigger error
+			end
+
+			local hs = HS(nil, nil, nil, getter)
+			hs.setNew({num=10})
+
+			assert.is_nil(hs.sum(1,1))
+
+			hs = HS(nil, nil, nil, 'bla') -- not a function
+			hs.setNew({num=10})
+
+			assert.is_nil(hs.sum(1,1))
+
+			hs = HS(nil, nil, nil, function() return nil..1 end) -- error
+			hs.setNew({num=10})
+
+			assert.is_nil(hs.sum(1,1))
+		end)
+
 		it('should return the average', function()
 			local hs = HS(data)
 			assert.is_same(5.5, hs.avg(1,10))
@@ -519,21 +551,6 @@ describe('event helper storage', function()
 
 			hs = HS()
 			assert.is_same(nil, hs.avgSince(1,10))
-		end)
-
-		it('should avg over an attribute', function()
-			local data = {}
-			local i
-			for i=0, 9 do
-				table.insert(data, {
-					time = getTime(i),
-					value = {['bla'] = (10-i)}
-				})
-			end
-
-			local hs = HS(data)
-			local avg = hs.avgSince(0,0,2, 'bla')
-			assert.is_same(9, avg) -- 10,9,8
 		end)
 
 		it('should return the minimum value of a range', function()
@@ -652,7 +669,7 @@ describe('event helper storage', function()
 			local smooth = hs.deltaSince(0,0,5,2)
 			assert.is_same(4, smooth)
 
-			smooth = hs.deltaSince(0, 0, 15, 2, nil, 22)
+			smooth = hs.deltaSince(0, 0, 15, 2, 22)
 			-- beyond the limits, return default value (22)
 			assert.is_same(22, smooth)
 		end)

@@ -7,8 +7,8 @@ return {
 		a = { initial = '' },
 		b = { initial = 1 },
 		c = { initial = {x=1, y=2} },
-		d = { history = true, maxItems = 15 },
-		e = { history = true, maxHours = 1 },
+		d = { history = true, maxItems = 15},
+		e = { history = true, maxHours = 1, getValue = function(item) return item.value.num end },
 		g = { initial = 666 } -- this one is local (there's also a global with this name)
 	},
 	execute = function(domoticz, device)
@@ -19,9 +19,9 @@ return {
 		domoticz.data.g = 87
 
 		domoticz.data.d.setNew(123)
-		domoticz.data.e.setNew(456)
+		domoticz.data.e.setNew({num=456})
 
-		domoticz.globalData.g = 999
+		domoticz.globalData.g = domoticz.data.e.min(1,1) -- should be 456 through the getValue function above
 		domoticz.globalData.h = false
 	end
 }

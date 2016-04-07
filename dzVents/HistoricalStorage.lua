@@ -54,7 +54,7 @@ local function setIterators(object, collection)
 end
 
 
-local function HistoricalStorage(data, maxItems, maxHours)
+local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 	-- IMPORTANT: data must be time-stamped in UTC format
 
 	local newAdded = false
@@ -62,6 +62,16 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		maxItems = MAXLIMIT
 	end
 	-- maybe we should make a limit anyhow in the number of items
+
+	if (valueGetter == nil) then
+		valueGetter = function(item)
+			if (type(item.value)~= 'number') then
+				utils.log('Item value is not a number. Type is ' .. type(item.value) .. '. Value: ' .. item.value, utils.LOG_ERROR)
+			else
+				return item.value
+			end
+		end
+	end
 
 	local self = {
 		newValue = nil,
@@ -241,58 +251,69 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		self.newValue = nil
 	end
 
-	local function _getItemValue(item, attribute)
-		local val
-		if (attribute) then
-			if (item.value[attribute] == nil) then
-				utils.log('There is no attribute "' .. attribute .. '"', utils.LOG_ERROR)
+	local function _getItemValue(item)
+		if (type(valueGetter) == 'function') then
+			local ok, res = pcall(valueGetter, item)
+			if (ok) then
+				if (type(res) == 'number') then
+					return res
+				else
+					utils.log('Return value for value function is not a number: ' .. tostring(res), utils.LOG_ERROR)
+					return nil
+				end
 			else
-				val = tonumber(item.value[attribute])
+				utils.log('Value function returned an error. ' .. tostring(res), utils.LOG_ERROR)
 			end
 		else
-			val = tonumber(item.value)
+			if (type(item.value) == 'number') then
+				return item.value
+			else
+				utils.log('Item value is not a number type. Type is ' .. type(res), utils.LOG_ERROR)
+				return nil
+			end
 		end
-		return val
 	end
 
-	local function _sum(items, attribute)
+	local function _sum(items)
 		local count = 0
 
 		local sum = items.reduce(function(acc, item)
-			local val = _getItemValue(item, attribute)
+			local val = _getItemValue(item)
+			if (val == nil) then return nil end
 			count = count + 1
 			return acc + val
 		end, 0)
 		return sum, count
 	end
 
-	local function _avg(items, attribute)
-		local sum, count = _sum(items, attribute)
+	local function _avg(items)
+		local sum, count = _sum(items)
 		return sum/count
 	end
 
-	function self.avg(from, to, attribute, default)
+	function self.avg(from, to, default)
 		local subset, length = self.subset(from, to)
 
 		if (length == 0) then
 			return default
 		else
-			return _avg(subset, attribute)
+			return _avg(subset)
 		end
 	end
 
-	function self.avgSince(secsAgo, minsAgo, hoursAgo, attribute, default)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+	function self.avgSince(secsAgo, minsAgo, hoursAgo, default)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
 		if (length == 0) then
 			return default
 		else
-			return _avg(subset, attribute)
+			return _avg(subset)
 		end
 	end
 
-	local function _min(items, attribute)
+	local function _min(items)
 		local min = items.reduce(function(acc, item)
-			local val = _getItemValue(item, attribute)
+			local val = _getItemValue(item)
+			if (val == nil) then return nil end
 			if (acc == nil) then
 				acc = val
 			else
@@ -306,27 +327,28 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		return min
 	end
 
-	function self.min(from, to, attribute)
+	function self.min(from, to)
 		local subset, length = self.subset(from, to)
 		if (length == 0) then
 			return nil
 		else
-			return _min(subset, attribute)
+			return _min(subset)
 		end
 	end
 
-	function self.minSince(secsAgo, minsAgo, hoursAgo, attribute)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+	function self.minSince(secsAgo, minsAgo, hoursAgo)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
 		if (length==0) then
 			return nil
 		else
-			return _min(subset, attribute)
+			return _min(subset)
 		end
 	end
 
-	local function _max(items, attribute)
+	local function _max(items)
 		local max = items.reduce(function(acc, item)
-			local val = _getItemValue(item, attribute)
+			local val = _getItemValue(item)
+			if (val == nil) then return nil end
 			if (acc == nil) then
 				acc = val
 			else
@@ -340,43 +362,43 @@ local function HistoricalStorage(data, maxItems, maxHours)
 		return max
 	end
 
-	function self.max(from, to, attribute)
+	function self.max(from, to)
 		local subset, length = self.subset(from, to)
 		if (length==0) then
 			return nil
 		else
-			return _max(subset, attribute)
+			return _max(subset)
 		end
 	end
 
-	function self.maxSince(secsAgo, minsAgo, hoursAgo, attribute)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+	function self.maxSince(secsAgo, minsAgo, hoursAgo)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
 		if (length==0) then
 			return nil
 		else
-			return _max(subset, attribute)
+			return _max(subset)
 		end
 	end
 
-	function self.sum(from, to, attribute)
+	function self.sum(from, to)
 		local subset, length = self.subset(from, to)
 		if (length==0) then
 			return nil
 		else
-			return _sum(subset, attribute)
+			return _sum(subset)
 		end
 	end
 
-	function self.sumSince(secsAgo, minsAgo, hoursAgo, attribute)
-		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo, attribute)
+	function self.sumSince(secsAgo, minsAgo, hoursAgo)
+		local subset, length = self.subsetSince(secsAgo, minsAgo, hoursAgo)
 		if (length==0) then
 			return nil
 		else
-			return _sum(subset, attribute)
+			return _sum(subset)
 		end
 	end
 
-	function self.smoothItem(itemIndex, variance, attribute)
+	function self.smoothItem(itemIndex, variance)
 		if (itemIndex<1 or itemIndex > self.size) then
 			return nil
 		end
@@ -396,12 +418,12 @@ local function HistoricalStorage(data, maxItems, maxHours)
 			to = itemIndex + variance
 		end
 
-		local avg = self.avg(from, to, attribute)
+		local avg = self.avg(from, to)
 
 		return avg
 	end
 
-	function self.delta(fromIndex, toIndex, variance, attribute, default)
+	function self.delta(fromIndex, toIndex, variance, default)
 		if (fromIndex < 1 or
 			fromIndex > self.size-1 or
 			toIndex > self.size or
@@ -413,20 +435,22 @@ local function HistoricalStorage(data, maxItems, maxHours)
 
 		local value, item, referenceValue
 		if (variance ~= nil) then
-			value = self.smoothItem(toIndex, variance, attribute)
-			referenceValue = self.smoothItem(fromIndex, variance, attribute)
+			value = self.smoothItem(toIndex, variance)
+			referenceValue = self.smoothItem(fromIndex, variance)
 		else
-			value = _getItemValue(self.storage[toIndex], attribute)
-			referenceValue = _getItemValue(self.storage[fromIndex], attribute)
+			value = _getItemValue(self.storage[toIndex])
+			if (value == nil) then return nil end
+			referenceValue = _getItemValue(self.storage[fromIndex])
+			if (referenceValue == nil) then return nil end
 		end
 		return tonumber(referenceValue - value)
 	end
 
-	function self.deltaSince(secsAgo, minsAgo, hoursAgo, variance, attribute, default)
+	function self.deltaSince(secsAgo, minsAgo, hoursAgo, variance,default)
 		local item, index = self.getAtTime(secsAgo, minsAgo, hoursAgo)
 
 		if (item ~= nil) then
-			return self.delta(1, index, variance, attribute, default)
+			return self.delta(1, index, variance, default)
 		end
 
 		return default
