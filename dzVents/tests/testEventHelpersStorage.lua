@@ -215,7 +215,7 @@ describe('event helper storage', function()
 			for i=0, 9 do
 				table.insert(data, {
 					time = getTime(i),
-					value = (10-i)
+					data = (10-i)
 				})
 			end
 		end)
@@ -248,18 +248,18 @@ describe('event helper storage', function()
 			assert.is_same(3, hs.storage[4].time.hoursAgo)
 		end)
 
-		it('should set a value', function()
+		it('should set new data', function()
 			local hs = HS(data)
 			hs.setNew(10)
-			assert.is_same(10, hs.storage[1].value)
+			assert.is_same(10, hs.storage[1].data)
 
 			-- empty
 			hs = HS()
 			hs.setNew(10)
-			assert.is_same(10, hs.storage[1].value)
+			assert.is_same(10, hs.storage[1].data)
 		end)
 
-		it('should return the new value', function()
+		it('should return the new data', function()
 			local hs = HS(data)
 			hs.setNew(10)
 			assert.is_same(10, hs.getNew())
@@ -270,15 +270,15 @@ describe('event helper storage', function()
 			assert.is_same(10, hs.getNew())
 		end)
 
-		it('should return a stored value', function()
+		it('should return stored data', function()
 			local hs = HS(data)
 			local value, time = hs.get(1)
 			assert.is_same(data[1].time, time.raw)
-			assert.is_same(data[1].value, value)
+			assert.is_same(data[1].data, value)
 
 			value, time = hs.get(4)
 			assert.is_same(data[4].time, time.raw)
-			assert.is_same(data[4].value, value)
+			assert.is_same(data[4].data, value)
 
 			-- empty
 			hs = HS()
@@ -291,7 +291,7 @@ describe('event helper storage', function()
 			local hs = HS(data)
 			local value, time = hs.getLatest()
 			assert.is_same(data[1].time, time.raw)
-			assert.is_same(data[1].value, value)
+			assert.is_same(data[1].data, value)
 
 			-- empty
 			hs = HS()
@@ -305,7 +305,7 @@ describe('event helper storage', function()
 			local value, time = hs.getOldest()
 
 			assert.is_same(data[10].time, time.raw)
-			assert.is_same(data[10].value, value)
+			assert.is_same(data[10].data, value)
 
 			-- empty
 			hs = HS()
@@ -332,7 +332,7 @@ describe('event helper storage', function()
 			end, 0)
 
 			sub.forEach(function(item)
-				table.insert(values, item.value)
+				table.insert(values, item.data)
 			end)
 
 			assert.is_same(3, count)
@@ -356,22 +356,22 @@ describe('event helper storage', function()
 		it('should return a subset since period ago', function()
 			local hs = HS(data)
 			local subset = hs.subsetSince(0, 0, 2, false)
-			assert.is_same({10,9,8}, _.pluck(subset, {'value'}))
+			assert.is_same({10,9,8}, _.pluck(subset, {'data'}))
 
 			subset = hs.subsetSince(60, 59, 0, false)
-			assert.is_same({10,9}, _.pluck(subset, {'value'}))
+			assert.is_same({10,9}, _.pluck(subset, {'data'}))
 
 			subset = hs.subsetSince(60, 59, 1, false)
-			assert.is_same({10,9,8}, _.pluck(subset, {'value'}))
+			assert.is_same({10,9,8}, _.pluck(subset, {'data'}))
 
 			subset = hs.subsetSince(0, 59, nil , false)
-			assert.is_same({10}, _.pluck(subset, {'value'}))
+			assert.is_same({10}, _.pluck(subset, {'data'}))
 
 			subset = hs.subsetSince(nil, nil, 1000 , false)
-			assert.is_same({10,9,8,7,6,5,4,3,2,1}, _.pluck(subset, {'value'}))
+			assert.is_same({10,9,8,7,6,5,4,3,2,1}, _.pluck(subset, {'data'}))
 
 			subset = hs.subsetSince(nil, nil, nil , false)
-			assert.is_same({10}, _.pluck(subset, {'value'}))
+			assert.is_same({10}, _.pluck(subset, {'data'}))
 
 			hs = HS()
 			local subset, length = hs.subsetSince(nil,nil,nil,false)
@@ -384,9 +384,9 @@ describe('event helper storage', function()
 			hs.setNew(11)
 			-- oldest value is ditched, rest is shifted, new one is number 1 now
 			local newData = hs._getForStorage()
-			assert.is_same(11, newData[1].value)
+			assert.is_same(11, newData[1].data)
 			assert.is_same(10, _.size(newData))
-			assert.is_same(2, newData[10].value)
+			assert.is_same(2, newData[10].data)
 
 			hs = HS()
 			assert.is_same({}, hs._getForStorage())
@@ -403,14 +403,14 @@ describe('event helper storage', function()
 
 			local sum = 0
 			hs.forEach(function(item)
-				sum = sum + item.value
+				sum = sum + item.data
 			end)
 			assert.is_same(55, sum)
 
 			local hs = HS()
 			local sum = 0
 			hs.forEach(function(item)
-				sum = sum + item.value
+				sum = sum + item.data
 			end)
 			assert.is_same(0, sum)
 		end)
@@ -419,22 +419,22 @@ describe('event helper storage', function()
 			local hs = HS(data)
 
 			local res =	hs.filter(function(item)
-				return ((item.value/2) == math.floor(item.value/2)) -- even numbers
+				return ((item.data/2) == math.floor(item.data/2)) -- even numbers
 			end)
 
 			local sum = 0
 			res.forEach(function(item)
-				sum = sum + item.value
+				sum = sum + item.data
 			end)
 			assert.is_same(10, sum) -- all even values added
 
 			hs = HS()
 			res =	hs.filter(function(item)
-				return ((item.value/2) == math.floor(item.value/2))
+				return ((item.data/2) == math.floor(item.data/2))
 			end)
 			sum = 0
 			res.forEach(function(item)
-				sum = sum + item.value
+				sum = sum + item.data
 			end)
 			assert.is_same(0, sum)
 		end)
@@ -443,13 +443,13 @@ describe('event helper storage', function()
 			local hs = HS(data)
 
 			local sum =	hs.reduce(function(acc, item)
-				return acc + item.value
+				return acc + item.data
 			end, 0)
 			assert.is_same(55, sum)
 
 			hs = HS()
 			local sum =	hs.reduce(function(acc, item)
-				return acc + item.value
+				return acc + item.data
 			end, 0)
 			assert.is_same(0, sum)
 
@@ -460,20 +460,20 @@ describe('event helper storage', function()
 
 			local item, index
 			item, index = hs.find(function(item, i, collection)
-				return (item.value == 5)
+				return (item.data == 5)
 			end)
-			assert.is_same(5, item.value)
+			assert.is_same(5, item.data)
 
 			-- inverse
 			item, index = hs.find(function(item, i, collection)
-				return (item.value == 2)
+				return (item.data == 2)
 			end, -1)
 			assert.is_same(9, index)
-			assert.is_same(2, item.value)
+			assert.is_same(2, item.data)
 
 			-- should return nil when not found
 			item, index = hs.find(function(item, i, collection)
-				return (item.value == 554)
+				return (item.data == 554)
 			end)
 
 			assert.is_nil(index)
@@ -481,7 +481,7 @@ describe('event helper storage', function()
 
 			hs = HS()
 			item, index = hs.find(function(item, i, collection)
-				return (item.value == 5)
+				return (item.data == 5)
 			end)
 			assert.is_nil(item)
 		end)
@@ -491,18 +491,18 @@ describe('event helper storage', function()
 			local hs = HS(data)
 
 			local res =	hs.filter(function(item)
-				return ((item.value/2) == math.floor(item.value/2))
+				return ((item.data/2) == math.floor(item.data/2))
 			end)
 
 			local sum =	res.reduce(function(acc, item)
-				return acc + item.value
+				return acc + item.data
 			end, 0)
 			assert.is_same(10, sum) -- all even values added
 		end)
 
 		it('should use a valueGetter', function()
 			local getter = function(item)
-				return item.value.num
+				return item.data.num
 			end
 
 			local hs = HS(nil, nil, nil, getter)
@@ -554,7 +554,7 @@ describe('event helper storage', function()
 		end)
 
 		it('should return the minimum value of a range', function()
-			data[5].value = -20
+			data[5].data = -20
 			local hs = HS(data)
 			local min = hs.min()
 			assert.is_same(-20,min)
@@ -567,7 +567,7 @@ describe('event helper storage', function()
 		end)
 
 		it('should return the minimum value over a period', function()
-			data[4].value = -20
+			data[4].data = -20
 			local hs = HS(data)
 			local min = hs.minSince(0, 0, 4) -- since 2 hours
 			assert.is_same(-20,min)
@@ -581,7 +581,7 @@ describe('event helper storage', function()
 		end)
 
 		it('should return the maximum value of a range', function()
-			data[5].value = 20
+			data[5].data = 20
 			local hs = HS(data)
 			local min = hs.max()
 			assert.is_same(20,min)
@@ -594,7 +594,7 @@ describe('event helper storage', function()
 		end)
 
 		it('should return the maximum value over a period', function()
-			data[5].value = 20
+			data[5].data = 20
 			local hs = HS(data)
 			local max = hs.maxSince(0, 60, 3)
 			assert.is_same(20,max)
@@ -613,7 +613,7 @@ describe('event helper storage', function()
 		end)
 
 		it('should return the sum over a period', function()
-			data[5].value = 20
+			data[5].data = 20
 			local hs = HS(data)
 			local sum = hs.sumSince(0, 60, 3) -- since 2 hours
 			assert.is_same(54,sum)

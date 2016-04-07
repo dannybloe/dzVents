@@ -54,7 +54,7 @@ local function setIterators(object, collection)
 end
 
 
-local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
+local function HistoricalStorage(data, maxItems, maxHours, getData)
 	-- IMPORTANT: data must be time-stamped in UTC format
 
 	local newAdded = false
@@ -63,18 +63,8 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 	end
 	-- maybe we should make a limit anyhow in the number of items
 
-	if (valueGetter == nil) then
-		valueGetter = function(item)
-			if (type(item.value)~= 'number') then
-				utils.log('Item value is not a number. Type is ' .. type(item.value) .. '. Value: ' .. item.value, utils.LOG_ERROR)
-			else
-				return item.value
-			end
-		end
-	end
-
 	local self = {
-		newValue = nil,
+		newData = nil,
 		storage = {} -- youngest first, oldest last
 	}
 
@@ -97,7 +87,7 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 					add = false
 				end
 				if (add) then
-					table.insert(self.storage, { time = t, value = sample.value })
+					table.insert(self.storage, { time = t, data = sample.data })
 					count = count + 1
 				end
 			end
@@ -161,17 +151,17 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 		self.forEach(function(item)
 			table.insert(res,{
 				time = item.time.raw,
-				value = item.value
+				data = item.data
 			})
 		end)
 		return res
 	end
 
-	function self.setNew(value)
-		self.newValue = value
+	function self.setNew(data)
+		self.newData = data
 		if (newAdded) then
-			-- just replace the youngest value
-			self.storage[1].value = value
+			-- just replace the youngest data
+			self.storage[1].data = data
 
 		else
 			newAdded = true
@@ -187,14 +177,14 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 			local t = Time(os.date('!%Y-%m-%d %H:%M:%S'), true)
 			table.insert(self.storage, 1, {
 				time = t,
-				value = self.newValue
+				data = self.newData
 			})
 			self.size = self.size + 1
 		end
 	end
 
-	function self.getNew(value)
-		return self.newValue
+	function self.getNew()
+		return self.newData
 	end
 
 	function self.get(itemsAgo)
@@ -202,7 +192,7 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 		if (item == nil) then
 			return nil
 		else
-			return item.value, item.time
+			return item.data, item.time
 		end
 	end
 
@@ -248,27 +238,27 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 	function self.reset()
 		self.storage = {}
 		self.size = 0
-		self.newValue = nil
+		self.newData = nil
 	end
 
-	local function _getItemValue(item)
-		if (type(valueGetter) == 'function') then
-			local ok, res = pcall(valueGetter, item)
+	local function _getItemData(item)
+		if (type(getData) == 'function') then
+			local ok, res = pcall(getData, item)
 			if (ok) then
 				if (type(res) == 'number') then
 					return res
 				else
-					utils.log('Return value for value function is not a number: ' .. tostring(res), utils.LOG_ERROR)
+					utils.log('Return value for getData function is not a number: ' .. tostring(res), utils.LOG_ERROR)
 					return nil
 				end
 			else
-				utils.log('Value function returned an error. ' .. tostring(res), utils.LOG_ERROR)
+				utils.log('getData function returned an error. ' .. tostring(res), utils.LOG_ERROR)
 			end
 		else
-			if (type(item.value) == 'number') then
-				return item.value
+			if (type(item.data) == 'number') then
+				return item.data
 			else
-				utils.log('Item value is not a number type. Type is ' .. type(res), utils.LOG_ERROR)
+				utils.log('Item data is not a number type. Type is ' .. type(res), utils.LOG_ERROR)
 				return nil
 			end
 		end
@@ -278,7 +268,7 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 		local count = 0
 
 		local sum = items.reduce(function(acc, item)
-			local val = _getItemValue(item)
+			local val = _getItemData(item)
 			if (val == nil) then return nil end
 			count = count + 1
 			return acc + val
@@ -312,7 +302,7 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 
 	local function _min(items)
 		local min = items.reduce(function(acc, item)
-			local val = _getItemValue(item)
+			local val = _getItemData(item)
 			if (val == nil) then return nil end
 			if (acc == nil) then
 				acc = val
@@ -347,7 +337,7 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 
 	local function _max(items)
 		local max = items.reduce(function(acc, item)
-			local val = _getItemValue(item)
+			local val = _getItemData(item)
 			if (val == nil) then return nil end
 			if (acc == nil) then
 				acc = val
@@ -438,9 +428,9 @@ local function HistoricalStorage(data, maxItems, maxHours, valueGetter)
 			value = self.smoothItem(toIndex, variance)
 			referenceValue = self.smoothItem(fromIndex, variance)
 		else
-			value = _getItemValue(self.storage[toIndex])
+			value = _getItemData(self.storage[toIndex])
 			if (value == nil) then return nil end
-			referenceValue = _getItemValue(self.storage[fromIndex])
+			referenceValue = _getItemData(self.storage[fromIndex])
 			if (referenceValue == nil) then return nil end
 		end
 		return tonumber(referenceValue - value)

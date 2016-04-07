@@ -110,9 +110,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 				else
 					data[var] = storageContext[var]
 				end
-
 			end
-
 			if (not utils.fileExists(scriptsFolderPath .. '/storage')) then
 				os.execute('mkdir ' .. scriptsFolderPath .. '/storage')
 			end
