@@ -7,9 +7,13 @@ if (_G.TESTMODE) then
 end
 
 local function setIterators(object, collection)
+	local res
 	object['forEach'] = function(func)
 		for i, item in ipairs(collection) do
-			func(item, i, collection)
+			res = func(item, i, collection)
+			if (res == false) then -- abort
+				return
+			end
 		end
 	end
 
@@ -130,7 +134,7 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 	end
 
 	function self.subsetSince(timeAgo, _setIterators)
-		local totalSecsAgo = getSecondsAgo(ago)
+		local totalSecsAgo = getSecondsAgo(timeAgo)
 		local res = {}
 		local len = 0
 
@@ -300,26 +304,29 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 	end
 
 	local function _min(items)
+		local itm =  nil
 		local min = items.reduce(function(acc, item)
 			local val = _getItemData(item)
 			if (val == nil) then return nil end
 			if (acc == nil) then
 				acc = val
+				itm = item
 			else
 				if (val < acc) then
 					acc = val
+					itm = item
 				end
 			end
 
 			return acc
 		end, nil)
-		return min
+		return min, itm
 	end
 
 	function self.min(from, to)
 		local subset, length = self.subset(from, to)
 		if (length == 0) then
-			return nil
+			return nil, nil
 		else
 			return _min(subset)
 		end
@@ -328,33 +335,36 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 	function self.minSince(timeAgo)
 		local subset, length = self.subsetSince(timeAgo)
 		if (length==0) then
-			return nil
+			return nil, nil
 		else
 			return _min(subset)
 		end
 	end
 
 	local function _max(items)
+		local itm
 		local max = items.reduce(function(acc, item)
 			local val = _getItemData(item)
 			if (val == nil) then return nil end
 			if (acc == nil) then
 				acc = val
+				itm = item
 			else
 				if (val > acc) then
 					acc = val
+					itm = item
 				end
 			end
 
 			return acc
 		end, nil)
-		return max
+		return max, itm
 	end
 
 	function self.max(from, to)
 		local subset, length = self.subset(from, to)
 		if (length==0) then
-			return nil
+			return nil, nil
 		else
 			return _max(subset)
 		end
@@ -363,7 +373,7 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 	function self.maxSince(timeAgo)
 		local subset, length = self.subsetSince(timeAgo)
 		if (length==0) then
-			return nil
+			return nil, nil
 		else
 			return _max(subset)
 		end
@@ -387,24 +397,34 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		end
 	end
 
-	function self.smoothItem(itemIndex, variance)
+	function self.smoothItem(itemIndex, smoothRange)
 		if (itemIndex<1 or itemIndex > self.size) then
 			return nil
 		end
 
-		if (variance < 0) then variance = 0 end
-
-		local from, to
-		if ((itemIndex - variance)< 1) then
-			from = 1
-		else
-			from = itemIndex - variance
+		if (smoothRange == nil or smoothRange < 0) then
+			smoothRange = 0
 		end
 
-		if ((itemIndex + variance) > self.size) then
+		if (smoothRange == 0) then
+			if (itemIndex >= 1 and itemIndex <= self.size) then
+				return _getItemData(self.storage[itemIndex])
+			else
+				return nil
+			end
+		end
+
+		local from, to
+		if ((itemIndex - smoothRange)< 1) then
+			from = 1
+		else
+			from = itemIndex - smoothRange
+		end
+
+		if ((itemIndex + smoothRange) > self.size) then
 			to = self.size
 		else
-			to = itemIndex + variance
+			to = itemIndex + smoothRange
 		end
 
 		local avg = self.avg(from, to)
@@ -412,7 +432,7 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		return avg
 	end
 
-	function self.delta(fromIndex, toIndex, variance, default)
+	function self.delta(fromIndex, toIndex, smoothRange, default)
 		if (fromIndex < 1 or
 			fromIndex > self.size-1 or
 			toIndex > self.size or
@@ -423,9 +443,9 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		end
 
 		local value, item, referenceValue
-		if (variance ~= nil) then
-			value = self.smoothItem(toIndex, variance)
-			referenceValue = self.smoothItem(fromIndex, variance)
+		if (smoothRange ~= nil) then
+			value = self.smoothItem(toIndex, smoothRange)
+			referenceValue = self.smoothItem(fromIndex, smoothRange)
 		else
 			value = _getItemData(self.storage[toIndex])
 			if (value == nil) then return nil end
@@ -435,15 +455,66 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		return tonumber(referenceValue - value)
 	end
 
-	function self.deltaSince(timeAgo, variance, default)
+	function self.deltaSince(timeAgo, smoothRange, default)
 		local item, index = self.getAtTime(timeAgo)
 
 		if (item ~= nil) then
-			return self.delta(1, index, variance, default)
+			return self.delta(1, index, smoothRange, default)
 		end
 
 		return default
 	end
+
+	function self.localMin(smoothRange, default)
+		local min, minVal
+		self.forEach(function(item, i, collection)
+
+			local val = self.smoothItem(i, smoothRange)
+			if (min == nil) then
+				-- first one
+				min = item
+				minVal = val
+			else
+				if (val < minVal) then
+					-- we got one that is even lower
+					min = item
+					minVal = val
+				elseif (val > minVal) then -- we ignore equals
+					-- rising again
+					-- skip
+					return false -- abort
+				end
+			end
+		end)
+
+		return minVal, min
+	end
+
+	function self.localMax(smoothRange, default)
+		local max, maxVal
+		self.forEach(function(item, i, collection)
+
+			local val = self.smoothItem(i, smoothRange)
+			if (max == nil) then
+				-- first one
+				max = item
+				maxVal = val
+			else
+				if (val > maxVal) then
+					-- we got one that is even higher
+					max = item
+					maxVal = val
+				elseif (val < maxVal) then -- we ignore equals
+				-- lowering again
+				-- skip
+				return false -- abort
+				end
+			end
+		end)
+
+		return maxVal, max
+	end
+
 
 	return self
 end

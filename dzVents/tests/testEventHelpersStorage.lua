@@ -413,6 +413,16 @@ describe('event helper storage', function()
 				sum = sum + item.data
 			end)
 			assert.is_same(0, sum)
+
+			-- should stop when return false
+			hs = HS(data)
+			sum = 0
+			hs.forEach(function(item)
+				sum = sum + item.data
+				if (sum > 0) then return false end
+			end)
+			assert.is_same(10, sum)
+
 		end)
 
 		it('should have iterators: filter', function()
@@ -486,7 +496,6 @@ describe('event helper storage', function()
 			assert.is_nil(item)
 		end)
 
-
 		it('should have reduce a filtered set', function()
 			local hs = HS(data)
 
@@ -543,7 +552,6 @@ describe('event helper storage', function()
 			assert.is_same(nil, hs.avg(1,10))
 		end)
 
-
 		it('should return average over a time period', function()
 			local hs = HS(data)
 			local avg = hs.avgSince('2:0:0')
@@ -556,11 +564,13 @@ describe('event helper storage', function()
 		it('should return the minimum value of a range', function()
 			data[5].data = -20
 			local hs = HS(data)
-			local min = hs.min()
+			local min, item = hs.min()
 			assert.is_same(-20,min)
+			assert.is_same(hs.storage[5], item)
 
-			min = hs.min(1, 4)
+			min, item = hs.min(1, 4)
 			assert.is_same(7,min) -- 10,9,8,7
+			assert.is_same(hs.storage[4], item)
 
 			hs = HS()
 			assert.is_nil(hs.min(1, 4))
@@ -578,6 +588,42 @@ describe('event helper storage', function()
 			hs = HS()
 			assert.is_nil(hs.minSince('0:4:1'))
 
+		end)
+
+		it('should return the closest (local) minimum ', function()
+			data[5].data = -20
+			data[3].data = -10
+			data[4].data = -9
+			local hs = HS(data)
+			local min, item = hs.localMin()
+			assert.is_same(-10,min)
+			assert.is_same(hs.storage[3], item)
+
+			local min, item = hs.localMin(1)  -- 9.5, 3, -3.333, -13, -8
+			assert.is_same(-13,min)
+			assert.is_same(hs.storage[4], item)
+		end)
+
+		it('should return the closest (local) maximum', function()
+			local hs = HS(data)
+			local max, item = hs.localMax()
+			assert.is_same(10,max)
+			assert.is_same(hs.storage[1], item)
+			data[1].data = 1 -- sm(1): 1.5
+			data[2].data = 2 -- 2
+			data[3].data = 3 -- 4.5 <-- smoothed max
+			data[4].data = 4 -- 3.5
+			data[5].data = 0 -- 4.5
+			data[6].data = 5 -- 5
+
+			hs = HS(data)
+			local max, item = hs.localMax()
+			assert.is_same(4,max)
+			assert.is_same(hs.storage[4], item)
+
+			max, item = hs.localMax(1)
+			assert.is_same(3, max)
+			assert.is_same(hs.storage[3], item)
 		end)
 
 		it('should return the maximum value of a range', function()
