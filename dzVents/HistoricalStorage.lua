@@ -58,7 +58,7 @@ local function setIterators(object, collection)
 end
 
 
-local function HistoricalStorage(data, maxItems, maxHours, getData)
+local function HistoricalStorage(data, maxItems, maxHours, maxMinutes, getData)
 	-- IMPORTANT: data must be time-stamped in UTC format
 
 	local newAdded = false
@@ -74,6 +74,11 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 
 	-- setup our internal list of history items
 	-- already pruned to the bounds as set by maxItems and/or maxHours
+
+	maxMinutes = maxMinutes and maxMinutes or 0
+	maxHours = maxHours and maxHours or 0
+	maxMinutes = maxMinutes + maxHours * 60
+
 	if (data == nil) then
 		self.storage = {}
 		self.size = 0
@@ -87,7 +92,7 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 
 			if (count < maxItems) then
 				local add = true
-				if (maxHours~=nil and t.hoursAgo>maxHours) then
+				if (maxMinutes > 0 and t.minutesAgo>maxMinutes) then
 					add = false
 				end
 				if (add) then
@@ -174,6 +179,7 @@ local function HistoricalStorage(data, maxItems, maxHours, getData)
 		else
 			newAdded = true
 			-- see if we have reached the limit
+			-- the oldest item like still fals within the range of maxMinutes/maxHours
 			if (self.size == maxItems) then
 				-- drop the last item
 				to = self.size - 1

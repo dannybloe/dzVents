@@ -71,7 +71,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 				for var,def in pairs(storageDef) do
 
 					if ( def.history~=nil and def.history == true ) then
-						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours, def.getValue)
+						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours, def.maxMinutes, def.getValue)
 					else
 						storageContext[var] = fileStorage[var]
 					end
@@ -82,7 +82,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 					if ( def.history~=nil and def.history == true ) then
 						-- no initial value, just an empty history
-						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours, def.getValue)
+						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours, def.maxMinutes, def.getValue)
 					else
 						if (storageDef[var].initial ~= nil) then
 							storageContext[var] = storageDef[var].initial

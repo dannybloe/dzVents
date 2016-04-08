@@ -514,7 +514,7 @@ describe('event helper storage', function()
 				return item.data.num
 			end
 
-			local hs = HS(nil, nil, nil, getter)
+			local hs = HS(nil, nil, nil, nil, getter)
 			hs.setNew({num=10})
 
 			assert.is_same(10, hs.sum(1,1))
@@ -525,17 +525,17 @@ describe('event helper storage', function()
 				return 'bla' -- a string and not a number, should trigger error
 			end
 
-			local hs = HS(nil, nil, nil, getter)
+			local hs = HS(nil, nil, nil, nil, getter)
 			hs.setNew({num=10})
 
 			assert.is_nil(hs.sum(1,1))
 
-			hs = HS(nil, nil, nil, 'bla') -- not a function
+			hs = HS(nil, nil, nil, nil, 'bla') -- not a function
 			hs.setNew({num=10})
 
 			assert.is_nil(hs.sum(1,1))
 
-			hs = HS(nil, nil, nil, function() return nil..1 end) -- error
+			hs = HS(nil, nil, nil, nil, function() return nil..1 end) -- error
 			hs.setNew({num=10})
 
 			assert.is_nil(hs.sum(1,1))
