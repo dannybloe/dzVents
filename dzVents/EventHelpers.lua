@@ -607,6 +607,8 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 		local allEventScripts = self.getEventBindings()
 
+		local handledDevices = {}
+
 		if (changedDevices ~=nil) then
 			for changedDeviceName, changedDeviceValue in pairs(changedDevices) do
 
@@ -619,17 +621,25 @@ local function EventHelpers(settings, domoticz, mainMethod)
 				local baseName = self.getDeviceNameByEvent(changedDeviceName)
 				local device = self.domoticz.devices[baseName]
 
-				if (device~=nil) then
-					-- first search by name
-					scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
+				if (device ~= nil) then
 
-					if (scriptsToExecute ==nil) then
-						-- search by id
-						scriptsToExecute = allEventScripts[device.id]
-					end
-					if (scriptsToExecute ~=nil) then
-						utils.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', utils.LOG_INFO)
-						self.handleEvents(scriptsToExecute, device)
+					if (handledDevices[device.id] == nil) then -- make sure a device is only handled once (so not for MySensor and MySensor_Temperature)
+
+						-- first search by name
+						scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
+
+						if (scriptsToExecute == nil) then
+							-- search by id
+							scriptsToExecute = allEventScripts[device.id]
+						end
+
+						if (scriptsToExecute ~= nil) then
+							utils.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', utils.LOG_INFO)
+							self.handleEvents(scriptsToExecute, device)
+						end
+
+						-- mark as handled
+						handledDevices[device.id] = true
 					end
 
 				else
