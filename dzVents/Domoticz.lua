@@ -21,6 +21,14 @@ end
 -- main class
 local function Domoticz(settings)
 
+	local now = os.date('*t')
+	local sNow = now.year .. '-' .. now.month .. '-' .. now.day .. ' ' .. now.hour .. ':' .. now.min .. ':' .. now.sec
+	local nowTime = Time(sNow)
+	nowTime['isDayTime'] = timeofday['Daytime']
+	nowTime['isNightTime'] = timeofday['Nighttime']
+	nowTime['sunriseInMinutes'] = timeofday['SunriseInMinutes']
+	nowTime['sunsetInMinutes'] = timeofday['SunsetInMinutes']
+
 	-- the new instance
 	local self = {
 		['settings'] = settings,
@@ -28,12 +36,7 @@ local function Domoticz(settings)
 		['devices'] = {},
 		['changedDevices']={},
 		['security'] = globalvariables["Security"],
-		['time'] = {
-			['isDayTime'] = timeofday['Daytime'],
-			['isNightTime'] = timeofday['Nighttime'],
-			['sunriseInMinutes'] = timeofday['SunriseInMinutes'],
-			['sunsetInMinutes'] = timeofday['SunsetInMinutes']
-		},
+		['time'] = nowTime,
 		['variables'] = {},
 		['PRIORITY_LOW'] = -2,
 		['PRIORITY_MODERATE'] = -1,
@@ -84,6 +87,8 @@ local function Domoticz(settings)
 		['LOG_INFO'] = utils.LOG_INFO,
 		['LOG_DEBUG'] = utils.LOG_DEBUG,
 		['LOG_ERROR'] = utils.LOG_ERROR,
+		['EVENT_TYPE_TIMER'] = 'timer',
+		['EVENT_TYPE_DEVICE'] = 'device',
 	}
 
 	local function setIterators(collection)

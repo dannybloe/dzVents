@@ -1,4 +1,5 @@
 local _ = require 'lodash'
+_G._ = require 'lodash'
 
 package.path = package.path .. ";../?.lua"
 
@@ -19,6 +20,8 @@ describe('event helpers', function()
 	local EventHelpers, helpers, utils
 
 	local domoticz = {
+		['EVENT_TYPE_TIMER'] = 'timer',
+		['EVENT_TYPE_DEVICE'] = 'device',
 		['settings'] = {},
 		['name'] = 'domoticz', -- used in script1
 		['devices'] = {
@@ -441,7 +444,7 @@ describe('event helpers', function()
 				})
 			-- should pass the arguments to the execute function
 			-- and catch the results from the function
-			assert.is_same('script1: domoticz device', res)
+			assert.is_same('script1: domoticz device device', res)
 		end)
 
 		it('should catch errors', function()

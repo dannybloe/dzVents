@@ -1,4 +1,5 @@
 local _ = require 'lodash'
+_G._ = require 'lodash'
 
 package.path = package.path .. ";../?.lua"
 package.path = package.path .. ";../../?.lua"  -- two folders up

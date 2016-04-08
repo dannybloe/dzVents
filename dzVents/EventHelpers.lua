@@ -126,6 +126,17 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		end
 	end
 
+	local function getEventInfo(eventHandler)
+		local res = {}
+		if (eventHandler.trigger ~= nil) then
+			res.type = self.domoticz.EVENT_TYPE_TIMER
+			res.trigger = eventHandler.trigger
+		else
+			res.type = self.domoticz.EVENT_TYPE_DEVICE
+		end
+		return res
+	end
+
 	function self.callEventHandler(eventHandler, device)
 		local useStorage = false
 		if (eventHandler[self.mainMethod] ~= nil) then
@@ -154,7 +165,8 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			-- ==================
 			-- Run script
 			-- ==================
-			local ok, res = pcall(eventHandler[self.mainMethod], self.domoticz, device)
+			local info = getEventInfo(eventHandler)
+			local ok, res = pcall(eventHandler[self.mainMethod], self.domoticz, device, info)
 			if (ok) then
 
 				-- ==================
@@ -440,7 +452,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		-- otherwise it returns false
 		for i, timeDef in pairs(timeDefs) do
 			if (self.evalTimeTrigger(timeDef, testTime)) then
-				return true
+				return true, timeDef
 			end
 		end
 		return false
@@ -497,16 +509,20 @@ local function EventHelpers(settings, domoticz, mainMethod)
 										if (type(j) == 'number' and type(event) == 'string' and event == 'timer') then
 											-- { 'timer' }
 											-- execute every minute (old style)
+											module.trigger = event
 											table.insert(bindings, module)
 										elseif (type(j) == 'string' and j=='timer' and type(event) == 'string') then
 											-- { ['timer'] = 'every minute' }
 											if (self.evalTimeTrigger(event)) then
+												module.trigger = event
 												table.insert(bindings, module)
 											end
 										elseif (type(j) == 'string' and j=='timer' and type(event) == 'table') then
 											-- { ['timer'] = { 'every minute ', 'every hour' } }
-											if (self.checkTimeDefs(event)) then
+											local triggered, def = self.checkTimeDefs(event)
+											if (triggered) then
 												-- this one can be executed
+												module.trigger = def
 												table.insert(bindings, module)
 											end
 										end

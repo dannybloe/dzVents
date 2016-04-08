@@ -131,10 +131,13 @@ describe('Domoticz', function()
 
 	describe('properties', function()
 		it('should have time properties', function()
+			local now = os.date('*t')
 			assert.is_same(domoticz.time.isDayTime, 'dt')
 			assert.is_same(domoticz.time.isNightTime, 'nt')
 			assert.is_same(domoticz.time.sunriseInMinutes, 'sunrisemin')
 			assert.is_same(domoticz.time.sunsetInMinutes, 'sunsetmin')
+			-- check for basic time props
+			assert.is_same(now.hour, domoticz.time.hour)
 		end)
 
 		it('should have settings', function()
