@@ -489,6 +489,7 @@ describe('event helpers', function()
 				['wildcard'] = 30,
 				['someweirddevice'] = 40,
 				['on_script_5_Temperature'] = 50,
+				['on_script_5'] = 50, -- should be triggered only once
 				['mydevice'] = 60 --script 6 triggers by this device' id
 			}
 
