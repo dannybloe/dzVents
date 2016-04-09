@@ -92,10 +92,15 @@ local function Domoticz(settings)
 	}
 
 	local function setIterators(collection)
+
 		collection['forEach'] = function(func)
+			local res
 			for i, item in pairs(collection) do
 				if (type(item) ~= 'function' and type(i)~='number') then
-					func(item, i)
+					res = func(item, i, collection)
+					if (res == false) then -- abort
+						return
+					end
 				end
 			end
 		end
