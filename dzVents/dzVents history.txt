@@ -1,10 +1,15 @@
-[..]
-* Added SMS method.
+[1.0-beta1]
+* Added data persistence for scripts between script runs (see readme for more info)
+* Added a time-line based data type for you scripts with historical information and many statistical functions for retreiving information like average, minumum, maximum, delta, data smoothing (averaging values over neighbours) etc. See readme for more information.
+* Added SMS method to the domoticz object.
 * Added toggleSwitch() method to devices that support it.
-* Added more switch states that control device.bState (e.g. on == true, open == true etc)
+* Added more switch states that control device.bState (e.g. on == true, open == true 'all on' == true)
 * Added secondsAgo to the lastUpdate attribute
-* Added tests
-* Refactored code significantly
+* Added tests (test code coverage is above 96%!)
+* Refactored code significantly.
+* Made sure differently formulated but equal triggers in one script only execute the script only once (like MySensor and MySensor_Temperature).
+* Added trigger info as a third parameter (Lua table) that is passed to the execute method of a script containing information about what exactly triggered the script (type = EVENT_TYPE_TIMER/EVENT_TYPE_DEVICE, trigger=<timer rule>). See readme.
+* Added Lua time properties to domoticz.time property with all information about the current time (hours, minutes, seconds, etc.)
 
 [0.9.13]
 * Fixed some timer functions
