@@ -271,7 +271,7 @@ local function Domoticz(settings)
 		dumpTable(device, '> ')
 	end
 
-	function readHttpDomoticzData()
+	local function readHttpDomoticzData()
 		local httpData = {
 			['result'] = {}
 		}
