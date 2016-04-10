@@ -11,6 +11,7 @@
 * Added trigger info as a third parameter (Lua table) that is passed to the execute method of a script containing information about what exactly triggered the script (type = EVENT_TYPE_TIMER/EVENT_TYPE_DEVICE, trigger=<timer rule>). See readme.
 * Added Lua time properties to domoticz.time property with all information about the current time (hours, minutes, seconds, etc.)
 * Added option to return false in a forEach iteratee function which will abort the forEach loop.
+* All devices not delivered by Domoticz to the event scripts are now added to domoticz.devices using the http data that is fetched every 30 minutes (by default).
 
 [0.9.13]
 * Fixed some timer functions

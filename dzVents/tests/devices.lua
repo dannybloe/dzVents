@@ -13,6 +13,9 @@ return
 			['HardwareTypeVal'] = 1,
 			['SwitchType'] = 'Contact',
 			['SwitchTypeVal'] = 2,
+			['Name'] = 'Name1',
+			['Data'] = 'On',
+			['Status'] = 'On'
 		},
 		{
 			['idx'] = '2',
@@ -26,6 +29,9 @@ return
 			['HardwareTypeVal'] = 2,
 			['SwitchType'] = "Motion Sensor",
 			['SwitchTypeVal'] = 8,
+			['Name'] = 'Name2',
+			['Data'] = '1;2;3',
+
 		},
 		{
 			['idx'] = '3',
@@ -39,6 +45,9 @@ return
 			['HardwareTypeVal'] = 3,
 			['SwitchType'] = 'On/Off',
 			['SwitchTypeVal'] = 0,
+			['Name'] = 'Name3',
+			['Data'] = 'On',
+			['Status'] = 'On'
 		},
 		{
 			['idx'] = '4',
@@ -52,6 +61,8 @@ return
 			['HardwareTypeVal'] = 4,
 			['SwitchType'] = 'Security',
 			['SwitchTypeVal'] = 0,
+			['Name'] = 'Name4',
+			['Data'] = 'On'
 		},
 		{
 			['idx'] = '5',
@@ -65,6 +76,8 @@ return
 			['HardwareTypeVal'] = 4,
 			['SwitchType'] = 'Security',
 			['SwitchTypeVal'] = 0,
+			['Name'] = 'Name5',
+			['Data'] = '3;3;3;3',
 		}
 	}
 }

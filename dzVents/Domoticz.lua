@@ -293,6 +293,10 @@ local function Domoticz(settings)
 				utils.log('devices.lua cannot be loaded', utils.LOG_ERROR)
 				utils.log(module, utils.LOG_ERROR)
 			end
+		else
+			if (self.settings['Enable http fetch']) then
+				self.fetchHttpDomoticzData()
+			end
 		end
 		return httpData
 	end
@@ -339,46 +343,75 @@ local function Domoticz(settings)
 
 			end
 		end
+	end
 
+	local function createMissingHTTPDevices()
+		local httpData = readHttpDomoticzData()
+
+		if (httpData) then
+			for i, httpDevice in pairs(httpData.result) do
+				if (self.devices[tonumber(httpDevice['idx'])] == nil) then
+					-- we have a device that is not passed by Domoticz to the scripts
+					local name = httpDevice.Name
+					local state = httpDevice.Status -- can be nil
+					local id = tonumber(httpDevice.idx)
+					local raw = httpDevice.Data
+					local device =  Device(self, name, state, false)
+
+					self.devices[name] = device
+					self.devices[id] = device
+
+					device.addAttribute('id', id)
+					device.addAttribute('lastUpdate', Time(httpDevice.LastUpdate))
+					device.addAttribute('rawData', string.split(raw, ';'))
+				end
+			end
+		end
+
+	end
+
+	local function extendDevicesWithHTTPData()
 		local httpData = readHttpDomoticzData()
 
 		if (httpData) then
 			for i, httpDevice in pairs(httpData.result) do
 				if (self.devices[tonumber(httpDevice['idx'])]) then
 					local device = self.devices[tonumber(httpDevice['idx'])]
-					device['batteryLevel'] = httpDevice.BatteryLevel
-					device['signalLevel'] = httpDevice.SignalLevel
-					device['deviceSubType'] = httpDevice.SubType
-					device['deviceType'] = httpDevice.Type
-					device['hardwareName'] = httpDevice.HardwareName
-					device['hardwareType'] = httpDevice.HardwareType
-					device['hardwareId'] = httpDevice.HardwareID
-					device['hardwareTypeVal'] = httpDevice.HardwareTypeVal
-					device['switchType'] = httpDevice.SwitchType
-					device['switchTypeValue'] = httpDevice.SwitchTypeVal
+					device.addAttribute('batteryLevel', httpDevice.BatteryLevel)
+					device.addAttribute('signalLevel', httpDevice.SignalLevel)
+					device.addAttribute('deviceSubType', httpDevice.SubType)
+					device.addAttribute('deviceType', httpDevice.Type)
+					device.addAttribute('hardwareName', httpDevice.HardwareName)
+					device.addAttribute('hardwareType', httpDevice.HardwareType)
+					device.addAttribute('hardwareId', httpDevice.HardwareID)
+					device.addAttribute('hardwareTypeVal', httpDevice.HardwareTypeVal)
+					device.addAttribute('switchType', httpDevice.SwitchType)
+					device.addAttribute('switchTypeValue', httpDevice.SwitchTypeVal)
 
 					if (device.deviceType == 'Heating' and device.deviceSubType == 'Zone') then
-						device.setPoint = tonumber(device.rawData[2])
-						device.heatingMode = device.rawData[3]
+						device.addAttribute('setPoint', tonumber(device.rawData[2]))
+						device.addAttribute('heatingMode', device.rawData[3])
 					end
 
 					if (device.deviceType ==  'Lux' and device.deviceSubType == 'Lux') then
-						device.lux = tonumber(device.rawData[1])
+						device.addAttribute('lux', tonumber(device.rawData[1]))
 					end
 
 					if (device.deviceType ==  'General' and device.deviceSubType == 'kWh') then
-						device.WhTotal = tonumber(device.rawData[2])
-						device.WhToday = tonumber(device.rawData[1])
+						device.addAttribute('WhTotal', tonumber(device.rawData[2]))
+						device.addAttribute('WhToday', tonumber(device.rawData[1]))
 					end
 					if (device.deviceType ==  'P1 Smart Meter' and device.deviceSubType == 'Energy') then
-						device.WActual = tonumber(device.rawData[5])
+						device.addAttribute('WActual', tonumber(device.rawData[5]))
 					end
 
 					if (device.deviceType == 'Thermostat' and device.deviceSubType == 'SetPoint') then
-						device.setPoint = tonumber(device.rawData[1])
+						device.addAttribute('setPoint', tonumber(device.rawData[1]))
 					end
 
-
+					if (device.deviceSubType == 'Text') then
+						device.addAttribute('text', httpDevice.Data) -- could be old because it may not be fetched
+					end
 				end
 			end
 		end
@@ -386,6 +419,8 @@ local function Domoticz(settings)
 
 	createVariables()
 	createDevices()
+	createMissingHTTPDevices()
+	extendDevicesWithHTTPData()
 
 	return self
 end
