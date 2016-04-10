@@ -18,7 +18,7 @@ function self.getDevicesPath()
 	if (_G.TESTMODE) then
 		return debug.getinfo(1).source:match("@?(.*/)") .. '/tests/devices.lua'
 	else
-		return debug.getinfo(1).source:match("@?(.*/)") .. 'devices.lua'
+		return debug.getinfo(1).source:match("@?(.*/)") .. '../devices.lua' -- parent folder
 	end
 end
 
