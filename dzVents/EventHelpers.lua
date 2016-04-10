@@ -639,7 +639,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 				if (device ~= nil) then
 
-					if (handledDevices[device.id] == nil) then -- make sure a device is only handled once (so not for MySensor and MySensor_Temperature)
+					if (handledDevices[tostring(device.id)] == nil) then -- make sure a device is only handled once (so not for MySensor and MySensor_Temperature)
 
 						-- first search by name
 						scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
@@ -655,7 +655,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 						end
 
 						-- mark as handled
-						handledDevices[device.id] = true
+						handledDevices[tostring(device.id)] = true
 					end
 
 				else
