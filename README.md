@@ -49,61 +49,59 @@ dzVents (|diː ziː vɛnts| short for Domotiz Easy Events) brings Lua scripting 
  
 Let's start with an example. Let's say you have a switch that when activated, it should activate another switch but only if the room temperature is above a certain level. And when done, it should send a notification. This is how it looks like in dzVents:
 
-```
-return {
-	active = true,
-	on = {
-		'Room switch'
-	},
-	execute = function(domoticz, roomSwitch)
-		if (roomSwitch.state == 'On' and domoticz.devices['Living room'].temperature > 18) then
-			domoticz.devices['Another switch'].switchOn()
-			domoticz.notify('This rocks!', 
-			                'Turns out that it is getting warm here', 
-			                domoticz.PRIORITY_LOW)
-		end
-	end
-}
+    return {
+    	active = true,
+    	on = {
+    		'Room switch'
+    	},
+    	execute = function(domoticz, roomSwitch)
+    		if (roomSwitch.state == 'On' and domoticz.devices['Living room'].temperature > 18) then
+    			domoticz.devices['Another switch'].switchOn()
+    			domoticz.notify('This rocks!', 
+    			                'Turns out that it is getting warm here', 
+    			                domoticz.PRIORITY_LOW)
+    		end
+    	end
+    }
 
-```
 Or you have a timer script that should be executed every 10 minutes but only on weekdays and have it do something with some user variables and only during daytime:
 
-```
-return {
-	active = true, 
-	on = {
-		['timer'] = {'Every 10 minutes on mon,tue,wed,thu,fri'}
-	},
-	execute = function(domoticz)	
-		-- check time of the day
-		if (domoticz.time.isDayTime and domoticz.variables['myVar'].nValue == 10) then
-			domoticz.variables['anotherVar'].set(15)
-			--activate my scene
-			domoticz.setScene('Evening lights', 'On')
-			if (domoticz.devices['My PIR'].lastUpdate.minutesAgo > 5) then
-                domoticz.devices['Bathroom lights'].switchOff()
-            end
-		end			
-	end
-}
-```
+
+    return {
+    	active = true, 
+    	on = {
+    		['timer'] = {'Every 10 minutes on mon,tue,wed,thu,fri'}
+    	},
+    	execute = function(domoticz)	
+    		-- check time of the day
+    		if (domoticz.time.isDayTime and domoticz.variables['myVar'].nValue == 10) then
+    			domoticz.variables['anotherVar'].set(15)
+    			--activate my scene
+    			domoticz.setScene('Evening lights', 'On')
+    			if (domoticz.devices['My PIR'].lastUpdate.minutesAgo > 5) then
+                    domoticz.devices['Bathroom lights'].switchOff()
+                end
+    		end			
+    	end
+    }
+
 Or you want to detect a humidity rise since the past 5 minutes:
-```
-return {
-	active = true, 
-	on = { ['timer'] = 'every 5 minutes },
-	data = { previousHumidity = { initial = 100 } },
-	execute = function(domoticz)	
-		local bathroomSensor = domoticz.devices['BathroomSensor']
-		if (bathroomSensor.humidity - domoticz.data.previousHumidity) >= 5) then
-			-- there was a significant rise
-			domoticz.devices['Ventilator'].switchOn()
-		end
-		-- store current value for next cycle
-		domoticz.data.previousHumidity = bathroomSensor.humidity
-	end
-}
-```
+
+    return {
+    	active = true, 
+    	on = { ['timer'] = 'every 5 minutes },
+    	data = { previousHumidity = { initial = 100 } },
+    	execute = function(domoticz)	
+    		local bathroomSensor = domoticz.devices['BathroomSensor']
+    		if (bathroomSensor.humidity - domoticz.data.previousHumidity) >= 5) then
+    			-- there was a significant rise
+    			domoticz.devices['Ventilator'].switchOn()
+    		end
+    		-- store current value for next cycle
+    		domoticz.data.previousHumidity = bathroomSensor.humidity
+    	end
+    }
+
 Just to give you an idea! Everything that was previously scattered around in a dozen Lua tables is now logically available in the domoticz object structure. From there you can get to all the information and you can control the devices.
 
 # Installing
@@ -121,20 +119,19 @@ Form the extracted zip folder copy the following to the Domoticz script folder (
  - the folder `scripts` 
 
 After doing so you will have this structure:
-```
-domoticz/
-	scripts/
-		lua/
-			dzVents/
-				... <dzVents files> ...
-				examples/ 
-				tests/
-			scripts/
-			script_time_main.lua
-			script_device_main.lua
-			dzVents_settings.lua
-			... <other stuff that was already there> ...
-```
+
+    domoticz/
+    	scripts/
+    		lua/
+    			dzVents/
+    				... <dzVents files> ...
+    				examples/ 
+    				tests/
+    			scripts/
+    			script_time_main.lua
+    			script_device_main.lua
+    			dzVents_settings.lua
+    			... <other stuff that was already there> ...
 
 Edit the file `dzVents_settings.lua` and enter the ip number and port number of your Domoticz instance. Make sure that you don't need a username/password for local networks (see Domoticz settings) or dzVents will not be able to fetch additional data like battery status and device type information! If you don't want  or need this then you can set `['Enable http fetch']` to `false`.
 
@@ -145,24 +142,23 @@ After you placed the dzVents files in the right location we can do a quick test 
 
  - Pick a switch in your Domoticz system. Note down the exact name of the switch. If you don't have a switch then you can create a Dummy switch and use that one.
  - Create a new script in the `scripts/` folder. Call it `test.lua`.
- - Open `test.lua` in an editor and fill it with this code and change `<exact name of the switch>` with the .. you guessed it... exact name of the switch device:
- 
+ - Open `test.lua` in an editor and fill it with this code and change `<exact name of the switch>` with the .. you guessed it... exact name of the switch device:  
 ```
-return {
-	active = true,
-	on = {
-		'<exact name of the switch>'
-	},
-	execute = function(domoticz, switch)
-		if (switch.state == 'On') then
-			domoticz.notify('Hey!', 'I am on!',
-			domoticz.PRIORITY_NORMAL)
-		else
-			domoticz.notify('Hey!', 'I am off!',
-			domoticz.PRIORITY_NORMAL)
-		end
-	end
-}
+     return {
+    	active = true,
+    	on = {
+    		'<exact name of the switch>'
+    	},
+    	execute = function(domoticz, switch)
+    		if (switch.state == 'On') then
+    			domoticz.notify('Hey!', 'I am on!',
+    			domoticz.PRIORITY_NORMAL)
+    		else
+    			domoticz.notify('Hey!', 'I am off!',
+    			domoticz.PRIORITY_NORMAL)
+    		end
+    	end
+    }
 ```
  - Save the script
  - Open the Domoticz log in the browser
@@ -186,34 +182,33 @@ So, how to adapt the scripts?
 ## Adapting or creating your scripts
 In order for your scripts to work with dzVents, they have to be turned into a Lua module. Basically you make sure it returns a Lua table (object) with a couple of predefined keys `active`, `on` and `execute`.. Here is an example:
 
-```
-return {
-    active = true,
-    on = {
-        'My switch'
-    },
-    execute = function(domoticz, device)
-        -- your script logic goes here, something like this:
-        
-        if (device.state == 'On') then
-            domoticz.notify('I am on!', '', domoticz.PRIORITY_LOW)
-        end        
-    end
-}
-```
+    return {
+        active = true,
+        on = {
+            'My switch'
+        },
+        execute = function(domoticz, device)
+            -- your script logic goes here, something like this:
+            
+            if (device.state == 'On') then
+                domoticz.notify('I am on!', '', domoticz.PRIORITY_LOW)
+            end        
+        end
+    }
+
 Simply said, if you want to turn your existing script into a script that can be used with dzVents, you put it inside the execute function.
 
 So, the module returns a table with these sections (keys):
-```
-return {
-    active = ... ,
-    on = { ... },
-    data = { ... },
-    execute = function(domoticz, device, triggerInfo)
-		...
-    end
-}
-```
+
+    return {
+        active = ... ,
+        on = { ... },
+        data = { ... },
+        execute = function(domoticz, device, triggerInfo)
+    		...
+        end
+    }
+
 * **on = { .. }**: (*don't confuse this with **on**/off, it is more like: **on** < some event > **execute** < code >*). This is a Lua table (kind of an array) with **one or more** trigger events:
     * The name of your device between string quotes. **You can use the asterisk (\*) wild-card here e.g. `PIR_*` or `*_PIR` .** Note that in one cycle several devices could have been updated. If you have a script with a wild-card trigger that matches all the names of these changed devices, then this script will be executed *for all these changed devices*.  
     * The index of your device (the name may change, the index will usually stay the same), 
@@ -235,31 +230,30 @@ return {
 ## *timer* trigger options
 There are several options for time triggers. It is important to know that Domoticz timer events are only trigger once every minute. So that is the smallest interval for you timer scripts. However, dzVents gives you a great many options to have full control over when and how often your timer scripts are called (all times are in 24hr format!). You can create full schedules (sorry about the weird bracket syntax, that's just Lua):
 
-```
-on = {
-    'timer'                            -- the simplest form, causes the script to be called every minute
-    ['timer'] = 'every minute',        -- same as above: every minute
-    ['timer'] = 'every other minute',  -- minutes: xx:00, xx:02, xx:04, ..., xx:58
-    ['timer'] = 'every <xx> minutes',  -- starting from xx:00 triggers every xx minutes
-                                       -- (0 > xx < 60)
-    ['timer'] = 'every hour',          -- 00:00, 01:00, ..., 23:00  (24x per 24hrs)
-    ['timer'] = 'every other hour',    -- 00:00, 02:00, ..., 22:00  (12x per 24hrs)
-    ['timer'] = 'every <xx> hours',    -- starting from 00:00, triggers every xx 
-                                       -- hours (0 > xx < 24)
-    ['timer'] = 'at 13:45',            -- specific time
-    ['timer'] = 'at *:45',             -- every 45th minute in the hour
-    ['timer'] = 'at 15:*',             -- every minute between 15:00 and 16:00
-    ['timer'] = 'at 13:45 on mon,tue', -- at 13:45 only on Monday en Tuesday (english)
-    ['timer'] = 'every hour on sat',   -- you guessed it correctly
-    ['timer'] = 'at sunset',           -- uses sunset/sunrise info from Domoticz
-    ['timer'] = 'at sunrise',
-    ['timer'] = 'at sunset on sat,sun'
+    on = {
+        'timer'                            -- the simplest form, causes the script to be called every minute
+        ['timer'] = 'every minute',        -- same as above: every minute
+        ['timer'] = 'every other minute',  -- minutes: xx:00, xx:02, xx:04, ..., xx:58
+        ['timer'] = 'every <xx> minutes',  -- starting from xx:00 triggers every xx minutes
+                                           -- (0 > xx < 60)
+        ['timer'] = 'every hour',          -- 00:00, 01:00, ..., 23:00  (24x per 24hrs)
+        ['timer'] = 'every other hour',    -- 00:00, 02:00, ..., 22:00  (12x per 24hrs)
+        ['timer'] = 'every <xx> hours',    -- starting from 00:00, triggers every xx 
+                                           -- hours (0 > xx < 24)
+        ['timer'] = 'at 13:45',            -- specific time
+        ['timer'] = 'at *:45',             -- every 45th minute in the hour
+        ['timer'] = 'at 15:*',             -- every minute between 15:00 and 16:00
+        ['timer'] = 'at 13:45 on mon,tue', -- at 13:45 only on Monday en Tuesday (english)
+        ['timer'] = 'every hour on sat',   -- you guessed it correctly
+        ['timer'] = 'at sunset',           -- uses sunset/sunrise info from Domoticz
+        ['timer'] = 'at sunrise',
+        ['timer'] = 'at sunset on sat,sun'
+        
+        -- and last but not least, you can create a table with multiples:
+        ['timer'] = {'at 13:45', 'at 18:37', 'every 3 minutes'},
     
-    -- and last but not least, you can create a table with multiples:
-    ['timer'] = {'at 13:45', 'at 18:37', 'every 3 minutes'},
+    },
 
-},
-```
 **One important note: if Domoticz, for whatever reason, skips a beat (skips a timer event) then you may miss the trigger! So you may have to build in some fail-safe checks or some redundancy if you have critical time-based stuff to control. There is nothing dzVents can do about it**
 
 # The domoticz object
@@ -320,30 +314,28 @@ The domoticz object has three collections (tables): devices, changedDevices and 
 
 Best to illustrate with an example:
 
-```
-	domoticz.devices.forEach(function(device, key)
-		if (device.batteryLevel < 20) then
-			-- do something
-		end
-	end)
-```
+    domoticz.devices.forEach(function(device, key)
+    	if (device.batteryLevel < 20) then
+    		-- do something
+    	end
+    end)
+
 Or using a filter:
-```
+
 	local deadDevices = domoticz.devices.filter(function(device)
 		return (device.lastUpdate.minutesAgo > 60)
 	end)
 	deadDevices.forEach(function(zombie)
 		-- do something
 	end)
-```
+
 Of course you can chain:
-```
+
 	domoticz.devices.filter(function(device)
 		return (device.lastUpdate.minutesAgo > 60)
 	end).forEach(function(zombie)
 		-- do something with the zombie
 	end)
-```
 
 ### Contants
 
@@ -359,10 +351,10 @@ Of course you can chain:
 ## Device object API
 Each device in Domoticz can be found in the `domoticz.devices` collection as listed above. The device object has a set of fixed attributes like *name* and *id*. Many devices though (like sensors) have special attributes like *temperature*, *humidity* etc. These attributes are also available on each device object *when applicable*. However, some attributes are not exposed by Domoticz to the event scripts. Fortunately dzVents will fetch this information through http and extends this missing information to the device data it already got from Domoticz. If you still find some attributes missing you can check the rawData property of a device. Most likely you will find it there:
 
-```
+
 	domoticz.devices['mySensor'].temperature
 	domoticz.devices['myLightSensor'].rawData[1] -- lux value, rawData is an indexed table!
-```
+
 
 ### Device attributes
 
@@ -510,48 +502,46 @@ Persistent script variables are available in your scripts and whatever value put
 
 Here is an example. Let's say you want to send a notification if some switch has been actived 5 times:
 
-```
-return {
-    active = true,
-    on = {
-	    'MySwitch'
-	},
-    data = { 
-	    counter = {initial=0} 
-	},
-    execute = function(domoticz, switch)
-		if (domoticz.data.counter = 5) then
-			domoticz.notify('The switch was pressed 5 times!')
-			domoticz.data.counter = 0 -- reset the counter
-		else
-			domoticz.data.counter = domoticz.data.counter + 1
-		end
-    end
-}
-```
+    return {
+        active = true,
+        on = {
+    	    'MySwitch'
+    	},
+        data = { 
+    	    counter = {initial=0} 
+    	},
+        execute = function(domoticz, switch)
+    		if (domoticz.data.counter = 5) then
+    			domoticz.notify('The switch was pressed 5 times!')
+    			domoticz.data.counter = 0 -- reset the counter
+    		else
+    			domoticz.data.counter = domoticz.data.counter + 1
+    		end
+        end
+    }
+
 Here you see the `data` section defining a persistent variable called `counter`. It also defines an initial value.  From then on you can read and set the variable in your script.
 
 You can define as many variables as you like and put whatever value in there that you like. It doesn't have to be just a number,  you can even put the entire device state in it:
 
-```
-return {
-    active = true,
-    on = {
-	    'MySwitch'
-	},
-    data = { 
-	    previousState = {initial=nil} 
-	},
-    execute = function(domoticz, switchDevice)
-	    -- set the previousState:
-		domoticz.data.previousState = switchDevice
-		
-		-- read something from the previousState:
-		if (domoticz.data.previousState.temperature > .... ) then
-		end
-    end
-}
-```
+    return {
+        active = true,
+        on = {
+    	    'MySwitch'
+    	},
+        data = { 
+    	    previousState = {initial=nil} 
+    	},
+        execute = function(domoticz, switchDevice)
+    	    -- set the previousState:
+    		domoticz.data.previousState = switchDevice
+    		
+    		-- read something from the previousState:
+    		if (domoticz.data.previousState.temperature > .... ) then
+    		end
+        end
+    }
+
 **Note that you cannot call methods on previousState like switchOn(). Only the data is persisted.**
 
 ### Size matters and watch your speed!!
@@ -561,86 +551,83 @@ If you decide to put tables in the persistent data (or arrays) beware to not let
 
 Next to script level variables you can also define global variables. As script level variables are only available in the scripts that define them, global variables can be accessed and changed in every script. All you have to do is create a script file called `global_data.lua` in your scripts folder with this content:
 
-```
-return {
-	data = {
-		peopleAtHome = { initial = false },
-		heatingProgramActive = { initial = false }
-	}
-}
-```
+    return {
+    	data = {
+    		peopleAtHome = { initial = false },
+    		heatingProgramActive = { initial = false }
+    	}
+    }
+
 Just define the variables that you need and access them in your scripts:
-```
-return {
-    active = true,
-    on = {
-	    'WindowSensor'
-	},
-    execute = function(domoticz, windowSensor)
-		if (domoticz.globalData.heatingProgramActive and windowSensor.state == 'Open') then
-			domoticz.notify("Hey don't open the window when the heating is on!")
-		end
-    end
-}
-```
+
+    return {
+        active = true,
+        on = {
+    	    'WindowSensor'
+    	},
+        execute = function(domoticz, windowSensor)
+    		if (domoticz.globalData.heatingProgramActive and windowSensor.state == 'Open') then
+    			domoticz.notify("Hey don't open the window when the heating is on!")
+    		end
+        end
+    }
+
 ## A special kind of persistent variables: *history = true*
 
 In some situation, storing a previous value for a sensor is not enough and you would like to have more previous values for example when you want to calculate an average over several readings or see if there was a constant rise or decrease. Of course you can define a persistent variable holding a table:
 
-```
-return {
-    active = true,
-    on = {
-	    'MyTempSensor'
-	},
-	data = {
-		previousData = { initial = {} }
-	},
-    execute = function(domoticz, sensor)
-		-- add new data
-		table.insert(domoticz.data.previousData, sensor.temperature)
+    return {
+        active = true,
+        on = {
+    	    'MyTempSensor'
+    	},
+    	data = {
+    		previousData = { initial = {} }
+    	},
+        execute = function(domoticz, sensor)
+    		-- add new data
+    		table.insert(domoticz.data.previousData, sensor.temperature)
+    
+    		-- calculate the average
+    		local sum = 0, count = 0
+    		for i, temp in pairs(domoticz.data.previousData) do
+    			sum = sum + temp
+    			count = count + 1
+    		end
+    		local average = sum / count
+        end
+    }
 
-		-- calculate the average
-		local sum = 0, count = 0
-		for i, temp in pairs(domoticz.data.previousData) do
-			sum = sum + temp
-			count = count + 1
-		end
-		local average = sum / count
-    end
-}
-```
 The problem with this is that you have to do a lot of bookkeeping yourself to make sure that there isn't too much data to store (see [below how it works](#how-does-the-storage-stuff-work)) and many statistical stuff requires a lot of code. Fortunately, dzVents has done this for you:
-```
-return {
-    active = true,
-    on = {
-	    'MyTempSensor'
-	},
-	data = {
-		temperatures = { history = true, maxItems = 10 }
-	},
-    execute = function(domoticz, sensor)
-		-- add new data
-		domoticz.data.temperatures.setNew(sensor.temperature)
 
-		-- average
-		local average = domoticz.data.temperatures.avg()
-		
-		-- maximum value in the past hour:
-		local max = domoticz.data.temperatures.maxSince('01:00:00') 
-    end
-}
-```
+    return {
+        active = true,
+        on = {
+    	    'MyTempSensor'
+    	},
+    	data = {
+    		temperatures = { history = true, maxItems = 10 }
+    	},
+        execute = function(domoticz, sensor)
+    		-- add new data
+    		domoticz.data.temperatures.setNew(sensor.temperature)
+    
+    		-- average
+    		local average = domoticz.data.temperatures.avg()
+    		
+    		-- maximum value in the past hour:
+    		local max = domoticz.data.temperatures.maxSince('01:00:00') 
+        end
+    }
+
 ### Historical variables API
 #### Defining
 You define a script variable or global variable in the data section and set `history = true`:
-```
+
 	..
 	data = {
 		var1 = { history = true, maxItems = 10, maxHours = 1, maxMinutes = 5 }
 	}
-```
 
  - **maxItems**: *Number*. Controls how many items are stored in the variable. maxItems wins over maxHours and maxMinutes.
  - **maxHours**: *Number*. Data older than `maxHours` from now will be discarded.  So if you set it to 2 than data older than 2 hours will be removed at the beginning of the script. 
@@ -664,11 +651,11 @@ Getting values from a historical variable is basically done by using an index wh
     print(item.data)
 
 However, all data in the storage is time-stamped so getting something from the internal storage will get you this:
-```
+
 	local item = domoticz.data.myVar.getLatest()
 	print(item.time.secondsAgo) -- access the time stamp
 	print(item.data) -- access the data
-```
+
 The time attribute by itself is a table with many properties that help you inspect the data points more easily:
 
  - **day**: *Number*.
@@ -714,10 +701,9 @@ Every datapoint in the set has a time stamp and of course the set is always orde
 
 Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` seconds in the past.
 Example:
-```
+
 	-- get average since the past 30 minutes:
 	local avg = myVar.avgSince('00:30:00')
-```
 
 ##### Getting data points
 
@@ -744,7 +730,7 @@ There are a couple of convenience methods to make looping through the data set e
 		end, 0)
 
 Suppose you want to get data points older than 45 minutes and count the values that are higher than 20 (of course there are more ways to do this):
-```
+
 	local myVar = domoticz.data.myVar
 	
 	local olderItems = myVar.filter(function (item)
@@ -759,7 +745,6 @@ Suppose you want to get data points older than 45 minutes and count the values t
 	end, 0)
 	
 	print('Found ' .. tostring(count) .. ' items')
-```
 
 ##### Statistical functions
 In order to use the statistical functions you have to put *numerical* data in the set. Or you have to provide a function for getting this data. So, if it is just numbers you can just do this:
@@ -807,10 +792,9 @@ Of course, if you don't intend to use any of these statistical functions you can
  - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no nil values). When you want to do data smoothing (see below) when comparing then specify the smoothRange. Returns `default` if there is not enough data.
  - **deltaSince( [timeAgo](#time-specification-timeago),  [smoothRange], [default] )**: Same as **delta** but now within the `timeAgo` interval.
  - **localMin( [smoothRange], default )**:  Returns the first minimum value (and the item holding the minimal value) in the past. So if you have this range of values (from new to old): 10 8 7 5 3 4 5 6.  Then it will return 3 because older values and newer values are higher. You can use if you want to know at what time a temperature started to rise. E.g.:
-```
-local value, item = myVar.localMin()
-print(' minimum was : ' .. value .. ': ' .. item.time.secondsAgo .. ' seconds ago' )
-```
+
+		local value, item = myVar.localMin()
+		print(' minimum was : ' .. value .. ': ' .. item.time.secondsAgo .. ' seconds ago' )
  - **localMax([smoothRange], default)**:  Same as **localMin** but now for the maximum value.
  - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`.
 
@@ -851,20 +835,20 @@ So, some of the statistical function allow you to provide a smoothing range. Usu
 
 ## How does the storage stuff work?
 For every script file that defines persisted variables (using the `data={ .. }` section) dzVents will create storage file inside a subfolder called `storage` with the name `__data_scriptname.lua`. You can always delete these data files or the entire storage folder if there is a problem with it:
-```
-domoticz/
-	scripts/
-		lua/
-			dzVents/
-			scripts/
-				yourscript1.lua
-				yourscript2.lua
-				global_data.lua 
-				storage/
-					__data_yourscript1.lua
-					__data_yourscript2.lua
-					__data_global_data.lua
-```
+
+    domoticz/
+    	scripts/
+    		lua/
+    			dzVents/
+    			scripts/
+    				yourscript1.lua
+    				yourscript2.lua
+    				global_data.lua 
+    				storage/
+    					__data_yourscript1.lua
+    					__data_yourscript2.lua
+    					__data_global_data.lua
+
 If you dare to you can watch inside these files. Every time some data is changed, dzVents will stream the changes back into the data files.
 **And again: make sure you don't put too much stuff in your persisted data as it may slows things down too much.**
 
@@ -887,4 +871,3 @@ Oh, this code is tested on a linux file system. It should work on Windows. Let m
 Another note: I haven't tested all the various `device.update*` methods. Please let me know if I made any mistakes there or fix them yourselves and create a pull request (or email me) in GitHub.
 
 Good luck and hopefully you enjoy using dzVents.
-
