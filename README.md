@@ -789,14 +789,14 @@ Of course, if you don't intend to use any of these statistical functions you can
  - **maxSince( [timeAgo](#time-specification-timeago) )**: Same as **max** but now within the `timeAgo` interval.
  - **sum( [fromIdx], [toIdx] )**: Returns the summation of all values in the range defined by fromIdx and toIdx.
  - **sumSince( [timeAgo](#time-specification-timeago) )**: Same as **sum** but now within the `timeAgo` interval.
- - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no nil values). When you want to do data smoothing (see below) when comparing then specify the smoothRange. Returns `default` if there is not enough data.
+ - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no `nil` values). [Supports data smoothing](#about-data-smoothing) when providing a `smoothRange` value. Returns `default` if there is not enough data.
  - **deltaSince( [timeAgo](#time-specification-timeago),  [smoothRange], [default] )**: Same as **delta** but now within the `timeAgo` interval.
- - **localMin( [smoothRange], default )**:  Returns the first minimum value (and the item holding the minimal value) in the past. So if you have this range of values (from new to old): 10 8 7 5 3 4 5 6.  Then it will return 3 because older values and newer values are higher. You can use if you want to know at what time a temperature started to rise. E.g.:
+ - **localMin( [smoothRange], default )**:  Returns the first minimum value (and the item holding the minimal value) in the past. [Supports data smoothing](#about-data-smoothing) when providing a `smoothRange` value. So if you have this range of values in the data set (from new to old): `10 8 7 5 3 4 5 6`.  Then it will return `3` because older values *and* newer values are higher: a local minimum. You can use this if you want to know at what time a temperature started to rise after have been dropping. E.g.:
 
 		local value, item = myVar.localMin()
 		print(' minimum was : ' .. value .. ': ' .. item.time.secondsAgo .. ' seconds ago' )
- - **localMax([smoothRange], default)**:  Same as **localMin** but now for the maximum value.
- - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`.
+ - **localMax([smoothRange], default)**:  Same as **localMin** but now for the maximum value. [Supports data smoothing](#about-data-smoothing) when providing a `smoothRange` value.
+ - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`. See [About data smoothing](#about-data-smoothing).
 
 ##### About data smoothing
 Suppose you store temperatures in the historical variable. These temperatures my have extremes. Sometimes these extremes could be due to sensor reading errors. In order to reduce the effect of these so called spikes, you could smooth out values. It is like blurring the data. Here is an example. The Raw column could be your temperatures. The other columns is calculated by averaging the neighbors. So for item 10 the calucations are:
@@ -830,7 +830,7 @@ Suppose you store temperatures in the historical variable. These temperatures my
 If you make a chart you can make it even more visible:
 ![Smothing](dzVents/smoothing.png)
 
-So, some of the statistical function allow you to provide a smoothing range. Usually a range of 1 or 2 is sufficient.
+So, some of the statistical function allow you to provide a smoothing range. Usually a range of 1 or 2 is sufficient. I suggest to use smoothing when checking detlas, local minumums and maximums.
 
 
 ## How does the storage stuff work?
