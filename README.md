@@ -827,7 +827,7 @@ Suppose you store temperatures in the historical variable. These temperatures my
 | 19   | 32  | 24,3    | 25,3    |
 | 20   | 19  | 25,5    | 24,3    |
 
-If you make a chart you can make it even more visible:
+If you make a chart you can make it even more visible. The red line is not smoothed and clearly has more spikes than the others:
 ![Smothing](dzVents/smoothing.png)
 
 So, some of the statistical function allow you to provide a smoothing range. Usually a range of 1 or 2 is sufficient. I suggest to use smoothing when checking detlas, local minumums and maximums.
