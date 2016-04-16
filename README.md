@@ -698,13 +698,13 @@ The time attribute by itself is a table with many properties that help you inspe
 
 
 #### Interacting with your data: statistics!
-Once you have data points in your historical variable you have interact with it and get all kinds of statistical information from you set. Many of the methods require an index, an index-range or a time specification.
+Once you have data points in your historical variable you can interact with it and get all kinds of statistical information from the set. Many of the functions needed for this interaction require one or two indexes or a time specification (time ago):
 
 ##### Index
-When you have to provide an index, you have to start counting from 1 (that's Lua). 1 is the youngest value (and beware, if you have called setNew first, then the first item is that new value!). The higher the index, the older the data. You can always check the size of the set by inspecting `myVar.size`. 
+All data in the set can be addressed using an index. The item with index = 1 is the youngest and the item with the highest index is the oldest (and beware, if you have called `setNew()` first, then the first item is that new value!). You can always check the size of the set by inspecting `myVar.size`.  
 
 ##### Time specification (*timeAgo*)
-Many functions require you to specify a moment in the past. You do this by passing a string in this format:
+Every datapoint in the set has a time stamp and of course the set is always ordered so that the youngest item is the first and the oldest item the last. Many functions require you to specify a moment in the past. You do this by passing a string in this format:
 
     hh:mm:ss
    
@@ -713,21 +713,25 @@ Many functions require you to specify a moment in the past. You do this by passi
     12:88:03
 
 Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` seconds in the past.
+Example:
+```
+	-- get average since the past 30 minutes:
+	local avg = myVar.avgSince('00:30:00')
+```
 
 ##### Getting data points
 
  - **get([idx])**: Returns the idx-th item in the set. Same as `myVar.storage[idx]`.
- - **getAtTime(timeAgo)**: Returns the data point closest to the moment as specified by `timeAgo`. So `myVar.getAtTime('1:00:00')` returns the item that is closest to one hour old. So it may be a bit younger or a bit older than 1 hour.
- - **getLatest():** Returns the youngest item in the set. Same as `myVar.get(1)`.
- - **getOldest()**: Returns the oldest item in the set. Same as `myVar.get(myVar.size)`.
+ - **getAtTime(timeAgo)**: Returns the data point *closest* to the moment as specified by `timeAgo`. So `myVar.getAtTime('1:00:00')` returns the item that is closest to one hour old. So it may be a bit younger or a bit older than 1 hour.
+ - **getLatest():** Returns the youngest item in the set. Same as `print(myVar.get(1).data)`. 
+ - **getOldest()**: Returns the oldest item in the set. Same as `print(myVar.get(myVar.size).data)`. 
  - **size**: Return the amount of data points in the set.
- - **storage**: The actual data storage. This is a Lua table (array) holding all the item. Use `myVar.get()` to get items from the set.
- - **subset([fromIdx], [toIdx])**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set support [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
- - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes. The result set support [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
+ - **subset([fromIdx], [toIdx])**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set supports [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
+ - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes. The result set supports [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
  - **reset():** Removes all the items from the set. Could be handy if you want to start over. It could be a good practice to do this often when you know you don't need older data. For instance when you turn on a heater and you just want to monitor rising temperatures starting from this moment when the heater is activated. If you don't need data points from before, then you may call reset.
 
 ###### Data iterators
-There are a couple of convenience methods to make looping through the data easier. This is similar to the iterators as described [above](#iterators):
+There are a couple of convenience methods to make looping through the data set easier. This is similar to the iterators as described [above](#iterators):
 
  - **forEach(function)**:  Loop over all items in the set: E.g.: `myVar.forEach( function( item, index, collection) ... end )`
  - **filter(function)**: Create a filtered set of items. The function receives the item and returns true if the item should be in the result set. E.g. get a set with item values larger than 20: `subset = myVar.filter( function (item) return (item.data > 20) end )`.
@@ -739,7 +743,7 @@ There are a couple of convenience methods to make looping through the data easie
 			return acc + val
 		end, 0)
 
-Suppose you want to get data points older than 45 minutes and count the values that are higher than 20:
+Suppose you want to get data points older than 45 minutes and count the values that are higher than 20 (of course there are more ways to do this):
 ```
 	local myVar = domoticz.data.myVar
 	
@@ -758,7 +762,7 @@ Suppose you want to get data points older than 45 minutes and count the values t
 ```
 
 ##### Statistical functions
-In order to use the statistical functions you have to put numerical data in the set. Or you have to provide a function for getting this data. So, if it is just numbers you can just do this:
+In order to use the statistical functions you have to put *numerical* data in the set. Or you have to provide a function for getting this data. So, if it is just numbers you can just do this:
 
     myVar.setNew(myDevice.temperature) -- adds a number to the set
     myVar.avg() -- returns the average
@@ -767,9 +771,9 @@ If, however you add more complex data or you want to do a computation first, the
 
     myVar.setNew( { 'person' = 'John', waterUsage = u })
     
-Where `u` is some variable that got its value earlier. Now if you want to calculate the average water usage then dzVents will not be able to do this because it doesn't know the value is actually in the `waterUsage` attribute.
+Where `u` is some variable that got its value earlier. Now if you want to calculate the average water usage then dzVents will not be able to do this because it doesn't know the value is actually in the `waterUsage` attribute! You will get `nil`.
 
-To make this work you have to provide a **getValue function** when you define myVar:
+To make this work you have to provide a **getValue function** in the data section when you define the historical variable:
 
     return {
 	    active = true,
@@ -786,23 +790,23 @@ To make this work you have to provide a **getValue function** when you define my
 	    execute = function()...end
     }
     
-This function tells dzVents when it tries to sum up values (needed for averaging) that the value is to get from the waterUsage attribute. **The getValue function has to return a number**.
+This function tells dzVents how to get the numeric value for a data item. **Note: the `getValue` function has to return a number!**.
 
-Of course, if you don't intend to use any of these statistical functions you can put whatever you want in the set. Even mixup data. No-one cares but you.
+Of course, if you don't intend to use any of these statistical functions you can put whatever you want in the set. Even mixed data. No-one cares but you.
 
 ###### Functions
 
- - **avg([fromIdx], [toIdx], [default])**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set. 
- - **avgSince(timeAgo, default)**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data.
- - **min([fromIdx], [toIdx])**: Returns the lowest value in the range defined by fromIdx and toIdx.
- - **minSince(timeAgo)**: Same as **min** but now within the `timeAgo` interval.
- - **max([fromIdx], [toIdx])**: Returns the highest value in the range defined by fromIdx and toIdx.
- - **maxSince(timeAgo)**: Same as **max** but now within the `timeAgo` interval.
- - **sum([fromIdx], [toIdx])**: Returns the summation of all values in the range defined by fromIdx and toIdx.
- - **sumSince(timeAgo)**: Same as **sum** but now within the `timeAgo` interval.
- - **delta(fromIdx, toIdx, [smoothRange], [default])**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no nil values). When you want to do data smoothing (see below) when comparing then specify the smoothRange. Returns `default` if there is not enough data.
- - **deltaSince(timeAgo,  [smoothRange], [default])**: Same as **delta** but now within the `timeAgo` interval.
- - **localMin([smoothRange], default)**:  Returns the first minimum value (and the item holding the minimal value) in the past. So if you have this range of values (from new to old): 10 8 7 5 3 4 5 6.  Then it will return 3 because older values and newer values are higher. You can use if you want to know at what time a temperature started to rise. E.g.:
+ - **avg( [fromIdx], [toIdx], [default] )**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set. 
+ - **avgSince( [timeAgo](#time-specification-timeago), default )**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data. E.g.: `local avg = myVar.avgSince('00:30:00')` returns the average over the past 30 minutes.
+ - **min( [fromIdx], [toIdx] )**: Returns the lowest value in the range defined by fromIdx and toIdx.
+ - **minSince( [timeAgo](#time-specification-timeago) )**: Same as **min** but now within the `timeAgo` interval.
+ - **max( [fromIdx], [toIdx] )**: Returns the highest value in the range defined by fromIdx and toIdx.
+ - **maxSince( [timeAgo](#time-specification-timeago) )**: Same as **max** but now within the `timeAgo` interval.
+ - **sum( [fromIdx], [toIdx] )**: Returns the summation of all values in the range defined by fromIdx and toIdx.
+ - **sumSince( [timeAgo](#time-specification-timeago) )**: Same as **sum** but now within the `timeAgo` interval.
+ - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no nil values). When you want to do data smoothing (see below) when comparing then specify the smoothRange. Returns `default` if there is not enough data.
+ - **deltaSince( [timeAgo](#time-specification-timeago),  [smoothRange], [default] )**: Same as **delta** but now within the `timeAgo` interval.
+ - **localMin( [smoothRange], default )**:  Returns the first minimum value (and the item holding the minimal value) in the past. So if you have this range of values (from new to old): 10 8 7 5 3 4 5 6.  Then it will return 3 because older values and newer values are higher. You can use if you want to know at what time a temperature started to rise. E.g.:
 ```
 local value, item = myVar.localMin()
 print(' minimum was : ' .. value .. ': ' .. item.time.secondsAgo .. ' seconds ago' )
@@ -883,3 +887,4 @@ Oh, this code is tested on a linux file system. It should work on Windows. Let m
 Another note: I haven't tested all the various `device.update*` methods. Please let me know if I made any mistakes there or fix them yourselves and create a pull request (or email me) in GitHub.
 
 Good luck and hopefully you enjoy using dzVents.
+
