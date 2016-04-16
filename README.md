@@ -809,6 +809,25 @@ If you make a chart you can make it even more visible:
 
 So, some of the statistical function allow you to provide a smoothing range. Usually a range of 1 or 2 is sufficient.
 
+## How does the storage stuff work?
+For every script file that defines persisted variables (using the `data={ .. }` section) dzVents will create storage file inside a subfolder called `storage` with the name `__data_scriptname.lua`. You can always delete these data files or the entire storage folder if there is a problem with it:
+```
+domoticz/
+	scripts/
+		lua/
+			dzVents/
+			scripts/
+				yourscript1.lua
+				yourscript2.lua
+				global_data.lua 
+				storage/
+					__data_yourscript1.lua
+					__data_yourscript2.lua
+					__data_global_data.lua
+```
+If you dare to you can watch inside these files. Every time some data is changed, dzVents will stream the changes back into the data files.
+**And again: make sure you don't put too much stuff in your persisted data as it may slows things down too much.**
+
 # Settings
 
 As mentioned in the install section there is a settings file: dzVents_settings.lua. There you can set a couple of parameters for how dzVents operates:
