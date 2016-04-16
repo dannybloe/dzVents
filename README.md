@@ -25,6 +25,8 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+[TOC]
+
 About
 =============
 dzVents (|diː ziː vɛnts| short for Domotiz Easy Events) brings Lua scripting in Domoticz to whole new level. Writing scripts for Domoticz has never been so easy. Not only can you define triggers more easily, and have full control over timer-based scripts with extensive scheduling support, dzVents presents you with an easy to use API to all necessary information in Domoticz. No longer do you have to combine all kinds of information given to you by Domoticzs in many different data tables. You don't have to construct complex commandArrays anymore. dzVents encapsulates all the Domoticz peculiarities regarding controlling and querying your devices. And on top of that, script performance has increased a lot if you have many scripts because Domoticz will fetch all device information only once for all your device scripts and timer scripts.
@@ -601,7 +603,7 @@ return {
     end
 }
 ```
-The problem with this is that you have to do a lot of bookkeeping yourself to make sure that there is too much data to store (see below how it works) and many statistical stuff requires a lot of code. Fortunately, dzVents has done this for you:
+The problem with this is that you have to do a lot of bookkeeping yourself to make sure that there isn't too much data to store (see below how it works) and many statistical stuff requires a lot of code. Fortunately, dzVents has done this for you:
 ```
 return {
     active = true,
@@ -623,8 +625,8 @@ return {
     end
 }
 ```
-###Historical variables API
-####Defining
+#Historical variables API
+##Defining
 You define a script variable or global variable in the data section and set `history = true`:
 ```
 	..
@@ -639,7 +641,7 @@ You define a script variable or global variable in the data section and set `his
  All these options can be combined but maxItems wins. **And again: don't store too much data. Just put only in there what you really need!** 
 
 
-#### Setting
+##Setting
 When you defined your historical variable you can add a new value to the list like this:
 
     domoticz.data.myVar.setNew(value)
@@ -648,10 +650,11 @@ As soon as you do that, this new value is put on top of the list and shifts the 
 
 Basically you can put any kind of data in the historical variable. It can be a numbers, strings but also more complex data like tables. However, in order to be able to use the statistical methods you will have to set numeric values or tell dzVents how to get a numeric value from you data. More on that later.
 
-#### Getting. It's all about time!
+##Getting. It's all about time!
 Getting values from a historical variable is basically done by using an index where 1 is the newest value , 2 is the second to newest and so on:
 
-    domoticz.data.myVar.storage[5]
+    local item = domoticz.data.myVar.get(5)
+    print(item.data)
 
 However, all data in the storage is time-stamped so getting something from the internal storage will get you this:
 ```
@@ -686,25 +689,24 @@ The time attribute by itself is a table with many properties that help you inspe
 	 - **sec**: *Number*
 	 - **year**: *Number*
  
-####Interacting with your data. Statistics!
+##Interacting with your data. Statistics!
 Once you have data points in your historical variable you have interact with it and get all kinds of statistical information from you set. Many of the methods require an index, an index-range or a time specification.
 
-**Index**
+###Index
 When you have to provide an index, you have to start counting from 1 (that's Lua). 1 is the youngest value (and beware, if you have called setNew first, then the first item is that new value!). The higher the index, the older the data. You can always check the size of the set by inspecting `myVar.size`. 
 
-**Time specification (timeAgo)**
+###Time specification (*timeAgo*)
 Many functions require you to specify a moment in the past. You do this by passing a string in this format:
 
     hh:mm:ss
    
-  Where hh is the amount of hours ago, mm the amount of minutes and ss the amount of seconds. They will all be added together and you don't have to consider 60 minute boundaries etc. So this is a valid time specification:
+ Where hh is the amount of hours ago, mm the amount of minutes and ss the amount of seconds. They will all be added together and you don't have to consider 60 minute boundaries etc. So this is a valid time specification:
   
-
     12:88:03
 
 Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` seconds in the past.
 
-**Getting data points:**
+###Getting data points
 
  - **subset([fromIdx], [toIdx])**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data.
  - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes.
@@ -716,7 +718,7 @@ Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` s
  - **getOldest()**: Returns the oldest item in the set. Same as `myVar.get(myVar.size)`.
  - **reset():** Removes all the items from the set. Could be handy if you want to start over. It could be a good practice to do this often when you know you don't need older data. For instance when you turn on a heater and you just want to monitor rising temperatures starting from this moment when the heater is activated. If you don't need data points from before, then you may call reset.
 
-**Statistical functions:**
+###Statistical functions
 In order to use the statistical functions you have to put numerical data in the set. Or you have to provide a function for getting this data. So, if it is just numbers you can just do this:
 
     myVar.setNew(myDevice.temperature) -- adds a number to the set
@@ -749,7 +751,7 @@ This function tells dzVents when it tries to sum up values (needed for averaging
 
 Of course, if you don't intend to use any of these statistical functions you can put whatever you want in the set. Even mixup data. No-one cares but you.
 
-**Functions**:
+####Functions
 
  - **avg([fromIdx], [toIdx], [default])**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set. 
  - **avgSince(timeAgo, default)**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data.
@@ -769,36 +771,39 @@ print(' minimum was : ' .. value .. ': ' .. item.time.secondsAgo .. ' seconds ag
  - **localMax([smoothRange], default)**:  Same as **localMin** but now for the maximum value.
  - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`.
 
+####About data smoothing
+Suppose you store temperatures in the historical variable. These temperatures my have extremes. Sometimes these extremes could be due to sensor reading errors. In order to reduce the effect of these so called spikes, you could smooth out values. It is like blurring the data. Here is an example. The Raw column could be your temperatures. The other columns is calculated by averaging the neighbors. So for item 10 the calucations are:
 
-**About data smoothing**
-Suppose you store temperatures in the historical variable. These temperatures my have extremes. Sometimes these extremes could be due to sensor reading errors. In order to reduce the effect of these so called spikes, you could smooth out values. It is like blurring the data. Here is an example. The Raw column could be your temperatures.
+    Range=1 for t10 = (25 + 31 + 29) / 3 = 28,3
+    Range=2 for t10 = (16 + 25 + 31 + 29 + 26) / 5 = 25,4
 
-| Time | Raw | range=1 | range=2 |
+| Time | Raw | Range=1 | Range=2 |
 |------|-----|---------|---------|
-| 1    | 18  | 20,0    | 23,0    |
-| 2    | 22  | 21,7    | 24,2    |
-| 3    | 25  | 27,3    | 25,1    |
-| 4    | 35  | 27,7    | 26,3    |
-| 5    | 23  | 28,7    | 26,7    |
-| 6    | 28  | 26,0    | 25,7    |
-| 7    | 27  | 23,7    | 25,0    |
-| 8    | 16  | 22,7    | 24,9    |
-| 9    | 25  | 24,0    | 25,5    |
-| 10   | 31  | 28,3    | 26,7    |
-| 11   | 29  | 28,7    | 28,3    |
-| 12   | 26  | 30,0    | 29,9    |
-| 13   | 35  | 30,3    | 30,3    |
-| 14   | 30  | 32,0    | 30,5    |
-| 15   | 31  | 30,3    | 29,8    |
-| 16   | 30  | 29,7    | 29,2    |
-| 17   | 28  | 26,7    | 27,7    |
-| 18   | 22  | 27,3    | 26,7    |
-| 19   | 32  | 24,3    | 26,0    |
-| 20   | 19  | 25,5    | 25,7    |
+| 1    | 18  | 20,0    | 21,7    |
+| 2    | 22  | 21,7    | 25,0    |
+| 3    | 25  | 27,3    | 24,6    |
+| 4    | 35  | 27,7    | 26,6    |
+| 5    | 23  | 28,7    | 27,6    |
+| 6    | 28  | 26,0    | 25,8    |
+| 7    | 27  | 23,7    | 23,8    |
+| 8    | 16  | 22,7    | 25,4    |
+| 9    | 25  | 24,0    | 25,6    |
+| 10   | 31  | 28,3    | 25,4    |
+| 11   | 29  | 28,7    | 29,2    |
+| 12   | 26  | 30,0    | 30,2    |
+| 13   | 35  | 30,3    | 30,2    |
+| 14   | 30  | 32,0    | 30,4    |
+| 15   | 31  | 30,3    | 30,8    |
+| 16   | 30  | 29,7    | 28,2    |
+| 17   | 28  | 26,7    | 28,6    |
+| 18   | 22  | 27,3    | 26,2    |
+| 19   | 32  | 24,3    | 25,3    |
+| 20   | 19  | 25,5    | 24,3    |
 
 If you make a chart you can make it even more visible:
 ![Smothing](dzVents/smoothing.png)
 
+So, some of the statistical function allow you to provide a smoothing range. Usually a range of 1 or 2 is sufficient.
 
 Settings
 ===
