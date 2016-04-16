@@ -761,7 +761,8 @@ Of course, if you don't intend to use any of these statistical functions you can
  - **sumSince(timeAgo)**: Same as **sum** but now within the `timeAgo` interval.
  - **delta(fromIdx, toIdx, [smoothRange], [default])**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no nil values). When you want to do data smoothing (see below) when comparing then specify the smoothRange. Returns `default` if there is not enough data.
  - **deltaSince(timeAgo,  [smoothRange], [default])**: Same as **delta** but now within the `timeAgo` interval.
- - **localMin([smoothRange], default)**:  Returns the first minimum value (and the item holding the minimal value) in the past. So if you have this range of values (from new to old): 10 8 7 5 3 4 5 6.  Then it will return 3 because older values and newer values are higher. You can use if you want to know at what time a temperature started to rise. E.g.:```
+ - **localMin([smoothRange], default)**:  Returns the first minimum value (and the item holding the minimal value) in the past. So if you have this range of values (from new to old): 10 8 7 5 3 4 5 6.  Then it will return 3 because older values and newer values are higher. You can use if you want to know at what time a temperature started to rise. E.g.:
+```
 local value, item = myVar.localMin()
 print(' minimum was : ' .. value .. ': ' .. item.time.secondsAgo .. ' seconds ago' )
 ```
