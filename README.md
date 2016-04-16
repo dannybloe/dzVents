@@ -36,6 +36,7 @@
         - [Statistical functions](#statistical-functions)
           - [Functions](#functions)
         - [About data smoothing](#about-data-smoothing)
+  - [How does the storage stuff work?](#how-does-the-storage-stuff-work)
 - [Settings](#settings)
 - [Final note](#final-note)
 
@@ -226,8 +227,8 @@ return {
 	* the actual [device](#device-object-api) that was defined in the **on** part and caused the script to be called. **Note: of course, if the script was triggered by a timer event, this parameter is *nil*! You may have to test this in your code if your script is triggered by timer events AND device events**
 	* information about what triggered the script. This is a small table with two keys:
 		* **triggerInfo.type**: (either domoticz.EVENT_TYPE_TIMER  or domoticz.EVENT_TYPE_DEVICE): was the script executed due to a timer event or a device-change event.
-		* **triggerInfo.trigger**: which timer rule triggered the script in case the script was called due to a timer event. See below for the possible timer trigger options. Note that dzVents lists the first timer definition that matches the current time so if there are more timer triggers that could have been triggering the script, dzVents only picks the first for this trigger property.
-* **data = { .. }**: A Lua table defining variables that will be persisted between script runs. These variables can get a value in your execute function (e.g. `domoticz.data.previousTemperature = device.temperature`) and the next time the script is executed this value is again available in your code (e.g. `if (domoticz.data.previousTemperature < 20) then ...`. For more info see ...
+		* **triggerInfo.trigger**: which timer rule triggered the script in case the script was called due to a timer event. See [below](#timer-trigger-options) for the possible timer trigger options. Note that dzVents lists the first timer definition that matches the current time so if there are more timer triggers that could have been triggering the script, dzVents only picks the first for this trigger property.
+* **data = { .. }**: A Lua table defining variables that will be persisted between script runs. These variables can get a value in your execute function (e.g. `domoticz.data.previousTemperature = device.temperature`) and the next time the script is executed this value is again available in your code (e.g. `if (domoticz.data.previousTemperature < 20) then ...`. For more info see the section [persistent data](#persistent-data).
 
 ## *timer* trigger options
 There are several options for time triggers. It is important to know that Domoticz timer events are only trigger once every minute. So that is the smallest interval for you timer scripts. However, dzVents gives you a great many options to have full control over when and how often your timer scripts are called (all times are in 24hr format!). You can create full schedules (sorry about the weird bracket syntax, that's just Lua):
@@ -275,12 +276,12 @@ So this object structure contains all the information logically arranged where y
 *The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
 ## Domoticz object API
-The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**. There three collection each have two iterator functions: `forEach(function)` and `filter(function)` to make searching for devices easier. See iterators below.
+The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**. There three collection each have two iterator functions: `forEach(function)` and `filter(function)` to make searching for devices easier. See [iterators](#iterators) below.
 
 ### Domoticz attributes:
 
  - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
- - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See **Device object** below. 
+ - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See [Device object API](#device-object-api) below. 
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**: Current system time:
 	 - **day**: *Number*
@@ -295,7 +296,7 @@ The domoticz object holds all information about your Domoticz system. It has a c
 	 - **isNightTime**
 	 - **sunsetInMinutes**
 	 - **sunriseInMinutes**
- - **variables**: *Table*. A collection holding all the user *variable objects* as defined in Domoticz. See **Variable object** for the attributes.  
+ - **variables**: *Table*. A collection holding all the user *variable objects* as defined in Domoticz. See  [Variable object API](#variable-object-api) for the attributes.  
 
 ### Domoticz methods
 
@@ -414,14 +415,14 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
 ### Device methods
 
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g. `device.attributeChanged('temperature')`.
- - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See below.
- - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See below.
- - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See below.
- - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See below.
- - **stop()**: *Function*.  Set device to Stop if it supports it (e.g. blinds). Supports timing options. See below.
- - **switchOff()**: *Function*.  Switch device off it is supports it. Supports timing options. See below.
- - **switchOn()**: *Function*.  Switch device on if it supports it. Supports timing options. See below.
- - **switchSelector(level)**:  *Function*. Switches a selector switch to a specific level (numeric value, see the edit page in Domoticz for such a switch to get a list of the values). Supports timing options. See below.
+ - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **stop()**: *Function*.  Set device to Stop if it supports it (e.g. blinds). Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **switchOff()**: *Function*.  Switch device off it is supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **switchOn()**: *Function*.  Switch device on if it supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **switchSelector(level)**:  *Function*. Switches a selector switch to a specific level (numeric value, see the edit page in Domoticz for such a switch to get a list of the values). Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **update(< params >)**: *Function*. Generic update method. Accepts any number of parameters that will be sent back to Domoticz. There is no need to pass the device.id here. It will be passed for you. Example to update a temperature: `device.update(0,12)`. This will eventually result in a commandArray entry `['UpdateDevice']='<idx>|0|12'`
  - **toggleSwitch()**: *Function*. Toggles the state of the switch (if it is togglable) like On/Off, Open/Close etc.
  - **updateAirQuality(quality)**: *Function*. 
@@ -607,7 +608,7 @@ return {
     end
 }
 ```
-The problem with this is that you have to do a lot of bookkeeping yourself to make sure that there isn't too much data to store (see below how it works) and many statistical stuff requires a lot of code. Fortunately, dzVents has done this for you:
+The problem with this is that you have to do a lot of bookkeeping yourself to make sure that there isn't too much data to store (see [below how it works](#how-does-the-storage-stuff-work)) and many statistical stuff requires a lot of code. Fortunately, dzVents has done this for you:
 ```
 return {
     active = true,
