@@ -707,14 +707,14 @@ Example:
 
 ##### Getting data points
 
- - **get([idx])**: Returns the idx-th item in the set. Same as `myVar.storage[idx]`.
- - **getAtTime(timeAgo)**: Returns the data point *closest* to the moment as specified by `timeAgo`. So `myVar.getAtTime('1:00:00')` returns the item that is closest to one hour old. So it may be a bit younger or a bit older than 1 hour.
- - **getLatest():** Returns the youngest item in the set. Same as `print(myVar.get(1).data)`. 
- - **getOldest()**: Returns the oldest item in the set. Same as `print(myVar.get(myVar.size).data)`. 
+ - **get( [idx] )**: Returns the idx-th item in the set. Same as `myVar.storage[idx]`.
+ - **getAtTime( [timeAgo](#time-specification-timeago) )**: Returns the data point *closest* to the moment as specified by `timeAgo`. So `myVar.getAtTime('1:00:00')` returns the item that is closest to one hour old. So it may be a bit younger or a bit older than 1 hour.
+ - **getLatest( ):** Returns the youngest item in the set. Same as `print(myVar.get(1).data)`. 
+ - **getOldest( )**: Returns the oldest item in the set. Same as `print(myVar.get(myVar.size).data)`. 
  - **size**: Return the amount of data points in the set.
- - **subset([fromIdx], [toIdx])**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set supports [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
- - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes. The result set supports [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
- - **reset():** Removes all the items from the set. Could be handy if you want to start over. It could be a good practice to do this often when you know you don't need older data. For instance when you turn on a heater and you just want to monitor rising temperatures starting from this moment when the heater is activated. If you don't need data points from before, then you may call reset.
+ - **subset( [fromIdx], [toIdx] )**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set supports [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
+ - **subsetSince( [[timeAgo](#time-specification-timeago)] )**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes. The result set supports [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
+ - **reset( ):** Removes all the items from the set. Could be handy if you want to start over. It could be a good practice to do this often when you know you don't need older data. For instance when you turn on a heater and you just want to monitor rising temperatures starting from this moment when the heater is activated. If you don't need data points from before, then you may call reset.
 
 ###### Data iterators
 There are a couple of convenience methods to make looping through the data set easier. This is similar to the iterators as described [above](#iterators):
