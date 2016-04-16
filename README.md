@@ -17,18 +17,31 @@
   - [Device object API](#device-object-api)
     - [Device attributes](#device-attributes)
     - [Device methods](#device-methods)
+    - [Switch timing options (delay, duration)](#switch-timing-options-delay-duration)
   - [Variable object API](#variable-object-api)
     - [Variable attributes](#variable-attributes)
     - [Variable methods](#variable-methods)
-  - [Switch timing options (delay, duration)](#switch-timing-options-delay-duration)
+- [Persistent data](#persistent-data)
+  - [Script level persistent variables](#script-level-persistent-variables)
+    - [Size matters and watch your speed!!](#size-matters-and-watch-your-speed)
+  - [Global persistent variables](#global-persistent-variables)
+  - [A special kind of persistent variables: *history = true*](#a-special-kind-of-persistent-variables-history--true)
+    - [Historical variables API](#historical-variables-api)
+      - [Defining](#defining)
+      - [Setting](#setting)
+      - [Getting. It's all about time!](#getting-its-all-about-time)
+        - [Index](#index)
+        - [Time specification (*timeAgo*)](#time-specification-timeago)
+        - [Getting data points](#getting-data-points)
+        - [Statistical functions](#statistical-functions)
+          - [Functions](#functions)
+        - [About data smoothing](#about-data-smoothing)
+- [Settings](#settings)
 - [Final note](#final-note)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-[TOC]
-
-About
-=============
+# About
 dzVents (|diː ziː vɛnts| short for Domotiz Easy Events) brings Lua scripting in Domoticz to whole new level. Writing scripts for Domoticz has never been so easy. Not only can you define triggers more easily, and have full control over timer-based scripts with extensive scheduling support, dzVents presents you with an easy to use API to all necessary information in Domoticz. No longer do you have to combine all kinds of information given to you by Domoticzs in many different data tables. You don't have to construct complex commandArrays anymore. dzVents encapsulates all the Domoticz peculiarities regarding controlling and querying your devices. And on top of that, script performance has increased a lot if you have many scripts because Domoticz will fetch all device information only once for all your device scripts and timer scripts.
  
 Let's start with an example. Let's say you have a switch that when activated, it should activate another switch but only if the room temperature is above a certain level. And when done, it should send a notification. This is how it looks like in dzVents:
@@ -90,8 +103,7 @@ return {
 ```
 Just to give you an idea! Everything that was previously scattered around in a dozen Lua tables is now logically available in the domoticz object structure. From there you can get to all the information and you can control the devices.
 
-Installing
-=============
+# Installing
 *First of all, installing dzVents will not affect any of the scripts you have already in place so you can try dzVents without disrupting things.*
 
 Note: this code is *not* tested on a non-linux machine like Windows. I'm almost certain you will have complications. 
@@ -125,8 +137,7 @@ Edit the file `dzVents_settings.lua` and enter the ip number and port number of 
 
 The scripts folder is where you put your new Lua event scripts. You can give them any name with the `.lua` extension (no need for *script_device* nor *script_time* prefixing).
 
-Quickstart
--------------
+## Quickstart
 After you placed the dzVents files in the right location we can do a quick test if everything works:
 
  - Pick a switch in your Domoticz system. Note down the exact name of the switch. If you don't have a switch then you can create a Dummy switch and use that one.
@@ -158,8 +169,7 @@ return {
 
 The [examples folder](/dzVents/examples) has a couple of example scripts
 
-How does it to work?
-============
+# How does it to work?
 Normally, every time a device is updated in Domoticz it scans the script folder `../domoticz/scripts/lua` and executes *every script it can find starting with script_device* but before it does so, for each and every script, it builds all the necessary global Lua tables. This takes quite some time especially when you have a lot of scripts. Also, you have to program logic in every script to prevent the code from being executed when you don't want to (e.g. the device wasn't updated).
  
 dzVents optimizes this process. All the event scripts that you make using dzVents will have to sit in the scripts folder and the two main script `script_device_main.lua` and `script_time.main.lua` make sure the right event scripts are called. Don't change these two files. 
@@ -170,8 +180,7 @@ All other scripts can live alongside the dzVents scripts. However, in order to h
 
 So, how to adapt the scripts?
 
-Adapting or creating your scripts
-----------------------------------
+## Adapting or creating your scripts
 In order for your scripts to work with dzVents, they have to be turned into a Lua module. Basically you make sure it returns a Lua table (object) with a couple of predefined keys `active`, `on` and `execute`.. Here is an example:
 
 ```
@@ -220,8 +229,7 @@ return {
 		* **triggerInfo.trigger**: which timer rule triggered the script in case the script was called due to a timer event. See below for the possible timer trigger options. Note that dzVents lists the first timer definition that matches the current time so if there are more timer triggers that could have been triggering the script, dzVents only picks the first for this trigger property.
 * **data = { .. }**: A Lua table defining variables that will be persisted between script runs. These variables can get a value in your execute function (e.g. `domoticz.data.previousTemperature = device.temperature`) and the next time the script is executed this value is again available in your code (e.g. `if (domoticz.data.previousTemperature < 20) then ...`. For more info see ...
 
-*timer* trigger options
--------------
+## *timer* trigger options
 There are several options for time triggers. It is important to know that Domoticz timer events are only trigger once every minute. So that is the smallest interval for you timer scripts. However, dzVents gives you a great many options to have full control over when and how often your timer scripts are called (all times are in 24hr format!). You can create full schedules (sorry about the weird bracket syntax, that's just Lua):
 
 ```
@@ -251,8 +259,7 @@ on = {
 ```
 **One important note: if Domoticz, for whatever reason, skips a beat (skips a timer event) then you may miss the trigger! So you may have to build in some fail-safe checks or some redundancy if you have critical time-based stuff to control. There is nothing dzVents can do about it**
 
-The domoticz object
-===================
+# The domoticz object
 And now the most interesting part. Before, all the device information was scattered around in a dozen global Lua tables like `otherdevices` or `devicechanged`. You had to write a lot of code to collect all this information and build your logic around it. And, when you want to update switches and stuff you had to fill the commandArray with often low-level stuff in order to make it work.
 
 **IMPORTANT: Make sure that all your devices have unique names!! dzVents doesn't check for duplicates!!**
@@ -267,8 +274,7 @@ So this object structure contains all the information logically arranged where y
 
 *The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
-Domoticz object API
------------
+## Domoticz object API
 The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**. There three collection each have two iterator functions: `forEach(function)` and `filter(function)` to make searching for devices easier. See iterators below.
 
 ### Domoticz attributes:
@@ -347,8 +353,7 @@ Of course you can chain:
  - **SOUND_ALIEN** , **SOUND_BIKE**, **SOUND_BUGLE**, **SOUND_CASH_REGISTER**, **SOUND_CLASSICAL**, **SOUND_CLIMB** , **SOUND_COSMIC**, **SOUND_DEFAULT** , **SOUND_ECHO**, **SOUND_FALLING**  , **SOUND_GAMELAN**, **SOUND_INCOMING**, **SOUND_INTERMISSION**, **SOUND_MAGIC** , **SOUND_MECHANICAL**, **SOUND_NONE**, **SOUND_PERSISTENT**, **SOUND_PIANOBAR** , **SOUND_SIREN** , **SOUND_SPACEALARM**, **SOUND_TUGBOAT**  , **SOUND_UPDOWN**: For notification sounds. 
  
 
-Device object API
-------
+## Device object API
 Each device in Domoticz can be found in the `domoticz.devices` collection as listed above. The device object has a set of fixed attributes like *name* and *id*. Many devices though (like sensors) have special attributes like *temperature*, *humidity* etc. These attributes are also available on each device object *when applicable*. However, some attributes are not exposed by Domoticz to the event scripts. Fortunately dzVents will fetch this information through http and extends this missing information to the device data it already got from Domoticz. If you still find some attributes missing you can check the rawData property of a device. Most likely you will find it there:
 
 ```
@@ -448,7 +453,7 @@ That may be because Domoticz doesn't pass all the device data as named attribute
 
 Other devices may have more stuff in the rawData attribute like wind direction, energy info etc etc.
 
-###Switch timing options (delay, duration)
+### Switch timing options (delay, duration)
 To specify a duration or a delay for the various switch command you can do this:
 
     -- switch on for 2 minutes after 10 seconds
@@ -467,8 +472,7 @@ To specify a duration or a delay for the various switch command you can do this:
 
 Note that **dimTo()** doesn't support **duration()**.
 
-Variable object API
-------
+## Variable object API
 User variables created in Domoticz have these attributes and methods:
 
 ### Variable attributes
@@ -491,14 +495,14 @@ User variables created in Domoticz have these attributes and methods:
 
  - **set(value)**: *Function*. Tells Domoticz to update the variable. *No need to cast it to a string first (it will be done for you).*
 
-Persistent data
-===
+# Persistent data
+
 In many situations you need to store some device state or other information in your scripts for later use. Like knowing what the state was of a device the previous time the script was executed or what the temperature in a room was 10 minutes ago. Without dzVents you had to resort to user variables. These are global variables that you create in the Domoticz GUI and that you can access in your scripts like: domoticz.variables['previousTemperature']. 
 
 Now, for some this is rather inconvenient and they want to control this state information in the event scripts themselves (like me). dzVents has a solution for that: **persistent script data**. This can either be on the script level or on a global level.
 
-Script level persistent variables
-----
+## Script level persistent variables
+
 Persistent script variables are available in your scripts and whatever value put in them is persisted and can be retrieved in the next script run. 
 
 Here is an example. Let's say you want to send a notification if some switch has been actived 5 times:
@@ -547,11 +551,11 @@ return {
 ```
 **Note that you cannot call methods on previousState like switchOn(). Only the data is persisted.**
 
-###Size matters and watch your speed!!
+### Size matters and watch your speed!!
 If you decide to put tables in the persistent data (or arrays) beware to not let them grow as it will definitely slow down script execution because dzVents has to serialize and deserialize the data back and from the file system. Better is to use the historical option as described below. 
 
-Global persistent variables
----
+## Global persistent variables
+
 Next to script level variables you can also define global variables. As script level variables are only available in the scripts that define them, global variables can be accessed and changed in every script. All you have to do is create a script file called `global_data.lua` in your scripts folder with this content:
 
 ```
@@ -576,8 +580,8 @@ return {
     end
 }
 ```
-A special kind of persistent variables: *history = true*
----
+## A special kind of persistent variables: *history = true*
+
 In some situation, storing a previous value for a sensor is not enough and you would like to have more previous values for example when you want to calculate an average over several readings or see if there was a constant rise or decrease. Of course you can define a persistent variable holding a table:
 
 ```
@@ -625,8 +629,8 @@ return {
     end
 }
 ```
-#Historical variables API
-##Defining
+### Historical variables API
+#### Defining
 You define a script variable or global variable in the data section and set `history = true`:
 ```
 	..
@@ -641,7 +645,7 @@ You define a script variable or global variable in the data section and set `his
  All these options can be combined but maxItems wins. **And again: don't store too much data. Just put only in there what you really need!** 
 
 
-##Setting
+#### Setting
 When you defined your historical variable you can add a new value to the list like this:
 
     domoticz.data.myVar.setNew(value)
@@ -650,7 +654,7 @@ As soon as you do that, this new value is put on top of the list and shifts the 
 
 Basically you can put any kind of data in the historical variable. It can be a numbers, strings but also more complex data like tables. However, in order to be able to use the statistical methods you will have to set numeric values or tell dzVents how to get a numeric value from you data. More on that later.
 
-##Getting. It's all about time!
+#### Getting. It's all about time!
 Getting values from a historical variable is basically done by using an index where 1 is the newest value , 2 is the second to newest and so on:
 
     local item = domoticz.data.myVar.get(5)
@@ -689,13 +693,13 @@ The time attribute by itself is a table with many properties that help you inspe
 	 - **sec**: *Number*
 	 - **year**: *Number*
  
-##Interacting with your data. Statistics!
+#### Interacting with your data. Statistics!
 Once you have data points in your historical variable you have interact with it and get all kinds of statistical information from you set. Many of the methods require an index, an index-range or a time specification.
 
-###Index
+##### Index
 When you have to provide an index, you have to start counting from 1 (that's Lua). 1 is the youngest value (and beware, if you have called setNew first, then the first item is that new value!). The higher the index, the older the data. You can always check the size of the set by inspecting `myVar.size`. 
 
-###Time specification (*timeAgo*)
+##### Time specification (*timeAgo*)
 Many functions require you to specify a moment in the past. You do this by passing a string in this format:
 
     hh:mm:ss
@@ -706,7 +710,7 @@ Many functions require you to specify a moment in the past. You do this by passi
 
 Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` seconds in the past.
 
-###Getting data points
+##### Getting data points
 
  - **subset([fromIdx], [toIdx])**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data.
  - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes.
@@ -718,7 +722,7 @@ Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` s
  - **getOldest()**: Returns the oldest item in the set. Same as `myVar.get(myVar.size)`.
  - **reset():** Removes all the items from the set. Could be handy if you want to start over. It could be a good practice to do this often when you know you don't need older data. For instance when you turn on a heater and you just want to monitor rising temperatures starting from this moment when the heater is activated. If you don't need data points from before, then you may call reset.
 
-###Statistical functions
+##### Statistical functions
 In order to use the statistical functions you have to put numerical data in the set. Or you have to provide a function for getting this data. So, if it is just numbers you can just do this:
 
     myVar.setNew(myDevice.temperature) -- adds a number to the set
@@ -751,7 +755,7 @@ This function tells dzVents when it tries to sum up values (needed for averaging
 
 Of course, if you don't intend to use any of these statistical functions you can put whatever you want in the set. Even mixup data. No-one cares but you.
 
-####Functions
+###### Functions
 
  - **avg([fromIdx], [toIdx], [default])**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set. 
  - **avgSince(timeAgo, default)**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data.
@@ -771,7 +775,7 @@ print(' minimum was : ' .. value .. ': ' .. item.time.secondsAgo .. ' seconds ag
  - **localMax([smoothRange], default)**:  Same as **localMin** but now for the maximum value.
  - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`.
 
-####About data smoothing
+##### About data smoothing
 Suppose you store temperatures in the historical variable. These temperatures my have extremes. Sometimes these extremes could be due to sensor reading errors. In order to reduce the effect of these so called spikes, you could smooth out values. It is like blurring the data. Here is an example. The Raw column could be your temperatures. The other columns is calculated by averaging the neighbors. So for item 10 the calucations are:
 
     Range=1 for t10 = (25 + 31 + 29) / 3 = 28,3
@@ -805,8 +809,8 @@ If you make a chart you can make it even more visible:
 
 So, some of the statistical function allow you to provide a smoothing range. Usually a range of 1 or 2 is sufficient.
 
-Settings
-===
+# Settings
+
 As mentioned in the install section there is a settings file: dzVents_settings.lua. There you can set a couple of parameters for how dzVents operates:
 
  - **Domoticz ip**: *Number*. IP-address of your Domoticz instance.
@@ -815,8 +819,8 @@ As mentioned in the install section there is a settings file: dzVents_settings.l
  - **Fetch interval**: *String*. Default is 'every 30 minutes' but you can increase this if you need more recent values in your device objects. See [timer trigger options](#timer-trigger-options).
  - **Log level**: *Number*. 1: Errors, 2: Errors + info, 3: Debug info + Errors + Info, 0: As silent as possible. This part is stil a bit experimental and may not give you all the information you need in the logs. Besides, Domoticz tends to choke on too many log messages and may decide not to show them all. You can alway put a print statement here or there or use the `domoticz.log()` API (see [Domoticz object API](#domoticz-object-api)).
 
-Final note
-==
+# Final note
+
 If you don't want to rewrite all your scripts at once you can have dzVents live along side your other scripts. They do not influence each other at all. You can move your scripts over one by one as you see fit to the scripts folder dzVents uses.
 
 Oh, this code is tested on a linux file system. It should work on Windows. Let me know if it doesn't. There is some code in event_helpers.lua that is need to get a list of all the script in the scripts folder. 
