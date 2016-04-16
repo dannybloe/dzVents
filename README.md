@@ -33,6 +33,7 @@
         - [Index](#index)
         - [Time specification (*timeAgo*)](#time-specification-timeago)
         - [Getting data points](#getting-data-points)
+        - [Data iterators](#data-iterators)
         - [Statistical functions](#statistical-functions)
           - [Functions](#functions)
         - [About data smoothing](#about-data-smoothing)
@@ -713,15 +714,46 @@ Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` s
 
 ##### Getting data points
 
- - **subset([fromIdx], [toIdx])**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data.
- - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes.
  - **get([idx])**: Returns the idx-th item in the set. Same as `myVar.storage[idx]`.
- - **size**: Return the amount of data points in the set.
- - **storage**: The actual data storage. This is a Lua table (array) holding all the item. Use `myVar.get()` to get items from the set.
  - **getAtTime(timeAgo)**: Returns the data point closest to the moment as specified by `timeAgo`. So `myVar.getAtTime('1:00:00')` returns the item that is closest to one hour old. So it may be a bit younger or a bit older than 1 hour.
  - **getLatest():** Returns the youngest item in the set. Same as `myVar.get(1)`.
  - **getOldest()**: Returns the oldest item in the set. Same as `myVar.get(myVar.size)`.
+ - **size**: Return the amount of data points in the set.
+ - **storage**: The actual data storage. This is a Lua table (array) holding all the item. Use `myVar.get()` to get items from the set.
+ - **subset([fromIdx], [toIdx])**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set support [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
+ - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes. The result set support [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
  - **reset():** Removes all the items from the set. Could be handy if you want to start over. It could be a good practice to do this often when you know you don't need older data. For instance when you turn on a heater and you just want to monitor rising temperatures starting from this moment when the heater is activated. If you don't need data points from before, then you may call reset.
+
+##### Data iterators
+There are a couple of convenience methods to make looping through the data easier. This is similar to the iterators as described [above](#iterators):
+
+ - **forEach(function)**:  Loop over all items in the set: E.g.: `myVar.forEach( function( item, index, collection) ... end )`
+ - **filter(function)**: Create a filtered set of items. The function receives the item and returns true if the item should be in the result set. E.g. get a set with item values larger than 20: `subset = myVar.filter( function (item) return (item.data > 20) end )`.
+ - **find(function)**:  Search for a specific item in the set: E.g. find the first item with a value higher than 20: `local item = myVar.find( function (item) return (item.data > 20) end )`.
+ - **reduce(function, initial)**:  Loop over all items in the set and do some calculation with it. You call reduce with the function and the initial value. Each iteration the function is called with the accumulator. The function does something with the accumulator and returns a new value for it. Once you get the hang of it, it is very powerful. Best to give an example. Suppose you want to sum all values:
+
+    	local sum = myVar.reduce(function(acc, item)
+			local value = item.data
+			return acc + val
+		end, 0)
+
+Suppose you want to get data points older than 45 minutes and count the values that are higher than 20:
+```
+	local myVar = domoticz.data.myVar
+	
+	local olderItems = myVar.filter(function (item)
+			return (item.time.minutesAgo > 45)
+	end)
+	
+	local count = olderItems.reduce(function(acc, item) 
+		if (item.data > 20) then
+			acc = acc + 1 
+		end
+		return acc
+	end, 0)
+	
+	print('Found ' .. tostring(count) .. ' items')
+```
 
 ##### Statistical functions
 In order to use the statistical functions you have to put numerical data in the set. Or you have to provide a function for getting this data. So, if it is just numbers you can just do this:
@@ -809,6 +841,7 @@ If you make a chart you can make it even more visible:
 ![Smothing](dzVents/smoothing.png)
 
 So, some of the statistical function allow you to provide a smoothing range. Usually a range of 1 or 2 is sufficient.
+
 
 ## How does the storage stuff work?
 For every script file that defines persisted variables (using the `data={ .. }` section) dzVents will create storage file inside a subfolder called `storage` with the name `__data_scriptname.lua`. You can always delete these data files or the entire storage folder if there is a problem with it:

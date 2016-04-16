@@ -57,7 +57,6 @@ local function setIterators(object, collection)
 	end
 end
 
-
 local function HistoricalStorage(data, maxItems, maxHours, maxMinutes, getData)
 	-- IMPORTANT: data must be time-stamped in UTC format
 
