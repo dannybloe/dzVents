@@ -206,7 +206,7 @@ local function HistoricalStorage(data, maxItems, maxHours, maxMinutes, getData)
 		if (item == nil) then
 			return nil
 		else
-			return item.data, item.time
+			return item
 		end
 	end
 
