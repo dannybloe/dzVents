@@ -30,10 +30,11 @@
       - [Defining](#defining)
       - [Setting](#setting)
       - [Getting. It's all about time!](#getting-its-all-about-time)
+      - [Interacting with your data: statistics!](#interacting-with-your-data-statistics)
         - [Index](#index)
         - [Time specification (*timeAgo*)](#time-specification-timeago)
         - [Getting data points](#getting-data-points)
-        - [Data iterators](#data-iterators)
+          - [Data iterators](#data-iterators)
         - [Statistical functions](#statistical-functions)
           - [Functions](#functions)
         - [About data smoothing](#about-data-smoothing)
@@ -694,8 +695,9 @@ The time attribute by itself is a table with many properties that help you inspe
 	 - **min**: *Number*
 	 - **sec**: *Number*
 	 - **year**: *Number*
- 
-#### Interacting with your data. Statistics!
+
+
+#### Interacting with your data: statistics!
 Once you have data points in your historical variable you have interact with it and get all kinds of statistical information from you set. Many of the methods require an index, an index-range or a time specification.
 
 ##### Index
@@ -724,7 +726,7 @@ Which will point to the data point at or around `12*3600 + 88*60 + 3 = 48.483` s
  - **subsetSince([timeAgo])**: Returns a subset of the stored data since the relative time specified by timeAgo. So calling `myVar.subsetSince('00:60:00')` returns all items that have been added to the list in the past 60 minutes. The result set support [iterators](#data-iterators) `forEach`, `filter`, `find` and `reduce`.
  - **reset():** Removes all the items from the set. Could be handy if you want to start over. It could be a good practice to do this often when you know you don't need older data. For instance when you turn on a heater and you just want to monitor rising temperatures starting from this moment when the heater is activated. If you don't need data points from before, then you may call reset.
 
-##### Data iterators
+###### Data iterators
 There are a couple of convenience methods to make looping through the data easier. This is similar to the iterators as described [above](#iterators):
 
  - **forEach(function)**:  Loop over all items in the set: E.g.: `myVar.forEach( function( item, index, collection) ... end )`
