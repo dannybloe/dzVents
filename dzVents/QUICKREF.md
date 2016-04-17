@@ -116,18 +116,63 @@ All times are in 24hr format:
  - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
 
 ## Iterators
- - **forEach(function( device/variable/scene/group, key):** Executes a provided function once per array element.
+Available on the collections: devices, variables, scenes, groups:
+ - **forEach(function( item, key):** Executes a provided function once per array element.
  - **filter(function( device )):** returns items in the collection for which the function returns true.
 
 ## Contants
 
- - **ALERTLEVEL_GREY**, **ALERTLEVEL_GREEN**, **ALERTLEVEL_ORANGE**, **ALERTLEVEL_RED**, **ALERTLEVEL_YELLOW**: For updating text sensors.
- - **BARO_CLOUDY**, **BARO_CLOUDY_RAIN**, **BARO_STABLE**, **BARO_SUNNY**, **BARO_THUNDERSTORM**, **BARO_UNKNOWN**, **BARO_UNSTABLE**: For updating barometric values.
- - **HUM_COMFORTABLE**, **HUM_DRY**, **HUM_NORMAL**, **HUM_WET**: Constant for humidity status.
- - **LOG_DEBUG**, **LOG_ERROR**, **LOG_INFO**: For logging messages.
- - **PRIORITY_LOW**, **PRIORITY_MODERATE**, **PRIORITY_NORMAL**, **PRIORITY_HIGH**, **PRIORITY_EMERGENCY**: For notification priority.
- - **SECURITY_ARMEDAWAY**, **SECURITY_ARMEDHOME**, **SECURITY_DISARMED**: For security state.
- - **SOUND_ALIEN** , **SOUND_BIKE**, **SOUND_BUGLE**, **SOUND_CASH_REGISTER**, **SOUND_CLASSICAL**, **SOUND_CLIMB** , **SOUND_COSMIC**, **SOUND_DEFAULT** , **SOUND_ECHO**, **SOUND_FALLING**  , **SOUND_GAMELAN**, **SOUND_INCOMING**, **SOUND_INTERMISSION**, **SOUND_MAGIC** , **SOUND_MECHANICAL**, **SOUND_NONE**, **SOUND_PERSISTENT**, **SOUND_PIANOBAR** , **SOUND_SIREN** , **SOUND_SPACEALARM**, **SOUND_TUGBOAT**  , **SOUND_UPDOWN**: For notification sounds. 
+ - **ALERTLEVEL_GREY**,
+ - **ALERTLEVEL_GREEN**,
+ - **ALERTLEVEL_ORANGE**,
+ - **ALERTLEVEL_RED**,
+ - **ALERTLEVEL_YELLOW**: For updating text sensors.
+ - **BARO_CLOUDY**,
+ - **BARO_CLOUDY_RAIN**, 
+ - **BARO_STABLE**, 
+ - **BARO_SUNNY**, 
+ - **BARO_THUNDERSTORM**, 
+ - **BARO_UNKNOWN**, 
+ - **BARO_UNSTABLE**: For updating barometric values.
+ - **HUM_COMFORTABLE**, 
+ - **HUM_DRY**, 
+ - **HUM_NORMAL**, 
+ - **HUM_WET**: Constant for humidity status.
+ - **EVENT_TYPE_TIMER**,
+ - **EVENT_TYPE_DEVICE**: triggerInfo.type that is passed to execute function.
+ - **LOG_DEBUG**, 
+ - **LOG_ERROR**, 
+ - **LOG_INFO**: For logging messages.
+ - **PRIORITY_LOW**, 
+ - **PRIORITY_MODERATE**, 
+ - **PRIORITY_NORMAL**, 
+ - **PRIORITY_HIGH**, 
+ - **PRIORITY_EMERGENCY**: For notification priority.
+ - **SECURITY_ARMEDAWAY**, 
+ - **SECURITY_ARMEDHOME**, 
+ - **SECURITY_DISARMED**: For security state.
+ - **SOUND_ALIEN** , 
+ - **SOUND_BIKE**, 
+ - **SOUND_BUGLE**, 
+ - **SOUND_CASH_REGISTER**, 
+ - **SOUND_CLASSICAL**, 
+ - **SOUND_CLIMB** , 
+ - **SOUND_COSMIC**, 
+ - **SOUND_DEFAULT** , 
+ - **SOUND_ECHO**, 
+ - **SOUND_FALLING**  , 
+ - **SOUND_GAMELAN**, 
+ - **SOUND_INCOMING**, 
+ - **SOUND_INTERMISSION**, 
+ - **SOUND_MAGIC** , 
+ - **SOUND_MECHANICAL**, 
+ - **SOUND_NONE**, 
+ - **SOUND_PERSISTENT**, 
+ - **SOUND_PIANOBAR** , 
+ - **SOUND_SIREN** , 
+ - **SOUND_SPACEALARM**, 
+ - **SOUND_TUGBOAT**  ,
+ -  **SOUND_UPDOWN**: For notification sounds. 
  
 
 # Device object API
