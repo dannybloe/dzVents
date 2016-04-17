@@ -78,6 +78,49 @@ return
 			['SwitchTypeVal'] = 0,
 			['Name'] = 'Name5',
 			['Data'] = '3;3;3;3',
-		}
+		},
+		{
+			["Data"] = 'On',
+			["LastUpdate"]= "2016-01-29 15:45:52",
+			["Name"]= "Scene1",
+			["Status"]= "On",
+			["Type"]= "Scene",
+			["TypeImg"]= "scene",
+			["idx"]= "1"
+		},
+		{
+			["Data"] = 'Off',
+			["LastUpdate"]= "2016-01-29 15:45:52",
+			["Name"]= "Scene2",
+			["Status"]= "On",
+			["Type"]= "Scene",
+			["TypeImg"]= "scene",
+			["idx"]= "2"
+		},
+		{
+			["Data"]= "Mixed",
+			["LastUpdate"]= "2016-04-09 23:17:21",
+			["Name"]= "Group1",
+			["Status"]= "Mixed",
+			["Type"]= "Group",
+			["idx"]= "3"
+		},
+		{
+			["Data"]= "On",
+			["LastUpdate"]= "2016-04-09 23:17:21",
+			["Name"]= "Group2",
+			["Status"]= "On",
+			["Type"]= "Group",
+			["idx"]= "4"
+		},
+		{
+			["Data"]= "Blah",
+			["LastUpdate"]= "2016-04-09 23:17:21",
+			["Name"]= "Text1",
+			["Status"]= "Blah",
+			["Type"]= "General",
+			["SubType"]= "Text",
+			["idx"]= "6"
+		},
 	}
 }

@@ -34,6 +34,8 @@ local function Domoticz(settings)
 		['settings'] = settings,
 		['commandArray']= {},
 		['devices'] = {},
+		['scenes'] = {},
+		['groups'] = {},
 		['changedDevices']={},
 		['security'] = globalvariables["Security"],
 		['time'] = nowTime,
@@ -317,7 +319,7 @@ local function Domoticz(settings)
 		for tableName, tableData in pairs(_G) do
 
 			-- only deal with global <otherdevices_*> tables
-			if (string.find(tableName, 'otherdevices_')~=nil) then
+			if (string.find(tableName, 'otherdevices_')~=nil and tableName ~= 'otherdevices_scenesgroups') then
 				utils.log('Found ' .. tableName .. ' adding this as a possible attribute', utils.LOG_DEBUG)
 				-- extract the part after 'otherdevices_'
 				-- That is the unprocesses attribute name
@@ -340,7 +342,57 @@ local function Domoticz(settings)
 
 				-- now let's get and store the stuff
 				setDeviceAttribute(tableData, attribute, oriAttribute)
+			end
+		end
+	end
 
+	local function createScenesAndGroups()
+		local httpData = readHttpDomoticzData()
+		if (httpData) then
+			for i, httpDevice in pairs(httpData.result) do
+
+				if (httpDevice.Type == 'Scene' or httpDevice.Type == 'Group') then
+					local name = httpDevice.Name
+					local state = httpDevice.Status -- can be nil
+					local id = tonumber(httpDevice.idx)
+					local raw = httpDevice.Data
+					local device =  Device(self, name, state, false)
+					device.addAttribute('id', id)
+					device.addAttribute('lastUpdate', Time(httpDevice.LastUpdate))
+					device.addAttribute('rawData', string.split(raw, ';'))
+
+					if (httpDevice.Type == 'Scene') then
+						if (self.scenes[name] ~= nil) then
+							utils.log('Scene found with a duplicate name. This scene will be ignored. Please rename: ' .. name, utils.LOG_ERROR)
+						else
+							self.scenes[name] = device
+							self.scenes[id] = device
+						end
+					else
+						if (self.groups[name] ~= nil) then
+							utils.log('Group found with a duplicate name. This group will be ignored. Please rename: ' .. name, utils.LOG_ERROR)
+						else
+							self.groups[name] = device
+							self.groups[id] = device
+						end
+					end
+				end
+			end
+		end
+	end
+
+	local function updateGroupAndScenes()
+		-- assume that the groups and scenes have been created using the http data first
+		if (_G.otherdevices_scenesandgroups) then
+
+			for name, state in pairs(_G.otherdevices_scenesandgroups) do
+
+				-- name is either a scene or a group
+				local device = self.scenes[name] or self.groups[name]
+
+				if (device) then
+					device._setStateAttribute(state)
+				end
 			end
 		end
 	end
@@ -350,24 +402,25 @@ local function Domoticz(settings)
 
 		if (httpData) then
 			for i, httpDevice in pairs(httpData.result) do
-				if (self.devices[tonumber(httpDevice['idx'])] == nil) then
-					-- we have a device that is not passed by Domoticz to the scripts
-					local name = httpDevice.Name
-					local state = httpDevice.Status -- can be nil
-					local id = tonumber(httpDevice.idx)
-					local raw = httpDevice.Data
-					local device =  Device(self, name, state, false)
+				local id = tonumber(httpDevice.idx)
+				if (httpData.Type ~= 'Group' and httpData.Type ~= 'Scene') then
+					if (self.devices[id] == nil) then
+						-- we have a device that is not passed by Domoticz to the scripts
+						local name = httpDevice.Name
+						local state = httpDevice.Status -- can be nil
+						local raw = httpDevice.Data
+						local device =  Device(self, name, state, false)
 
-					self.devices[name] = device
-					self.devices[id] = device
+						self.devices[name] = device
+						self.devices[id] = device
 
-					device.addAttribute('id', id)
-					device.addAttribute('lastUpdate', Time(httpDevice.LastUpdate))
-					device.addAttribute('rawData', string.split(raw, ';'))
+						device.addAttribute('id', id)
+						device.addAttribute('lastUpdate', Time(httpDevice.LastUpdate))
+						device.addAttribute('rawData', string.split(raw, ';'))
+					end
 				end
 			end
 		end
-
 	end
 
 	local function extendDevicesWithHTTPData()
@@ -376,7 +429,20 @@ local function Domoticz(settings)
 		if (httpData) then
 			for i, httpDevice in pairs(httpData.result) do
 				if (self.devices[tonumber(httpDevice['idx'])]) then
-					local device = self.devices[tonumber(httpDevice['idx'])]
+
+					local device
+					local id = tonumber(httpDevice.idx)
+
+					if (httpDevice.Type == 'Scene' or httpDevice.Type == 'Group') then
+						if (httpDevice.Type == 'Scene') then
+							device = self.scenes[id]
+						else
+							device = self.groups[id]
+						end
+					else
+						device = self.devices[id]
+					end
+
 					device.addAttribute('batteryLevel', httpDevice.BatteryLevel)
 					device.addAttribute('signalLevel', httpDevice.SignalLevel)
 					device.addAttribute('deviceSubType', httpDevice.SubType)
@@ -419,6 +485,8 @@ local function Domoticz(settings)
 
 	createVariables()
 	createDevices()
+	createScenesAndGroups()
+	updateGroupAndScenes()
 	createMissingHTTPDevices()
 	extendDevicesWithHTTPData()
 

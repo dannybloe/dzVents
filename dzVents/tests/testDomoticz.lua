@@ -1,5 +1,5 @@
 local _ = require 'lodash'
-
+_G._ = _
 package.path = package.path .. ";../?.lua"
 
 describe('Domoticz', function()
@@ -75,7 +75,6 @@ describe('Domoticz', function()
 			['device3'] = 3,
 			['device4'] = 4,
 			['device5'] = 5
-
 		}
 
 		_G.otherdevices_svalues = {
@@ -86,6 +85,14 @@ describe('Domoticz', function()
 			['device5'] = '13;14;15'
 
 		}
+
+		_G.otherdevices_scenesandgroups = {
+			['Scene1'] = 'Off',
+			['Scene2'] = 'Off',
+			['Group1'] = 'On',
+			['Group2'] = 'Mixed',
+		}
+
 		_G.uservariables = {
 			x = 1,
 			y = 2
@@ -345,6 +352,10 @@ describe('Domoticz', function()
 			assert.is_nil(domoticz.changedDevices['device4'])
 		end)
 
+		it('should have created a device that only lives in devices.lua (http data)', function()
+			assert.is_same('Text1', domoticz.devices['Text1'].name)
+		end)
+
 	end)
 
 	it('should have created iterators', function()
@@ -379,6 +390,20 @@ describe('Domoticz', function()
 	it('should have created variables', function()
 		assert.is_same(1, domoticz.variables['x'].nValue)
 		assert.is_same(2, domoticz.variables['y'].nValue)
+	end)
+
+	it('should have created scenes', function()
+		assert.is_same(4, _.size(domoticz.scenes))
+		assert.is_same({1, 2, 'Scene1', 'Scene2'}, _.keys(domoticz.scenes))
+		assert.is_same({'Scene1', 'Scene2', 'Scene1', 'Scene2'}, _.pluck(domoticz.scenes, {'name'}))
+		assert.is_same({'Off', 'Off', 'Off', 'Off'}, _.pluck(domoticz.scenes, {'state'}))
+	end)
+
+	it('should have created groups', function()
+		assert.is_same(4, _.size(domoticz.groups))
+		assert.is_same({3, 4, 'Group1', 'Group2'}, _.keys(domoticz.groups))
+		assert.is_same({'Group1', 'Group2', 'Group1', 'Group2'}, _.pluck(domoticz.groups, {'name'}))
+		assert.is_same({'On', 'Mixed', 'On', 'Mixed'}, _.pluck(domoticz.groups, {'state'}))
 	end)
 
 	it('should log', function()

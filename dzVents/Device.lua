@@ -46,23 +46,27 @@ local function Device(domoticz, name, state, wasChanged)
 		return b
 	end
 
-	-- extract dimming levels for dimming devices
-	local level
-	if (state and string.find(state, 'Set Level')) then
-		level = string.match(state, "%d+") -- extract dimming value
-		state = 'On' -- consider the device to be on
-	end
+	function self._setStateAttribute(state)
+		if (state and string.find(state, 'Set Level')) then
+			level = string.match(state, "%d+") -- extract dimming value
+			state = 'On' -- consider the device to be on
+		end
 
-	if (level) then self['level'] = tonumber(level) end
+		if (level) then self['level'] = tonumber(level) end
 
-	if (state~=nil) then -- not all devices have a state like sensors
-		if (type(state)=='string') then -- just to be sure
-			self['state'] = state
-			self['bState'] = stateToBool(self['state'])
-		else
-			self['state'] = state
+		if (state~=nil) then -- not all devices have a state like sensors
+			if (type(state)=='string') then -- just to be sure
+				self['state'] = state
+				self['bState'] = stateToBool(self['state'])
+			else
+				self['state'] = state
+			end
 		end
 	end
+
+	-- extract dimming levels for dimming devices
+	local level
+	self._setStateAttribute(state)
 
 	function self.toggleSwitch()
 		local current, inv
