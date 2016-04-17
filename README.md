@@ -278,6 +278,8 @@ The domoticz object holds all information about your Domoticz system. It has a c
 
  - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
  - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See [Device object API](#device-object-api) below. 
+ - **groups**: *Table*: A collection with all the groups. Each group has the same interface as a device. See [Device object API](#device-object-api). Of course a group has far less properties than a regular device.
+ - **scenes**: *Table*: A collection with all the scenes. Each scene has the same interface as a device. See [Device object API](#device-object-api). Of course a scene has far less properties than a regular device.
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**: Current system time:
 	 - **day**: *Number*
@@ -359,7 +361,7 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
 ### Device attributes
 
  - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255)
- - **bState**: *Boolean*. Is true for some commong states like 'On' or 'Open' or 'Motion'. 
+ - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'. 
  - **barometer**: Only when applicable.
  - **changed**: *Boolean*. True if the device was changed
  - **deviceSubType**: *String*. See Domoticz devices table in Domoticz GUI.

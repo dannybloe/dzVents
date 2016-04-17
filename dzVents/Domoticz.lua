@@ -121,11 +121,6 @@ local function Domoticz(settings)
 		end
 	end
 
-	setIterators(self.devices)
-	setIterators(self.changedDevices)
-	setIterators(self.variables)
-
-
 	-- add domoticz commands to the commandArray
 	function self.sendCommand(command, value)
 		table.insert(self.commandArray, {[command] = value})
@@ -489,6 +484,13 @@ local function Domoticz(settings)
 	updateGroupAndScenes()
 	createMissingHTTPDevices()
 	extendDevicesWithHTTPData()
+
+	setIterators(self.devices)
+	setIterators(self.changedDevices)
+	setIterators(self.variables)
+	setIterators(self.scenes)
+	setIterators(self.groups)
+
 
 	return self
 end
