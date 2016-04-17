@@ -12,6 +12,8 @@
 * Added Lua time properties to domoticz.time property with all information about the current time (hours, minutes, seconds, etc.)
 * Added option to return false in a forEach iteratee function which will abort the forEach loop.
 * All devices not delivered by Domoticz to the event scripts are now added to domoticz.devices using the http data that is fetched every 30 minutes (by default).
+* Added scenes and groups collections to the domoticz object
+* Added Quick Reference Guide.
 
 [0.9.13]
 * Fixed some timer functions
