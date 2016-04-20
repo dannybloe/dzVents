@@ -614,7 +614,7 @@ The problem with this is that you have to do a lot of bookkeeping yourself to ma
     	},
         execute = function(domoticz, sensor)
     		-- add new data
-    		domoticz.data.temperatures.setNew(sensor.temperature)
+    		domoticz.data.temperatures.add(sensor.temperature)
     
     		-- average
     		local average = domoticz.data.temperatures.avg()
@@ -639,10 +639,10 @@ You define a script variable or global variable in the data section and set `his
  All these options can be combined but maxItems wins. **And again: don't store too much data. Just put only in there what you really need!** 
 
 
-#### Setting
-When you defined your historical variable you can add a new value to the list like this:
+#### Add
+When you defined your historical variable you can new values to the list like this:
 
-    domoticz.data.myVar.setNew(value)
+    domoticz.data.myVar.add(value)
 
 As soon as you do that, this new value is put on top of the list and shifts the older values one place down the line. If `maxItems` was reached then the oldest value will be discarded.  *All methods like calculating averages or sums will immediately use this new value!* So, if you don't want this to happen set the new value at the end of your script or after you have done your analysis.
 
@@ -692,7 +692,7 @@ The time attribute by itself is a table with many properties that help you inspe
 Once you have data points in your historical variable you can interact with it and get all kinds of statistical information from the set. Many of the functions needed for this interaction require one or two indexes or a time specification (time ago):
 
 ##### Index
-All data in the set can be addressed using an index. The item with index = 1 is the youngest and the item with the highest index is the oldest (and beware, if you have called `setNew()` first, then the first item is that new value!). You can always check the size of the set by inspecting `myVar.size`.  
+All data in the set can be addressed using an index. The item with index = 1 is the youngest and the item with the highest index is the oldest (and beware, if you have called `add()` first, then the first item is that new value!). You can always check the size of the set by inspecting `myVar.size`.  
 
 ##### Time specification (*timeAgo*)
 Every datapoint in the set has a time stamp and of course the set is always ordered so that the youngest item is the first and the oldest item the last. Many functions require you to specify a moment in the past. You do this by passing a string in this format:
@@ -753,12 +753,12 @@ Suppose you want to get data points older than 45 minutes and count the values t
 ##### Statistical functions
 In order to use the statistical functions you have to put *numerical* data in the set. Or you have to provide a function for getting this data. So, if it is just numbers you can just do this:
 
-    myVar.setNew(myDevice.temperature) -- adds a number to the set
+    myVar.add(myDevice.temperature) -- adds a number to the set
     myVar.avg() -- returns the average
     
 If, however you add more complex data or you want to do a computation first, then you have to tell dzVents how to get to this data. So let's say you do this to add data to the set:
 
-    myVar.setNew( { 'person' = 'John', waterUsage = u })
+    myVar.add( { 'person' = 'John', waterUsage = u })
     
 Where `u` is some variable that got its value earlier. Now if you want to calculate the average water usage then dzVents will not be able to do this because it doesn't know the value is actually in the `waterUsage` attribute! You will get `nil`.
 

@@ -170,34 +170,31 @@ local function HistoricalStorage(data, maxItems, maxHours, maxMinutes, getData)
 	end
 
 	function self.setNew(data)
-		self.newData = data
-		if (newAdded) then
-			-- just replace the youngest data
-			self.storage[1].data = data
+		utils.log('setNew is deprecated. Please use add().', utils.LOG_INFO)
+		self.add(data)
+	end
 
-		else
-			newAdded = true
-			-- see if we have reached the limit
-			-- the oldest item like still fals within the range of maxMinutes/maxHours
-			if (self.size == maxItems) then
-				-- drop the last item
-				to = self.size - 1
-				table.remove(self.storage)
-				self.size = self.size - 1
-			end
-
-			-- add the new one
-			local t = Time(os.date('!%Y-%m-%d %H:%M:%S'), true)
-			table.insert(self.storage, 1, {
-				time = t,
-				data = self.newData
-			})
-			self.size = self.size + 1
+	function self.add(data)
+		-- see if we have reached the limit
+		-- the oldest item like still fals within the range of maxMinutes/maxHours
+		if (self.size == maxItems) then
+			-- drop the last item
+			table.remove(self.storage)
+			self.size = self.size - 1
 		end
+
+		-- add the new one
+		local t = Time(os.date('!%Y-%m-%d %H:%M:%S'), true)
+		table.insert(self.storage, 1, {
+			time = t,
+			data = data
+		})
+		self.size = self.size + 1
 	end
 
 	function self.getNew()
-		return self.newData
+		utils.log('getNew is deprecated. Please use getLatest().', utils.LOG_INFO)
+		return self.getLatest()
 	end
 
 	function self.get(itemsAgo)
@@ -519,7 +516,6 @@ local function HistoricalStorage(data, maxItems, maxHours, maxMinutes, getData)
 
 		return maxVal, max
 	end
-
 
 	return self
 end

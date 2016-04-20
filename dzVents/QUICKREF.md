@@ -360,7 +360,7 @@ data = {
 ### Adding a new value
 When you defined your historical variable you can add a new value to the list like this:
 
-    domoticz.data.myVar.setNew(value)
+    domoticz.data.myVar.add(value)
 
 ### Getting
     local item = domoticz.data.myVar.get(5)
@@ -395,6 +395,7 @@ The time attribute by itself is a table with many properties that help you inspe
 	 - **year**: *Number*
 
 #### API
+ - **add( data )**: Adds new data to the set. The data is added to the set and is time-stamped.
  - **avg( [fromIdx], [toIdx], [default] )**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set. 
  - **avgSince( [timeAgo](../README.md#time-specification-timeago), default )**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data. E.g.: `local avg = myVar.avgSince('00:30:00')` returns the average over the past 30 minutes.
  - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no `nil` values). [Supports data smoothing](../README.md#about-data-smoothing) when providing a `smoothRange` value. Returns `default` if there is not enough data.
@@ -412,7 +413,6 @@ The time attribute by itself is a table with many properties that help you inspe
  - **maxSince( [timeAgo](../README.md#time-specification-timeago) )**: Same as **max** but now within the `timeAgo` interval.
  - **min( [fromIdx], [toIdx] )**: Returns the lowest value in the range defined by fromIdx and toIdx.
  - **minSince( [timeAgo](../README.md#time-specification-timeago) )**: Same as **min** but now within the `timeAgo` interval.
- - **setNew(data)**: Adds a new data item to the set. Can be anything. 
  - **size**: Return the amount of data points in the set.
  - **subset( [fromIdx], [toIdx] )**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set supports `forEach`, `filter`, `find` and `reduce`.
  - **subsetSince( [[timeAgo](../README.md#time-specification-timeago)] )**: Returns a subset of the stored data since the relative time specified by timeAgo. The result set supports `forEach`, `filter`, `find` and `reduce`.
