@@ -398,30 +398,30 @@ The time attribute by itself is a table with many properties that help you inspe
 #### API
  - **add( data )**: Adds new data to the set. The data is added to the set and is time-stamped.
  - **avg( [fromIdx], [toIdx], [default] )**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set. 
- - **avgSince( [timeAgo](../README.md#time-specification-timeago), default )**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data. E.g.: `local avg = myVar.avgSince('00:30:00')` returns the average over the past 30 minutes.
- - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no `nil` values). [Supports data smoothing](../README.md#about-data-smoothing) when providing a `smoothRange` value. Returns `default` if there is not enough data.
- - **deltaSince( [timeAgo](../README.md#time-specification-timeago),  [smoothRange], [default] )**: Same as **delta** but now within the `timeAgo` interval.
+ - **avgSince( [timeAgo](../README.md/#time-specification-timeago), default )**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data. E.g.: `local avg = myVar.avgSince('00:30:00')` returns the average over the past 30 minutes.
+ - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no `nil` values). [Supports data smoothing](../README.md/#about-data-smoothing) when providing a `smoothRange` value. Returns `default` if there is not enough data.
+ - **deltaSince( [timeAgo](../README.md/#time-specification-timeago),  [smoothRange], [default] )**: Same as **delta** but now within the `timeAgo` interval.
  - **get( [idx] )**: Returns the idx-th item in the set. Same as `myVar.storage[idx]`.
- - **getAtTime( [timeAgo](../README.md#time-specification-timeago) )**: Returns the data point *closest* to the moment as specified by `timeAgo`. So `myVar.getAtTime('1:00:00')` returns the item that is closest to one hour old. So it may be a bit younger or a bit older than 1 hour.
+ - **getAtTime( [timeAgo](../README.md/#time-specification-timeago) )**: Returns the data point *closest* to the moment as specified by `timeAgo`. So `myVar.getAtTime('1:00:00')` returns the item that is closest to one hour old. So it may be a bit younger or a bit older than 1 hour.
  - **filter(function)**: Create a filtered set of items. The function receives the item and returns true if the item should be in the result set. E.g. get a set with item values larger than 20: `subset = myVar.filter( function (item) return (item.data > 20) end )`.
  - **find(function)**:  Search for a specific item in the set: E.g. find the first item with a value higher than 20: `local item = myVar.find( function (item) return (item.data > 20) end )`.
  - **forEach(function)**:  Loop over all items in the set: E.g.: `myVar.forEach( function( item, index, collection) ... end )`
  - **getLatest( ):** Returns the youngest item in the set. Same as `print(myVar.get(1).data)`. 
  - **getOldest( )**: Returns the oldest item in the set. Same as `print(myVar.get(myVar.size).data)`. 
- - **localMin( [smoothRange], default )**:  Returns the first minimum value (and the item holding the minimal value) in the past. [Supports data smoothing](../README.md#about-data-smoothing).
+ - **localMin( [smoothRange], default )**:  Returns the first minimum value (and the item holding the minimal value) in the past. [Supports data smoothing](../README.md/#about-data-smoothing).
  - **localMax([smoothRange], default)**:  Same as **localMin** but now for the maximum value. [Supports data smoothing](#about-data-smoothing) when providing a `smoothRange` value.
  - **max( [fromIdx], [toIdx] )**: Returns the highest value in the range defined by fromIdx and toIdx.
- - **maxSince( [timeAgo](../README.md#time-specification-timeago) )**: Same as **max** but now within the `timeAgo` interval.
+ - **maxSince( [timeAgo](../README.md/#time-specification-timeago) )**: Same as **max** but now within the `timeAgo` interval.
  - **min( [fromIdx], [toIdx] )**: Returns the lowest value in the range defined by fromIdx and toIdx.
- - **minSince( [timeAgo](../README.md#time-specification-timeago) )**: Same as **min** but now within the `timeAgo` interval.
+ - **minSince( [timeAgo](../README.md/#time-specification-timeago) )**: Same as **min** but now within the `timeAgo` interval.
  - **size**: Return the amount of data points in the set.
  - **subset( [fromIdx], [toIdx] )**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set supports `forEach`, `filter`, `find` and `reduce`.
- - **subsetSince( [[timeAgo](../README.md#time-specification-timeago)] )**: Returns a subset of the stored data since the relative time specified by timeAgo. The result set supports `forEach`, `filter`, `find` and `reduce`.
+ - **subsetSince( [[timeAgo](../README.md/#time-specification-timeago)] )**: Returns a subset of the stored data since the relative time specified by timeAgo. The result set supports `forEach`, `filter`, `find` and `reduce`.
  - **reduce(function, initial)**:  Loop over all items in the set and do some calculation with it. You call reduce with the function and the initial value. Each iteration the function is called with the accumulator. The function does something with the accumulator and returns a new value for it. 
  - **reset( ):** Removes all the items from the set.
- - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`. See [About data smoothing](../README.md#about-data-smoothing).
+ - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`. See [About data smoothing](../README.md/#about-data-smoothing).
  - **sum( [fromIdx], [toIdx] )**: Returns the summation of all values in the range defined by fromIdx and toIdx.
- - **sumSince( [timeAgo](../README.md#time-specification-timeago) )**: Same as **sum** but now within the `timeAgo` interval.
+ - **sumSince( [timeAgo](../README.md/#time-specification-timeago) )**: Same as **sum** but now within the `timeAgo` interval.
 
 # Settings
 
