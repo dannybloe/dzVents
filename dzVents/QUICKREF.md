@@ -178,17 +178,17 @@ Available on the collections: devices, variables, scenes, groups:
 # Device object API
 ## Device attributes
 
- - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255)
+ - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255). Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'. 
  - **barometer**: Only when applicable.
  - **changed**: *Boolean*. True if the device was changed
- - **deviceSubType**: *String*. 
- - **deviceType**: *String*. 
+ - **deviceSubType**: *String*. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **deviceType**: *String*. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **dewpoint**: Only when applicable. 
- - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI.
- - **hardwareId**: *Number*. 
- - **hardwareType**: *String*. 
- - **hardwareTypeVal**: *Number*. 
+ - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **hardwareId**: *Number*. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **hardwareType**: *String*. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **hardwareTypeVal**: *Number*. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **humidity**: Only when applicable.
  - **id**: *Number*. Id of the device
  - **lastUpdate**: 
@@ -204,24 +204,25 @@ Available on the collections: devices, variables, scenes, groups:
 	 - **secondsAgo**: *Number*. Number of seconds since the last update.
 	 - **year**: *Number*
  - **level**: *Number*. For dimmers and other 'Set Level..%' devices this holds the level like selector switches.
- - **lux**: *Number*. Lux level for light sensors.
+ - **lux**: *Number*. Lux level for light sensors. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **name**: *String*. Name of the device
  - **rain**: Only when applicable.
  - **rainLastHour**: Only when applicable.
  - **rawData**: *Table*. Raw data passed by Domoticz.
- - **signalLevel**: *String*. 
+ - **signalLevel**: *String*. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
- - **setPoint**: *Number*. Holds the set point for thermostat like devices. 
- - **heatingMode**: *String*. For zoned thermostats like EvoHome.
- - **switchType**: *String*. See Domoticz devices table in Domoticz GUI.
- - **switchTypeValue**: *Number*. 
+ - **setPoint**: *Number*. Holds the set point for thermostat like devices. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **heatingMode**: *String*. For zoned thermostats like EvoHome. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **switchType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **switchTypeValue**: *Number*. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **temperature**: Only when applicable.
+ - **text**: Text value of dummy text devices. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **utility**: Only when applicable.
  - **uv**: Only when applicable.
  - **weather**: Only when applicable.
- - **WActual**: *Number*. Current Watt usage.
- - **WhToday**: *Number*. Total Wh usage of the day. Note the unit is Wh and not kWh.
- - **WhTotal**: *Number*. Total Wh (incremental).
+ - **WActual**: *Number*. Current Watt usage. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **WhToday**: *Number*. Total Wh usage of the day. Note the unit is Wh and not kWh. Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
+ - **WhTotal**: *Number*. Total Wh (incremental). Only available when [http fetching](#../README.md/fetching-http-data) is enabled.
  - **winddir**: Only when applicable.
  - **windgust**: Only when applicable.
  - **windspeed**: Only when applicable.

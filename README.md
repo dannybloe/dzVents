@@ -280,8 +280,8 @@ The domoticz object holds all information about your Domoticz system. It has a c
 
  - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
  - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See [Device object API](#device-object-api) below. 
- - **groups**: *Table*: A collection with all the groups. Each group has the same interface as a device. See [Device object API](#device-object-api). Of course a group has far less properties than a regular device.
- - **scenes**: *Table*: A collection with all the scenes. Each scene has the same interface as a device. See [Device object API](#device-object-api). Of course a scene has far less properties than a regular device.
+ - **groups**: *Table*: A collection with all the groups. Each group has the same interface as a device. See [Device object API](#device-object-api). Of course a group has far less properties than a regular device.  Only available when [http fetching](#fetching-http-data) is enabled.
+ - **scenes**: *Table*: A collection with all the scenes. Each scene has the same interface as a device. See [Device object API](#device-object-api). Of course a scene has far less properties than a regular device.  Only available when [http fetching](#fetching-http-data) is enabled.
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**: Current system time:
 	 - **day**: *Number*
@@ -353,26 +353,32 @@ Of course you can chain:
  
 
 ## Device object API
-Each device in Domoticz can be found in the `domoticz.devices` collection as listed above. The device object has a set of fixed attributes like *name* and *id*. Many devices though (like sensors) have special attributes like *temperature*, *humidity* etc. These attributes are also available on each device object *when applicable*. However, some attributes are not exposed by Domoticz to the event scripts. Fortunately dzVents will fetch this information through http and extends this missing information to the device data it already got from Domoticz. If you still find some attributes missing you can check the rawData property of a device. Most likely you will find it there:
+Each device in Domoticz can be found in the `domoticz.devices` collection as listed above. The device object has a set of fixed attributes like *name* and *id*. Many devices though (like sensors) have special attributes like *temperature*, *humidity* etc. These attributes are also available on each device object *when applicable*. 
+
+### Fetching http data
+Some attributes are not exposed by Domoticz to the event scripts. Fortunately dzVents can fetch this information through http (json call) and extends this missing information to the device data it already got from Domoticz. If you still find some attributes missing you can check the rawData property of a device. Most likely you will find it there:
 
 
 	domoticz.devices['mySensor'].temperature
 	domoticz.devices['myLightSensor'].rawData[1] -- lux value, rawData is an indexed table!
 
+You can control this fetching in the [settings](#settings).
+
+**Important: if you disable fetching http data in the settings then some attributes are not available and you will have to get them from the rawData set yourself. dzVents doesn't know device type information in that case so it doesn't know what is in the raw data it gets from Domoticz.**
 
 ### Device attributes
 
- - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255)
+ - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255). Only available when [http fetching](#fetching-http-data) is enabled.
  - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'. 
  - **barometer**: Only when applicable.
  - **changed**: *Boolean*. True if the device was changed
- - **deviceSubType**: *String*. See Domoticz devices table in Domoticz GUI.
- - **deviceType**: *String*. See Domoticz devices table in Domoticz GUI.
+ - **deviceSubType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **deviceType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
  - **dewpoint**: Only when applicable. 
- - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI.
- - **hardwareId**: *Number*. See Domoticz devices table in Domoticz GUI.
- - **hardwareType**: *String*. See Domoticz devices table in Domoticz GUI.
- - **hardwareTypeVal**: *Number*. See Domoticz devices table in Domoticz GUI.
+ - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **hardwareId**: *Number*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **hardwareType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **hardwareTypeVal**: *Number*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
  - **humidity**: Only when applicable.
  - **id**: *Number*. Id of the device
  - **lastUpdate**: 
@@ -388,24 +394,25 @@ Each device in Domoticz can be found in the `domoticz.devices` collection as lis
 	 - **secondsAgo**: *Number*. Number of seconds since the last update.
 	 - **year**: *Number*
  - **level**: *Number*. For dimmers and other 'Set Level..%' devices this holds the level like selector switches.
- - **lux**: *Number*. Lux level for light sensors.
+ - **lux**: *Number*. Lux level for light sensors.  Only available when [http fetching](#fetching-http-data) is enabled.
  - **name**: *String*. Name of the device
  - **rain**: Only when applicable.
  - **rainLastHour**: Only when applicable.
  - **rawData**: *Table*:  Not all information from a device is available as a named attribute on the device object. That is because Domoticz doesn't provide this as such. If you have a multi-sensor for instance then you can find all data points in this **rawData** *String*. It is an array (Lua table). E.g. to get the Lux value of a sensor you can do this: `local lux = mySensor.rawData[1]` (assuming it is the first value that is passed by Domoticz). Note that the values are string types!! So if you expect a number, convert it first (`tonumber(device.rawData[1]`).
- - **signalLevel**: *String*. See Domoticz devices table in Domoticz GUI.
+ - **signalLevel**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
  - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
- - **setPoint**: *Number*. Holds the set point for thermostat like devices. 
- - **heatingMode**: *String*. For zoned thermostats like EvoHome.
- - **switchType**: *String*. See Domoticz devices table in Domoticz GUI.
- - **switchTypeValue**: *Number*. See Domoticz devices table in Domoticz GUI.
+ - **setPoint**: *Number*. Holds the set point for thermostat like devices.  Only available when [http fetching](#fetching-http-data) is enabled.
+ - **heatingMode**: *String*. For zoned thermostats like EvoHome. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **switchType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **switchTypeValue**: *Number*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
  - **temperature**: Only when applicable.
+ - **text**: Text value for dummy text devices.  Only available when [http fetching](#fetching-http-data) is enabled.
  - **utility**: Only when applicable.
  - **uv**: Only when applicable.
  - **weather**: Only when applicable.
- - **WActual**: *Number*. Current Watt usage.
- - **WhToday**: *Number*. Total Wh usage of the day. Note the unit is Wh and not kWh.
- - **WhTotal**: *Number*. Total Wh (incremental).
+ - **WActual**: *Number*. Current Watt usage. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **WhToday**: *Number*. Total Wh usage of the day. Note the unit is Wh and not kWh. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **WhTotal**: *Number*. Total Wh (incremental). Only available when [http fetching](#fetching-http-data) is enabled.
  - **winddir**: Only when applicable.
  - **windgust**: Only when applicable.
  - **windspeed**: Only when applicable.

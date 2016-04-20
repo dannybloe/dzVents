@@ -383,7 +383,7 @@ local function Domoticz(settings)
 			for name, state in pairs(_G.otherdevices_scenesandgroups) do
 
 				-- name is either a scene or a group
-				local device = self.scenes[name] or self.groups[name]
+				local device = (self.scenes and self.scenes[name]) or (self.groups and self.groups[name])
 
 				if (device) then
 					device._setStateAttribute(state)
