@@ -13,6 +13,10 @@ describe('device', function()
 	local device
 
 	local domoticz = {
+		settings = {
+			['Domoticz ip'] = '10.0.0.10',
+			['Domoticz port'] = '123'
+		},
 		sendCommand = function(command, value)
 			table.insert(commandArray, {[command] = value})
 			return commandArray[#commandArray], command, value
@@ -21,7 +25,8 @@ describe('device', function()
 
 	setup(function()
 		_G.logLevel = 1
-		_G.log = function()	end
+		_G.TESTMODE = true
+
 		Device = require('Device')
 
 	end)
@@ -33,6 +38,8 @@ describe('device', function()
 	before_each(function()
 		device = Device(domoticz, 'myDevice', 'On', true)
 		device.id = 100
+		utils = device._getUtilsInstance()
+		utils.print = function()  end
 	end)
 
 	after_each(function()
@@ -261,6 +268,27 @@ describe('device', function()
 		it('should update distance', function()
 			device.updateDistance(67)
 			assert.is_same({{["UpdateDevice"]="100|0|67"}}, commandArray)
+		end)
+
+		it('should update setpoint', function()
+			device.hardwareName = 'Dummy'
+			device.deviceSubType = 'SetPoint'
+			device.setPoint = 10
+
+			local res;
+
+			domoticz.openURL = function(url)
+				res = url;
+			end
+
+			device.updateSetPoint(14)
+
+			assert.is_same('http://10.0.0.10:123/json.htm?type=command&param=udevice&idx=100&nvalue=0&svalue=14', res)
+
+			res = nil
+			device.hardwareName = 'something else'
+			device.updateSetPoint(15)
+			assert.is_nil(res)
 		end)
 
 	end)

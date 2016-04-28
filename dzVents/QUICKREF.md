@@ -252,6 +252,7 @@ Available on the collections: devices, variables, scenes, groups:
  - **updatePercentage(percentage)**: *Function*. 
  - **updatePressure(pressure)**: *Function*. 
  - **updateRain(rate, counter)**: *Function*. Update rain sensor.
+ - **updateSetPoint(setPoint)**: *Function*. Update set point for dummy thermostat devices. This will use the openURL command to prevent the script from timing out.
  - **updateTemperature(temperature)**: *Function*. Update temperature sensor.
  - **updateTempHum(temperature, humidity, status)**: *Function*. For status options see updateHumidity.
  - **updateTempHumBaro(temperature, humidity, status, pressure, forecast)**: *Function*. 

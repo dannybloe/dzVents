@@ -1,4 +1,5 @@
 local TimedCommand = require('TimedCommand')
+local utils = require('Utils')
 
 local function Device(domoticz, name, state, wasChanged)
 
@@ -33,6 +34,12 @@ local function Device(domoticz, name, state, wasChanged)
 		}
 	}
 
+	if (_G.TESTMODE) then
+		function self._getUtilsInstance()
+			return utils
+		end
+	end
+
 	-- some states will be 'booleanized'
 	local function stateToBool(state)
 		state = string.lower(state)
@@ -55,12 +62,12 @@ local function Device(domoticz, name, state, wasChanged)
 		if (level) then self['level'] = tonumber(level) end
 
 		if (state~=nil) then -- not all devices have a state like sensors
-			if (type(state)=='string') then -- just to be sure
-				self['state'] = state
-				self['bState'] = stateToBool(self['state'])
-			else
-				self['state'] = state
-			end
+		if (type(state)=='string') then -- just to be sure
+		self['state'] = state
+		self['bState'] = stateToBool(self['state'])
+		else
+			self['state'] = state
+		end
 		end
 	end
 
@@ -104,7 +111,7 @@ local function Device(domoticz, name, state, wasChanged)
 	end
 
 	function self.stop() -- blinds
-		return TimedCommand(domoticz, self.name, 'Stop')
+	return TimedCommand(domoticz, self.name, 'Stop')
 	end
 
 
@@ -271,6 +278,20 @@ local function Device(domoticz, name, state, wasChanged)
 		 distance in cm or inches, can be in decimals. For example 12.6
 		 ]]
 		self.update(0, distance)
+	end
+
+	function self.updateSetPoint(setPoint)
+		if (self.hardwareName == 'Dummy' and self.deviceSubType == 'SetPoint') then
+			if (setPoint ~= self.setPoint) then -- without this check we end up in an endless update loop
+			-- send the command using openURL otherwise, due to a bug in Domoticz, you will get a timeout on the script
+			local url = 'http://' .. domoticz.settings['Domoticz ip'] .. ':' .. domoticz.settings['Domoticz port'] ..
+					'/json.htm?type=command&param=udevice&idx=' .. self.id .. '&nvalue=0&svalue=' .. setPoint
+			utils.log('Setting setpoint using openURL ' .. url, utils.LOG_DEBUG)
+			domoticz.openURL(url)
+			end
+		else
+			utils.log('Setting setpoint only supported for virtual setpoint devices.', utils.LOG_ERROR)
+		end
 	end
 
 	function self.attributeChanged(attribute)
