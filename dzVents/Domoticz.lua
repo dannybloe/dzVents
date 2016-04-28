@@ -460,7 +460,14 @@ local function Domoticz(settings)
 
 					if (device.deviceType ==  'General' and device.deviceSubType == 'kWh') then
 						device.addAttribute('WhTotal', tonumber(device.rawData[2]))
-						device.addAttribute('WhToday', tonumber(device.rawData[1]))
+						device.addAttribute('WActual', tonumber(device.rawData[1]))
+						local todayFormatted = httpDevice.CounterToday or ''
+						-- risky business, we assume no decimals, just thousands separators
+						-- there is no raw value available for today
+						local s = string.gsub(todayFormatted, '%.', '')
+						s = string.gsub(s, '%,', '')
+						s = string.gsub(s, ' kWh', '')
+						device.addAttribute('WhToday', tonumber(s))
 					end
 					if (device.deviceType ==  'P1 Smart Meter' and device.deviceSubType == 'Energy') then
 						device.addAttribute('WActual', tonumber(device.rawData[5]))
