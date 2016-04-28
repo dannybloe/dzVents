@@ -254,7 +254,7 @@ local function Domoticz(settings)
 					print(level .. attr .. ':')
 					dumpTable(value, level .. '    ')
 				else
-					print(level .. attr .. ': ' .. value)
+					print(level .. attr .. ': ' .. tostring(value))
 				end
 			end
 		end
