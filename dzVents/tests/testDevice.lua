@@ -271,7 +271,7 @@ describe('device', function()
 		end)
 
 		it('should update setpoint', function()
-			device.hardwareName = 'Dummy'
+			device.hardwareTypeVal = 15
 			device.deviceSubType = 'SetPoint'
 			device.setPoint = 10
 
@@ -286,7 +286,7 @@ describe('device', function()
 			assert.is_same('http://10.0.0.10:123/json.htm?type=command&param=udevice&idx=100&nvalue=0&svalue=14', res)
 
 			res = nil
-			device.hardwareName = 'something else'
+			device.hardwareTypeVal = 1
 			device.updateSetPoint(15)
 			assert.is_nil(res)
 		end)

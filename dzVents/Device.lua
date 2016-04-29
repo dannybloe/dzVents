@@ -281,14 +281,12 @@ local function Device(domoticz, name, state, wasChanged)
 	end
 
 	function self.updateSetPoint(setPoint)
-		if (self.hardwareName == 'Dummy' and self.deviceSubType == 'SetPoint') then
-			if (setPoint ~= self.setPoint) then -- without this check we end up in an endless update loop
+		if (self.hardwareTypeVal == 15 and self.deviceSubType == 'SetPoint') then -- dummy
 			-- send the command using openURL otherwise, due to a bug in Domoticz, you will get a timeout on the script
 			local url = 'http://' .. domoticz.settings['Domoticz ip'] .. ':' .. domoticz.settings['Domoticz port'] ..
 					'/json.htm?type=command&param=udevice&idx=' .. self.id .. '&nvalue=0&svalue=' .. setPoint
 			utils.log('Setting setpoint using openURL ' .. url, utils.LOG_DEBUG)
 			domoticz.openURL(url)
-			end
 		else
 			utils.log('Setting setpoint only supported for virtual setpoint devices.', utils.LOG_ERROR)
 		end
