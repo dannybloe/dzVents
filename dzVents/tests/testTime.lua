@@ -154,6 +154,10 @@ describe('Time', function()
 			assert.is_same(localPast.min, localT.min)
 			assert.is_same(localPast.sec, localT.sec)
 		end)
+
+		it('should return iso format', function()
+			assert.is_same(os.date("!%Y-%m-%dT%TZ", os.time(localPast)), localT.getISO())
+		end)
 	end)
 
 end)

@@ -91,6 +91,9 @@ local function Domoticz(settings)
 		['LOG_ERROR'] = utils.LOG_ERROR,
 		['EVENT_TYPE_TIMER'] = 'timer',
 		['EVENT_TYPE_DEVICE'] = 'device',
+		['EVOHOME_MODE_AUTO'] = 'Auto',
+		['EVOHOME_MODE_TEMPORARY_OVERRIDE'] = 'TemporaryOverride',
+		['EVOHOME_MODE_PERMANENT_OVERRIDE'] = 'PermanentOverride'
 	}
 
 	local function setIterators(collection)

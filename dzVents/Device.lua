@@ -9,28 +9,28 @@ local function Device(domoticz, name, state, wasChanged)
 		['name'] = name,
 		['changed'] = wasChanged,
 		['_States'] = {
-			on = { b = true, inv='Off'},
-			open = { b = true, inv='Closed'},
+			on = { b = true, inv = 'Off' },
+			open = { b = true, inv = 'Closed' },
 			['group on'] = { b = true },
-			panic = { b = true, inv='Off'},
-			normal = { b = true, inv='Alarm'},
-			alarm = { b = true, inv='Normal'},
+			panic = { b = true, inv = 'Off' },
+			normal = { b = true, inv = 'Alarm' },
+			alarm = { b = true, inv = 'Normal' },
 			chime = { b = true },
 			video = { b = true },
 			audio = { b = true },
 			photo = { b = true },
-			playing = { b = true, inv='Pause'},
+			playing = { b = true, inv = 'Pause' },
 			motion = { b = true },
-			off = { b = false, inv='On'},
-			closed = { b = false, inv='Open'},
+			off = { b = false, inv = 'On' },
+			closed = { b = false, inv = 'Open' },
 			['group off'] = { b = false },
 			['panic end'] = { b = false },
-			['no motion'] = { b = false, inv='Off'},
-			stop = { b = false, inv='Open'},
-			stopped = { b = false},
-			paused ={ b = false, inv='Play'},
-			['all on'] = { b = true, inv='All Off'},
-			['all off'] = { b = false, inv='All On'},
+			['no motion'] = { b = false, inv = 'Off' },
+			stop = { b = false, inv = 'Open' },
+			stopped = { b = false },
+			paused = { b = false, inv = 'Play' },
+			['all on'] = { b = true, inv = 'All Off' },
+			['all off'] = { b = false, inv = 'All On' },
 		}
 	}
 
@@ -49,7 +49,7 @@ local function Device(domoticz, name, state, wasChanged)
 			b = self._States[state]['b']
 		end
 
-		if (b==nil) then b = false end
+		if (b == nil) then b = false end
 		return b
 	end
 
@@ -61,13 +61,13 @@ local function Device(domoticz, name, state, wasChanged)
 
 		if (level) then self['level'] = tonumber(level) end
 
-		if (state~=nil) then -- not all devices have a state like sensors
-		if (type(state)=='string') then -- just to be sure
-		self['state'] = state
-		self['bState'] = stateToBool(self['state'])
-		else
-			self['state'] = state
-		end
+		if (state ~= nil) then -- not all devices have a state like sensors
+			if (type(state) == 'string') then -- just to be sure
+				self['state'] = state
+				self['bState'] = stateToBool(self['state'])
+			else
+				self['state'] = state
+			end
 		end
 	end
 
@@ -77,11 +77,11 @@ local function Device(domoticz, name, state, wasChanged)
 
 	function self.toggleSwitch()
 		local current, inv
-		if (self.state~=nil) then
+		if (self.state ~= nil) then
 			current = self._States[string.lower(self.state)]
-			if (current~=nil) then
+			if (current ~= nil) then
 				inv = current.inv
-				if (inv~=nil) then
+				if (inv ~= nil) then
 					return TimedCommand(domoticz, self.name, inv)
 				end
 			end
@@ -129,7 +129,7 @@ local function Device(domoticz, name, state, wasChanged)
 		-- device.update(12,34,54) will result in a command like
 		-- ['UpdateDevice'] = '<id>|12|34|54'
 		local command = self.id
-		for i,v in ipairs({...}) do
+		for i, v in ipairs({ ... }) do
 			command = command .. '|' .. tostring(v)
 		end
 
@@ -176,7 +176,7 @@ local function Device(domoticz, name, state, wasChanged)
 		local value = tostring(temperature) .. ';' ..
 				tostring(humidity) .. ';' ..
 				tostring(status) .. ';' ..
-				tostring(pressure)  .. ';' ..
+				tostring(pressure) .. ';' ..
 				tostring(forecast)
 		self.update(0, value)
 	end
@@ -189,8 +189,8 @@ local function Device(domoticz, name, state, wasChanged)
 		local value = tostring(bearing) .. ';' ..
 				tostring(direction) .. ';' ..
 				tostring(speed) .. ';' ..
-				tostring(gust)  .. ';' ..
-				tostring(temperature)  .. ';' ..
+				tostring(gust) .. ';' ..
+				tostring(temperature) .. ';' ..
 				tostring(chill)
 		self.update(0, value)
 	end
@@ -223,8 +223,8 @@ local function Device(domoticz, name, state, wasChanged)
 		local value = tostring(usage1) .. ';' ..
 				tostring(usage2) .. ';' ..
 				tostring(return1) .. ';' ..
-				tostring(return2)  .. ';' ..
-				tostring(cons)  .. ';' ..
+				tostring(return2) .. ';' ..
+				tostring(cons) .. ';' ..
 				tostring(prod)
 		self.update(0, value)
 	end
@@ -280,15 +280,26 @@ local function Device(domoticz, name, state, wasChanged)
 		self.update(0, distance)
 	end
 
-	function self.updateSetPoint(setPoint)
-		if (self.hardwareTypeVal == 15 and self.deviceSubType == 'SetPoint') then -- dummy
+	function self.updateSetPoint(setPoint, mode, untilDate)
+		if (self.hardwareTypeVal == 15 and self.deviceSubType == 'SetPoint') then -- dummy hardware
 			-- send the command using openURL otherwise, due to a bug in Domoticz, you will get a timeout on the script
 			local url = 'http://' .. domoticz.settings['Domoticz ip'] .. ':' .. domoticz.settings['Domoticz port'] ..
 					'/json.htm?type=command&param=udevice&idx=' .. self.id .. '&nvalue=0&svalue=' .. setPoint
 			utils.log('Setting setpoint using openURL ' .. url, utils.LOG_DEBUG)
 			domoticz.openURL(url)
+
+		elseif (self.hardwareTypeVal == 39 and self.deviceSubType == 'Zone') then --evohome
+			local url = 'http://' .. domoticz.settings['Domoticz ip'] .. ':' .. domoticz.settings['Domoticz port'] ..
+					'/json.htm?type=setused&idx=' .. self.id .. '&setpoint=' .. setPoint .. '&mode=' .. tostring(mode) .. '&used=true'
+
+			if (untilDate) then
+				url = url .. '&until=' .. tostring(untilDate)
+			end
+
+			utils.log('Setting setpoint using openURL ' .. url, utils.LOG_DEBUG)
+			domoticz.openURL(url)
 		else
-			utils.log('Setting setpoint only supported for virtual setpoint devices.', utils.LOG_ERROR)
+			utils.log('Setting setpoint not supported for this device.', utils.LOG_ERROR)
 		end
 	end
 

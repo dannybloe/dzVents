@@ -270,7 +270,7 @@ describe('device', function()
 			assert.is_same({{["UpdateDevice"]="100|0|67"}}, commandArray)
 		end)
 
-		it('should update setpoint', function()
+		it('should update dummy setpoint', function()
 			device.hardwareTypeVal = 15
 			device.deviceSubType = 'SetPoint'
 			device.setPoint = 10
@@ -290,6 +290,23 @@ describe('device', function()
 			device.updateSetPoint(15)
 			assert.is_nil(res)
 		end)
+
+		it('should update evohome setpoint', function()
+			device.hardwareTypeVal = 39
+			device.deviceSubType = 'Zone'
+			device.setPoint = 10
+
+			local res;
+
+			domoticz.openURL = function(url)
+				res = url;
+			end
+
+			device.updateSetPoint(14, 'Permanent', '2016-04-29T06:32:58Z')
+
+			assert.is_same('http://10.0.0.10:123/json.htm?type=setused&idx=100&setpoint=14&mode=Permanent&used=true&until=2016-04-29T06:32:58Z', res)
+		end)
+
 
 	end)
 

@@ -52,16 +52,24 @@ local function Time(sDate, isUTC)
 			self = time
 		end
 
+		self.rawDate = self.year .. '-' .. self.month .. '-' .. self.day
+		self.rawTime = self.hour .. ':' .. self.min .. ':' .. self.sec
+
 		self['raw'] = sDate
 		self['isToday'] = (now.year == time.year and
 			now.month==time.month and
 			now.day==time.day)
+
 		self['minutesAgo'] = minDiff
 		self['secondsAgo'] = secDiff
 		self['hoursAgo'] = hourDiff
-
 	end
+
 	self['current'] = os.date('*t')
+
+	function self.getISO()
+		return os.date("!%Y-%m-%dT%TZ", os.time(time))
+	end
 
 	return self
 end
