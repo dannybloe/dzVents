@@ -25,7 +25,11 @@ local function EventHelpers(settings, domoticz, mainMethod)
 	end
 
 	if (settings == nil) then
-		settings = require('dzVents_settings')
+		ok, settings = pcall(require, 'dzVents_settings')
+		if (not ok) then
+			utils.log('Error reading the settings file dzVents_settings.lua. Make sure you have it. You can rename dzVents_settings_example.lua and use that as an example.', utils.LOG_ERROR)
+			utils.log(settings, utils.LOG_ERROR)
+		end
 	end
 
 	_G.logLevel = settings['Log level']

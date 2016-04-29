@@ -2,7 +2,9 @@
 * Deprecated setNew(). Use add() instead. You can now add multiple values at once in a script by calling multiple add()s in succession.
 * Fixed printing device logs when a value was boolean or nil
 * Fixed WActual/total/today for energy devices.
-* Added updateSetPoint method on devices for dummy thermostat devices
+* Added updateSetPoint method on devices for dummy thermostat devices and EvoHome setpoint devices
+* Added couple of helper properties on Time object. See README.
+* Renamed the file dzVents_settings.lua to dzVents_settings_example.lua so you don't overwrite your settings when you copy over a new version of dzVents to your system.
 
 [1.0-beta1]
 * Added data persistence for scripts between script runs (see readme for more info)
