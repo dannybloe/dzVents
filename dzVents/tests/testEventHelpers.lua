@@ -17,7 +17,7 @@ local function values(t)
 end
 
 describe('event helpers', function()
-	local EventHelpers, helpers, utils
+	local EventHelpers, helpers, utils, settings
 
 	local domoticz = {
 		['EVENT_TYPE_TIMER'] = 'timer',
@@ -36,7 +36,7 @@ describe('event helpers', function()
 	}
 
 	setup(function()
-		local settings = {
+		settings = {
 			['Log level'] = 1
 		}
 
@@ -539,6 +539,8 @@ describe('event helpers', function()
 			local dumped = false
 			local fetched = false
 
+			helpers.settings['Enable http fetch'] = true
+
 			helpers.dumpCommandArray = function()
 				dumped = true
 			end
@@ -567,10 +569,8 @@ describe('event helpers', function()
 			assert.is_true(fetched)
 		end)
 
-
 		it('should auto fetch http data', function()
 			local fetched = false
-
 			helpers.fetchHttpDomoticzData = function()
 				fetched = true
 			end
