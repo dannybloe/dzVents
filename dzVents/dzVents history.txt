@@ -1,3 +1,6 @@
+[1.0.1]
+* Added updateCustomSensor(value) method.
+
 [1.0][1.0-beta2]
 * Deprecated setNew(). Use add() instead. You can now add multiple values at once in a script by calling multiple add()s in succession.
 * Fixed printing device logs when a value was boolean or nil
