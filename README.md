@@ -443,7 +443,8 @@ You can control this fetching in the [settings](#settings).
  - **updateAirQuality(quality)**: *Function*. 
  - **updateAlertSensor(level, text)**: *Function*. Level can be domoticz.ALERTLEVEL_GREY, ALERTLEVEL_GREE, ALERTLEVEL_YELLOW, ALERTLEVEL_ORANGE, ALERTLEVEL_RED
  - **updateBarometer(pressure, forecast)**: *Function*. Update barometric pressure. Forecast can be domoticz.BARO_STABLE, BARO_SUNNY, BARO_CLOUDY, BARO_UNSTABLE, BARO_THUNDERSTORM, BARO_UNKNOWN, BARO_CLOUDY_RAIN 
- - **updateCounter(value)**: *Function*. 
+ - **updateCounter(value)**: *Function*.
+ - **updateCustomSensor(value)**: *Function*.
  - **updateDistance(distance)**: *Function*. 
  - **updateElectricity(power, energy)**: *Function*. 
  - **updateGas(usage)**: *Function*. 

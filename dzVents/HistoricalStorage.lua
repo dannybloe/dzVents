@@ -241,7 +241,9 @@ local function HistoricalStorage(data, maxItems, maxHours, maxMinutes, getData)
 	end
 
 	function self.reset()
-		self.storage = {}
+		for k, v in pairs(self.storage) do
+			self.storage[k] = nil
+		end
 		self.size = 0
 		self.newData = nil
 	end

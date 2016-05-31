@@ -270,6 +270,11 @@ describe('device', function()
 			assert.is_same({{["UpdateDevice"]="100|0|67"}}, commandArray)
 		end)
 
+		it('should update a custom sensor', function()
+			device.updateCustomSensor(67)
+			assert.is_same({ { ["UpdateDevice"] = "100|0|67" } }, commandArray)
+		end)
+
 		it('should update dummy setpoint', function()
 			device.hardwareTypeVal = 15
 			device.deviceSubType = 'SetPoint'
