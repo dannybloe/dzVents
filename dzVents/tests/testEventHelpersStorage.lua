@@ -317,6 +317,7 @@ describe('event helper storage', function()
 			hs.reset()
 			assert.is_same(0, hs.size)
 			assert.is_nil(hs.getLatest())
+			assert.is_same({}, hs._getForStorage())
 		end)
 
 		it('should return a subset', function()
