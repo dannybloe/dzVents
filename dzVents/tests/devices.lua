@@ -3,6 +3,7 @@ return
 	["result"]= {
 		{
 			['idx'] = '1',
+			['Description'] = 'Description 1',
 			['BatteryLevel'] = 10,
 			['SignalLevel'] = '10',
 			['SubType'] = 'Zone',
@@ -19,6 +20,7 @@ return
 		},
 		{
 			['idx'] = '2',
+			['Description'] = 'Description 2',
 			['BatteryLevel'] = 20,
 			['SignalLevel'] = '20',
 			['SubType'] = 'Lux',
@@ -35,6 +37,7 @@ return
 		},
 		{
 			['idx'] = '3',
+			['Description'] = 'Description 3',
 			['BatteryLevel'] = 30,
 			['SignalLevel'] = '30',
 			['SubType'] = 'Energy',
@@ -51,6 +54,7 @@ return
 		},
 		{
 			['idx'] = '4',
+			['Description'] = 'Description 4',
 			['BatteryLevel'] = 40,
 			['SignalLevel'] = '-',
 			['SubType'] = 'SetPoint',
@@ -66,6 +70,7 @@ return
 		},
 		{
 			['idx'] = '5',
+			['Description'] = 'Description 5',
 			['BatteryLevel'] = 40,
 			['SignalLevel'] = '-',
 			['SubType'] = 'kWh',
@@ -82,6 +87,7 @@ return
 		},
 		{
 			["Data"] = 'On',
+			['Description'] = 'Descr Scene 1',
 			["LastUpdate"]= "2016-01-29 15:45:52",
 			["Name"]= "Scene1",
 			["Status"]= "On",
@@ -91,6 +97,7 @@ return
 		},
 		{
 			["Data"] = 'Off',
+			['Description'] = 'Descr Scene 2',
 			["LastUpdate"]= "2016-01-29 15:45:52",
 			["Name"]= "Scene2",
 			["Status"]= "On",
@@ -100,6 +107,7 @@ return
 		},
 		{
 			["Data"]= "Mixed",
+			['Description'] = 'Descr Scene 3',
 			["LastUpdate"]= "2016-04-09 23:17:21",
 			["Name"]= "Group1",
 			["Status"]= "Mixed",
@@ -108,6 +116,7 @@ return
 		},
 		{
 			["Data"]= "On",
+			['Description'] = 'Descr Scene 4',
 			["LastUpdate"]= "2016-04-09 23:17:21",
 			["Name"]= "Group2",
 			["Status"]= "On",
@@ -116,6 +125,7 @@ return
 		},
 		{
 			["Data"]= "Blah",
+			['Description'] = 'Description 6',
 			["LastUpdate"]= "2016-04-09 23:17:21",
 			["Name"]= "Text1",
 			["Status"]= "Blah",

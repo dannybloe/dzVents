@@ -190,9 +190,10 @@ Available on the collections: devices, variables, scenes, groups:
  - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'. 
  - **barometer**: Only when applicable.
  - **changed**: *Boolean*. True if the device was changed
+ - **description**: *String*. Description of the device. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.  
  - **deviceSubType**: *String*. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **deviceType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **dewpoint**: Only when applicable. 
+ - **dewpoint**: Only when applicable.
  - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareId**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.

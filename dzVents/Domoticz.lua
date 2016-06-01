@@ -441,6 +441,7 @@ local function Domoticz(settings)
 						device = self.devices[id]
 					end
 
+					device.addAttribute('description', httpDevice.Description)
 					device.addAttribute('batteryLevel', httpDevice.BatteryLevel)
 					device.addAttribute('signalLevel', httpDevice.SignalLevel)
 					device.addAttribute('deviceSubType', httpDevice.SubType)

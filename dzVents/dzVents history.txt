@@ -1,3 +1,6 @@
+[]
+* Added device description attribute.
+
 [1.0.1]
 * Added updateCustomSensor(value) method.
 * Fixed reset() for historical data.
