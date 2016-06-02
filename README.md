@@ -417,7 +417,8 @@ You can control this fetching in the [settings](#settings).
  - **switchType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
  - **switchTypeValue**: *Number*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](#fetching-http-data) is enabled.
  - **temperature**: Only when applicable.
- - **text**: Text value for dummy text devices.  Only available when [http fetching](#fetching-http-data) is enabled.
+ - **text**: Text value for dummy text devices. Only available when [http fetching](#fetching-http-data) is enabled.
+ - **timedOut**: *Boolean*. Is true when the device couldn't be reached. Only available when [http fetching](#fetching-http-data) is enabled.
  - **utility**: Only when applicable.
  - **uv**: Only when applicable.
  - **weather**: Only when applicable.

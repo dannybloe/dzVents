@@ -452,6 +452,7 @@ local function Domoticz(settings)
 					device.addAttribute('hardwareTypeVal', httpDevice.HardwareTypeVal)
 					device.addAttribute('switchType', httpDevice.SwitchType)
 					device.addAttribute('switchTypeValue', httpDevice.SwitchTypeVal)
+					device.addAttribute('timedOut', httpDevice.HaveTimeout)
 
 					if (device.deviceType == 'Heating' and device.deviceSubType == 'Zone') then
 						device.addAttribute('setPoint', tonumber(device.rawData[2]))

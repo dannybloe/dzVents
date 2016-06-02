@@ -229,6 +229,7 @@ Available on the collections: devices, variables, scenes, groups:
  - **switchTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **temperature**: Only when applicable.
  - **text**: Text value of dummy text devices. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **timedOut**: *Boolean*. Is true when the device couldn't be reached. Only available when [http fetching](#fetching-http-data) is enabled.
  - **utility**: Only when applicable.
  - **uv**: Only when applicable.
  - **weather**: Only when applicable.

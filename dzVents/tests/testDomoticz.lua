@@ -490,6 +490,11 @@ describe('Domoticz', function()
 			assert.is_same(0, d3.switchTypeValue)
 			assert.is_same(0, d4.switchTypeValue)
 
+			assert.is_true(d1.timedOut)
+			assert.is_false(d2.timedOut)
+			assert.is_false(d3.timedOut)
+			assert.is_false(d4.timedOut)
+
 			assert.is_same(2, d1.setPoint)
 			assert.is_same('3', d1.heatingMode)
 
