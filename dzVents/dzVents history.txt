@@ -1,5 +1,6 @@
 []
 * Added device description attribute.
+* Added support for setting the setpoint for opentherm gateway.
 
 [1.0.1]
 * Added updateCustomSensor(value) method.
