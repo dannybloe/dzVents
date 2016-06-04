@@ -190,9 +190,10 @@ Available on the collections: devices, variables, scenes, groups:
  - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'. 
  - **barometer**: Only when applicable.
  - **changed**: *Boolean*. True if the device was changed
+ - **description**: *String*. Description of the device. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.  
  - **deviceSubType**: *String*. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **deviceType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **dewpoint**: Only when applicable. 
+ - **dewpoint**: Only when applicable.
  - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareId**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
@@ -228,6 +229,7 @@ Available on the collections: devices, variables, scenes, groups:
  - **switchTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **temperature**: Only when applicable.
  - **text**: Text value of dummy text devices. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **timedOut**: *Boolean*. Is true when the device couldn't be reached. Only available when [http fetching](#fetching-http-data) is enabled.
  - **utility**: Only when applicable.
  - **uv**: Only when applicable.
  - **weather**: Only when applicable.
@@ -264,7 +266,7 @@ Available on the collections: devices, variables, scenes, groups:
  - **updatePercentage(percentage)**: *Function*. 
  - **updatePressure(pressure)**: *Function*. 
  - **updateRain(rate, counter)**: *Function*. Update rain sensor.
- - **updateSetPoint(setPoint, mode, until)**: *Function*. Update set point for dummy thermostat devices and EvoHome Zone devices. This uses http json calls to update setpoints so make sure your [http settings](#settings) are correct. For EvoHome devices mode can be domoticz.EVOHOME_MODE_AUTO, EVOHOME_MODE_TEMPORARY_OVERRIDE or EVOHOME_MODE_PERMANENT_OVERRIDE. You can provide an until date (in ISO 8601 format e.g.: `os.date("!%Y-%m-%dT%TZ")`). Note that there is a bug in the EvoHome code which ignores the time zone so you may have to add/remove some hours depending on your time zone.
+ - **updateSetPoint(setPoint, mode, until)**: *Function*. Update set point for dummy thermostat devices, OpenThermGW and EvoHome Zone devices. This uses http json calls to update setpoints so make sure your [http settings](#settings) are correct. For EvoHome devices mode can be domoticz.EVOHOME_MODE_AUTO, EVOHOME_MODE_TEMPORARY_OVERRIDE or EVOHOME_MODE_PERMANENT_OVERRIDE. You can provide an until date (in ISO 8601 format e.g.: `os.date("!%Y-%m-%dT%TZ")`). Note that there is a bug in the EvoHome code which ignores the time zone so you may have to add/remove some hours depending on your time zone.
  - **updateTemperature(temperature)**: *Function*. Update temperature sensor.
  - **updateTempHum(temperature, humidity, status)**: *Function*. For status options see updateHumidity.
  - **updateTempHumBaro(temperature, humidity, status, pressure, forecast)**: *Function*. 

@@ -3,6 +3,7 @@ return
 	["result"]= {
 		{
 			['idx'] = '1',
+			['Description'] = 'Description 1',
 			['BatteryLevel'] = 10,
 			['SignalLevel'] = '10',
 			['SubType'] = 'Zone',
@@ -11,6 +12,7 @@ return
 			['HardwareType'] = 'ht1',
 			['HardwareID'] = 1,
 			['HardwareTypeVal'] = 1,
+			['HaveTimeout'] = true,
 			['SwitchType'] = 'Contact',
 			['SwitchTypeVal'] = 2,
 			['Name'] = 'Name1',
@@ -19,6 +21,7 @@ return
 		},
 		{
 			['idx'] = '2',
+			['Description'] = 'Description 2',
 			['BatteryLevel'] = 20,
 			['SignalLevel'] = '20',
 			['SubType'] = 'Lux',
@@ -27,6 +30,7 @@ return
 			['HardwareType'] = 'ht2',
 			['HardwareID'] = 2,
 			['HardwareTypeVal'] = 2,
+			['HaveTimeout'] = false,
 			['SwitchType'] = "Motion Sensor",
 			['SwitchTypeVal'] = 8,
 			['Name'] = 'Name2',
@@ -35,6 +39,7 @@ return
 		},
 		{
 			['idx'] = '3',
+			['Description'] = 'Description 3',
 			['BatteryLevel'] = 30,
 			['SignalLevel'] = '30',
 			['SubType'] = 'Energy',
@@ -42,6 +47,7 @@ return
 			['HardwareName'] = 'hw3',
 			['HardwareType'] = 'ht3',
 			['HardwareID'] = 3,
+			['HaveTimeout'] = false,
 			['HardwareTypeVal'] = 3,
 			['SwitchType'] = 'On/Off',
 			['SwitchTypeVal'] = 0,
@@ -51,6 +57,7 @@ return
 		},
 		{
 			['idx'] = '4',
+			['Description'] = 'Description 4',
 			['BatteryLevel'] = 40,
 			['SignalLevel'] = '-',
 			['SubType'] = 'SetPoint',
@@ -59,6 +66,7 @@ return
 			['HardwareType'] = 'ht4',
 			['HardwareID'] = 4,
 			['HardwareTypeVal'] = 4,
+			['HaveTimeout'] = false,
 			['SwitchType'] = 'Security',
 			['SwitchTypeVal'] = 0,
 			['Name'] = 'Name4',
@@ -66,6 +74,7 @@ return
 		},
 		{
 			['idx'] = '5',
+			['Description'] = 'Description 5',
 			['BatteryLevel'] = 40,
 			['SignalLevel'] = '-',
 			['SubType'] = 'kWh',
@@ -74,6 +83,7 @@ return
 			['HardwareType'] = 'ht4',
 			['HardwareID'] = 4,
 			['HardwareTypeVal'] = 4,
+			['HaveTimeout'] = false,
 			['SwitchType'] = 'Security',
 			['SwitchTypeVal'] = 0,
 			['CounterToday'] = '1.234 kWh',
@@ -82,6 +92,7 @@ return
 		},
 		{
 			["Data"] = 'On',
+			['Description'] = 'Descr Scene 1',
 			["LastUpdate"]= "2016-01-29 15:45:52",
 			["Name"]= "Scene1",
 			["Status"]= "On",
@@ -91,6 +102,7 @@ return
 		},
 		{
 			["Data"] = 'Off',
+			['Description'] = 'Descr Scene 2',
 			["LastUpdate"]= "2016-01-29 15:45:52",
 			["Name"]= "Scene2",
 			["Status"]= "On",
@@ -100,6 +112,7 @@ return
 		},
 		{
 			["Data"]= "Mixed",
+			['Description'] = 'Descr Scene 3',
 			["LastUpdate"]= "2016-04-09 23:17:21",
 			["Name"]= "Group1",
 			["Status"]= "Mixed",
@@ -108,6 +121,7 @@ return
 		},
 		{
 			["Data"]= "On",
+			['Description'] = 'Descr Scene 4',
 			["LastUpdate"]= "2016-04-09 23:17:21",
 			["Name"]= "Group2",
 			["Status"]= "On",
@@ -116,9 +130,11 @@ return
 		},
 		{
 			["Data"]= "Blah",
+			['Description'] = 'Description 6',
 			["LastUpdate"]= "2016-04-09 23:17:21",
 			["Name"]= "Text1",
 			["Status"]= "Blah",
+			['HaveTimeout'] = false,
 			["Type"]= "General",
 			["SubType"]= "Text",
 			["idx"]= "6"

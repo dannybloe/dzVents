@@ -289,11 +289,22 @@ describe('device', function()
 			device.updateSetPoint(14)
 
 			assert.is_same('http://10.0.0.10:123/json.htm?type=command&param=udevice&idx=100&nvalue=0&svalue=14', res)
+		end)
 
-			res = nil
-			device.hardwareTypeVal = 1
-			device.updateSetPoint(15)
-			assert.is_nil(res)
+		it('should update opentherm gateway setpoint', function()
+			device.hardwareTypeVal = 20
+			device.deviceSubType = 'SetPoint'
+			device.setPoint = 10
+
+			local res;
+
+			domoticz.openURL = function(url)
+				res = url;
+			end
+
+			device.updateSetPoint(14)
+
+			assert.is_same('http://10.0.0.10:123/json.htm?type=command&param=udevice&idx=100&nvalue=0&svalue=14', res)
 		end)
 
 		it('should update evohome setpoint', function()
