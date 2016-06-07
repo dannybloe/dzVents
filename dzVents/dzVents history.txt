@@ -1,4 +1,4 @@
-[]
+[1.0.2]
 * Added device description attribute.
 * Added support for setting the setpoint for opentherm gateway.
 * Added timedOut boolean attribute to devices. Requires http data fetching to be anabled.
