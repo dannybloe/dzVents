@@ -28,7 +28,8 @@ describe('Domoticz', function()
 			['device2'] = 'Off',
 			['device3'] = 120,
 			['device4'] = 'Set Level 5%',
-			['device5'] = 'On'
+			['device5'] = 'On',
+			['device7'] = '16.5',
 		}
 
 		_G.otherdevices_temperature = {
@@ -74,7 +75,9 @@ describe('Domoticz', function()
 			['device2'] = 2,
 			['device3'] = 3,
 			['device4'] = 4,
-			['device5'] = 5
+			['device5'] = 5,
+			['device6'] = 6,
+			['device7'] = 7
 		}
 
 		_G.otherdevices_svalues = {
@@ -82,7 +85,8 @@ describe('Domoticz', function()
 			['device2'] = '4;5;6',
 			['device3'] = '7;8;9;10;11',
 			['device4'] = '10;11;12',
-			['device5'] = '13;14;15'
+			['device5'] = '13;14;15',
+			['device7'] = '16.5'
 
 		}
 
@@ -509,6 +513,8 @@ describe('Domoticz', function()
 
 			assert.is_same(10, d4.setPoint)
 
+			local d7 = domoticz.devices['device7']
+			assert.is_same(16.5, d7.WActual)
 		end)
 
 		it('should have noted that the attribute was changed', function()
