@@ -441,6 +441,7 @@ local function Domoticz(settings)
 						device = self.devices[id]
 					end
 
+					device.addAttribute('description', httpDevice.Description)
 					device.addAttribute('batteryLevel', httpDevice.BatteryLevel)
 					device.addAttribute('signalLevel', httpDevice.SignalLevel)
 					device.addAttribute('deviceSubType', httpDevice.SubType)
@@ -451,6 +452,7 @@ local function Domoticz(settings)
 					device.addAttribute('hardwareTypeVal', httpDevice.HardwareTypeVal)
 					device.addAttribute('switchType', httpDevice.SwitchType)
 					device.addAttribute('switchTypeValue', httpDevice.SwitchTypeVal)
+					device.addAttribute('timedOut', httpDevice.HaveTimeout)
 
 					if (device.deviceType == 'Heating' and device.deviceSubType == 'Zone') then
 						device.addAttribute('setPoint', tonumber(device.rawData[2]))
@@ -461,7 +463,7 @@ local function Domoticz(settings)
 						device.addAttribute('lux', tonumber(device.rawData[1]))
 					end
 
-					if (device.deviceType ==  'General' and device.deviceSubType == 'kWh') then
+					if (device.deviceType == 'General' and device.deviceSubType == 'kWh') then
 						device.addAttribute('WhTotal', tonumber(device.rawData[2]))
 						device.addAttribute('WActual', tonumber(device.rawData[1]))
 						local todayFormatted = httpDevice.CounterToday or ''
@@ -472,6 +474,11 @@ local function Domoticz(settings)
 						s = string.gsub(s, ' kWh', '')
 						device.addAttribute('WhToday', tonumber(s))
 					end
+
+					if (device.deviceType == 'Usage' and device.deviceSubType == 'Electric') then
+						device.addAttribute('WActual', tonumber(device.rawData[1]))
+					end
+
 					if (device.deviceType ==  'P1 Smart Meter' and device.deviceSubType == 'Energy') then
 						device.addAttribute('WActual', tonumber(device.rawData[5]))
 					end

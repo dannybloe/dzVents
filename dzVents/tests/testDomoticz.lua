@@ -28,7 +28,8 @@ describe('Domoticz', function()
 			['device2'] = 'Off',
 			['device3'] = 120,
 			['device4'] = 'Set Level 5%',
-			['device5'] = 'On'
+			['device5'] = 'On',
+			['device7'] = '16.5',
 		}
 
 		_G.otherdevices_temperature = {
@@ -74,7 +75,9 @@ describe('Domoticz', function()
 			['device2'] = 2,
 			['device3'] = 3,
 			['device4'] = 4,
-			['device5'] = 5
+			['device5'] = 5,
+			['device6'] = 6,
+			['device7'] = 7
 		}
 
 		_G.otherdevices_svalues = {
@@ -82,7 +85,8 @@ describe('Domoticz', function()
 			['device2'] = '4;5;6',
 			['device3'] = '7;8;9;10;11',
 			['device4'] = '10;11;12',
-			['device5'] = '13;14;15'
+			['device5'] = '13;14;15',
+			['device7'] = '16.5'
 
 		}
 
@@ -440,6 +444,10 @@ describe('Domoticz', function()
 			assert.is_same(20, d2.batteryLevel)
 			assert.is_same(30, d3.batteryLevel)
 			assert.is_same(40, d4.batteryLevel)
+			assert.is_same('Description 1', d1.description)
+			assert.is_same('Description 2', d2.description)
+			assert.is_same('Description 3', d3.description)
+			assert.is_same('Description 4', d4.description)
 
 			assert.is_same('10', d1.signalLevel)
 			assert.is_same('20', d2.signalLevel)
@@ -486,6 +494,11 @@ describe('Domoticz', function()
 			assert.is_same(0, d3.switchTypeValue)
 			assert.is_same(0, d4.switchTypeValue)
 
+			assert.is_true(d1.timedOut)
+			assert.is_false(d2.timedOut)
+			assert.is_false(d3.timedOut)
+			assert.is_false(d4.timedOut)
+
 			assert.is_same(2, d1.setPoint)
 			assert.is_same('3', d1.heatingMode)
 
@@ -500,6 +513,8 @@ describe('Domoticz', function()
 
 			assert.is_same(10, d4.setPoint)
 
+			local d7 = domoticz.devices['device7']
+			assert.is_same(16.5, d7.WActual)
 		end)
 
 		it('should have noted that the attribute was changed', function()
