@@ -247,7 +247,7 @@ describe('device', function()
 
 		it('should update lux', function()
 			device.updateLux(333)
-			assert.is_same({{["UpdateDevice"]="100|333"}}, commandArray)
+			assert.is_same({{["UpdateDevice"]="100|0|333"}}, commandArray)
 		end)
 
 		it('should update voltage', function()

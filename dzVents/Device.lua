@@ -251,7 +251,7 @@ local function Device(domoticz, name, state, wasChanged)
 	end
 
 	function self.updateLux(lux)
-		self.update(lux)
+		self.update(0, lux)
 	end
 
 	function self.updateVoltage(voltage)
