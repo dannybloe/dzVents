@@ -1,3 +1,6 @@
+[]
+* Added example script for controlling the temperature in a room with hysteresis control.
+
 [1.0.2]
 * Added device description attribute.
 * Added support for setting the setpoint for opentherm gateway.
