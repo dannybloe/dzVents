@@ -1,6 +1,7 @@
-[]
+[1.1]
 * Added example script for controlling the temperature in a room with hysteresis control.
 * Fixed updateLux (thanks to neutrino)
+* Added Kodi commands to the device methods.
 
 [1.0.2]
 * Added device description attribute.

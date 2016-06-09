@@ -222,9 +222,9 @@ Available on the collections: devices, variables, scenes, groups:
  - **rainLastHour**: Only when applicable.
  - **rawData**: *Table*. Raw data passed by Domoticz.
  - **signalLevel**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
  - **setPoint**: *Number*. Holds the set point for thermostat like devices. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **heatingMode**: *String*. For zoned thermostats like EvoHome. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
  - **switchType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **switchTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **temperature**: Only when applicable.
@@ -244,6 +244,14 @@ Available on the collections: devices, variables, scenes, groups:
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g. `device.attributeChanged('temperature')`.
  - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **kodiExecuteAddOn(addonId)**: *Function*. Will send an Execute Addon command sending no parameters. Addon IDs are embedded in the addon configuration and are not to be confused with the Addon Name. For example: http://forums.homeseer.com/showthread.php?p=1213403.
+ - **kodiPause()**: *Function*. Will send a Pause command, only effective if the device is streaming.
+ - **kodiPlay()**: *Function*. Will send a Play command, only effective if the device was streaming and has been paused.
+ - **kodiPlayFavorites([position])**: *Function*. Will play an item from the Kodi's Favorites list optionally starting at *position*. Favorite positions start from 0 which is the default.
+ - **kodiPlayPlaylist(name, [position])**: *Function*. Will play a music or video Smart Playlist with *name* optionally starting at *position*. Playlist positions start from 0 which is the default.
+ - **kodiSetVolume(level)**: *Function*. Set the volume for a Kodi device, 0 <= level <= 100.
+ - **kodiStop()**: *Function*. Will send a Stop command, only effective if the device is streaming.
+ - **kodiSwitchOff()**: *Function*. Will turn the device off if this is supported in settings on the device.
  - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **stop()**: *Function*.  Set device to Stop if it supports it (e.g. blinds). Supports timing options. See [below](#switch-timing-options-delay-duration).
