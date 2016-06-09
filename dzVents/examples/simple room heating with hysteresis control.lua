@@ -16,7 +16,7 @@ return {
 		SETPOINT_DEVICE
 	},
 	data = {
-		temperatureReadings = { history = true, maxItems = 3 }
+		temperatureReadings = { history = true, maxItems = SMOOTH_FACTOR }
 	},
 	active = true,
 	execute = function(domoticz, device, triggerInfo)
