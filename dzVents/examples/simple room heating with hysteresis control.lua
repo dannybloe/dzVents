@@ -4,7 +4,7 @@
 
 local BOILER_DEVICE = 'Boiler' -- switch device
 local SETPOINT_DEVICE = 'Setpoint' -- selector dummy device
-local TEMPERATURE_SENSOR = 'Temperatuur'
+local TEMPERATURE_SENSOR = 'Temperature'
 local HYSTERESIS = 0.5 -- temp has to drop this value below setpoint before boiler is on again
 local SMOOTH_FACTOR = 3
 local LOGGING = true
