@@ -288,7 +288,7 @@ describe('device', function()
 
 		it('should update counter', function()
 			device.updateCounter(22)
-			assert.is_same({{["UpdateDevice"]="100|22"}}, commandArray)
+			assert.is_same({{["UpdateDevice"]="100|0|22"}}, commandArray)
 		end)
 
 		it('should update electricity', function()

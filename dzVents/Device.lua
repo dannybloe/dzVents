@@ -5,33 +5,34 @@ local function Device(domoticz, name, state, wasChanged)
 
 	local changedAttributes = {} -- storage for changed attributes
 
+	local _states = {
+		on = { b = true, inv = 'Off' },
+		open = { b = true, inv = 'Closed' },
+		['group on'] = { b = true },
+		panic = { b = true, inv = 'Off' },
+		normal = { b = true, inv = 'Alarm' },
+		alarm = { b = true, inv = 'Normal' },
+		chime = { b = true },
+		video = { b = true },
+		audio = { b = true },
+		photo = { b = true },
+		playing = { b = true, inv = 'Pause' },
+		motion = { b = true },
+		off = { b = false, inv = 'On' },
+		closed = { b = false, inv = 'Open' },
+		['group off'] = { b = false },
+		['panic end'] = { b = false },
+		['no motion'] = { b = false, inv = 'Off' },
+		stop = { b = false, inv = 'Open' },
+		stopped = { b = false },
+		paused = { b = false, inv = 'Play' },
+		['all on'] = { b = true, inv = 'All Off' },
+		['all off'] = { b = false, inv = 'All On' },
+	}
+
 	local self = {
 		['name'] = name,
 		['changed'] = wasChanged,
-		['_States'] = {
-			on = { b = true, inv = 'Off' },
-			open = { b = true, inv = 'Closed' },
-			['group on'] = { b = true },
-			panic = { b = true, inv = 'Off' },
-			normal = { b = true, inv = 'Alarm' },
-			alarm = { b = true, inv = 'Normal' },
-			chime = { b = true },
-			video = { b = true },
-			audio = { b = true },
-			photo = { b = true },
-			playing = { b = true, inv = 'Pause' },
-			motion = { b = true },
-			off = { b = false, inv = 'On' },
-			closed = { b = false, inv = 'Open' },
-			['group off'] = { b = false },
-			['panic end'] = { b = false },
-			['no motion'] = { b = false, inv = 'Off' },
-			stop = { b = false, inv = 'Open' },
-			stopped = { b = false },
-			paused = { b = false, inv = 'Play' },
-			['all on'] = { b = true, inv = 'All Off' },
-			['all off'] = { b = false, inv = 'All On' },
-		}
 	}
 
 	if (_G.TESTMODE) then
@@ -43,10 +44,10 @@ local function Device(domoticz, name, state, wasChanged)
 	-- some states will be 'booleanized'
 	local function stateToBool(state)
 		state = string.lower(state)
-		local info = self._States[state]
+		local info = _states[state]
 		local b
 		if (info) then
-			b = self._States[state]['b']
+			b = _states[state]['b']
 		end
 
 		if (b == nil) then b = false end
@@ -78,7 +79,7 @@ local function Device(domoticz, name, state, wasChanged)
 	function self.toggleSwitch()
 		local current, inv
 		if (self.state ~= nil) then
-			current = self._States[string.lower(self.state)]
+			current = _states[string.lower(self.state)]
 			if (current ~= nil) then
 				inv = current.inv
 				if (inv ~= nil) then
@@ -201,7 +202,7 @@ local function Device(domoticz, name, state, wasChanged)
 	end
 
 	function self.updateCounter(value)
-		self.update(value) -- no 0??
+		self.update(0, value)
 	end
 
 	function self.updateElectricity(power, energy)
