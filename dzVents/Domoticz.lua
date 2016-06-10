@@ -421,6 +421,13 @@ local function Domoticz(settings)
 		end
 	end
 
+	local function getValueFromFormatted(value, unit)
+		--local s = string.gsub(value, '%.', '')
+		local s = string.gsub(value, '%,', '') -- remove , (assume it is NOT a decimal separator)
+		s = string.gsub(s, ' ' .. unit, '')
+		return tonumber(s)
+	end
+
 	local function extendDevicesWithHTTPData()
 		local httpData = readHttpDomoticzData()
 
@@ -453,6 +460,8 @@ local function Domoticz(settings)
 					device.addAttribute('switchType', httpDevice.SwitchType)
 					device.addAttribute('switchTypeValue', httpDevice.SwitchTypeVal)
 					device.addAttribute('timedOut', httpDevice.HaveTimeout)
+					device.addAttribute('counterToday', httpDevice.CounterToday or '')
+					device.addAttribute('counterTotal', httpDevice.Counter or '')
 
 					if (device.deviceType == 'Heating' and device.deviceSubType == 'Zone') then
 						device.addAttribute('setPoint', tonumber(device.rawData[2]))
@@ -469,8 +478,8 @@ local function Domoticz(settings)
 						local todayFormatted = httpDevice.CounterToday or ''
 						-- risky business, we assume no decimals, just thousands separators
 						-- there is no raw value available for today
-						local s = string.gsub(todayFormatted, '%.', '')
-						s = string.gsub(s, '%,', '')
+						local s = string.gsub(todayFormatted, '%,', '')
+						--s = string.gsub(s, '%,', '')
 						s = string.gsub(s, ' kWh', '')
 						device.addAttribute('WhToday', tonumber(s))
 					end

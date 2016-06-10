@@ -3,6 +3,7 @@
 * Fixed updateLux (thanks to neutrino)
 * Added Kodi commands to the device methods.
 * Fixed updateCounter
+* Added counterToday and counterTotal attributes for counter devices. Only available when http fetching is enabled.
 
 [1.0.2]
 * Added device description attribute.

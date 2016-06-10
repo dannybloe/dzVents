@@ -506,8 +506,10 @@ describe('Domoticz', function()
 
 			local d5 = domoticz.devices['device5']
 			assert.is_same(14, d5.WhTotal)
-			assert.is_same(1234, d5.WhToday)
+			assert.is_same(1.234, d5.WhToday)
 			assert.is_same(13, d5.WActual)
+			assert.is_same('1.234 kWh', d5.counterToday)
+			assert.is_same('567 kWh', d5.counterTotal)
 
 			assert.is_same(11, d3.WActual)
 

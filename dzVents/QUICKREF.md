@@ -190,6 +190,8 @@ Available on the collections: devices, variables, scenes, groups:
  - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'. 
  - **barometer**: Only when applicable.
  - **changed**: *Boolean*. True if the device was changed
+ - **counterToday**: *String*. Today's counter value for counter devices. Formatted string with unit. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **counterTotal**: *String*. Total counter value for counter devices. Formatted string with unit. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **description**: *String*. Description of the device. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.  
  - **deviceSubType**: *String*. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **deviceType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
@@ -197,7 +199,7 @@ Available on the collections: devices, variables, scenes, groups:
  - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareId**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **hardwareTypeVal**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **hardwareTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **humidity**: Only when applicable.
  - **id**: *Number*. Id of the device
  - **lastUpdate**: 
