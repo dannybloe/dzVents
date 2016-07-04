@@ -1,3 +1,6 @@
+[1.1.1]
+* Added support for a devices table in the 'on' section.
+
 [1.1]
 * Added example script for controlling the temperature in a room with hysteresis control.
 * Fixed updateLux (thanks to neutrino)

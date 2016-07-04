@@ -532,11 +532,27 @@ local function EventHelpers(settings, domoticz, mainMethod)
 										end
 									else
 										if (event ~= 'timer' and j~='timer') then
-											-- let's not try to resolve indexes to names here for performance reasons
-											if (bindings[event] == nil) then
-												bindings[event] = {}
+
+											if (type(j) == 'string' and j=='devices' and type(event) == 'table') then
+
+												-- { ['devices'] = { 'devA', 'devB', .. }
+
+												for devIdx, devName in pairs(event) do
+													if (bindings[devName] == nil) then
+														bindings[devName] = {}
+													end
+													table.insert(bindings[devName], module)
+												end
+
+											else
+												-- let's not try to resolve indexes to names here for performance reasons
+												if (bindings[event] == nil) then
+													bindings[event] = {}
+												end
+												table.insert(bindings[event], module)
+
 											end
-											table.insert(bindings[event], module)
+
 										end
 									end
 								end
