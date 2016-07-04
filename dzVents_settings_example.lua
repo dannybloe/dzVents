@@ -1,5 +1,6 @@
 --[[
 	Log level = 1: Errors
+	Log level = 1.5: Errors + info about the execution of individual scripts and a dump of the commands sent back to Domoticz
 	Log level = 2: Errors + info
 	Log level = 3: Debug info + Errors + Info (can be a lot!!!)
 	Log level = 0: As silent as possible

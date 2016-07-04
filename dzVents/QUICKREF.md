@@ -490,4 +490,12 @@ The time attribute by itself is a table with many properties that help you inspe
  - **Domoticz port**: *Number*. Port number used to contact Domoticz over IP.
  - **Enable http fetch**: *Boolean*: Controls wether or not dzVents will fetch device data using http.
  - **Fetch interval**: *String*. Default is 'every 30 minutes' but you can increase this if you need more recent values in your device objects. See [timer trigger options](#timer-trigger-options).
- - **Log level**: *Number*. 1: Errors, 2: Errors + info, 3: Debug info + Errors + Info, 0: As silent as possible.
+ - **Log level**: *Number*.
+ - **Log level**: *Number*:
+     - 1: Errors,
+     - 1.5: Errors + info about the execution of individual scripts and a dump of the commands sent back to Domoticz,
+     - 2: Errors + info
+     - 3: Debug info + Errors + Info
+     - 0: As silent as possible.
+
+     This part is stil a bit experimental and may not give you all the information you need in the logs. Besides, Domoticz tends to choke on too many log messages and may decide not to show them all. You can alway put a print statement here or there or use the `domoticz.log()` API (see [Domoticz object API](#domoticz-object-api)).
