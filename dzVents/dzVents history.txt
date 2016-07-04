@@ -1,3 +1,14 @@
+[1.1.1]
+* Added support for a devices table in the 'on' section.
+* Added extra log level for only showing information about the execution of a script module.
+
+[1.1]
+* Added example script for controlling the temperature in a room with hysteresis control.
+* Fixed updateLux (thanks to neutrino)
+* Added Kodi commands to the device methods.
+* Fixed updateCounter
+* Added counterToday and counterTotal attributes for counter devices. Only available when http fetching is enabled.
+
 [1.0.2]
 * Added device description attribute.
 * Added support for setting the setpoint for opentherm gateway.

@@ -5,33 +5,34 @@ local function Device(domoticz, name, state, wasChanged)
 
 	local changedAttributes = {} -- storage for changed attributes
 
+	local _states = {
+		on = { b = true, inv = 'Off' },
+		open = { b = true, inv = 'Closed' },
+		['group on'] = { b = true },
+		panic = { b = true, inv = 'Off' },
+		normal = { b = true, inv = 'Alarm' },
+		alarm = { b = true, inv = 'Normal' },
+		chime = { b = true },
+		video = { b = true },
+		audio = { b = true },
+		photo = { b = true },
+		playing = { b = true, inv = 'Pause' },
+		motion = { b = true },
+		off = { b = false, inv = 'On' },
+		closed = { b = false, inv = 'Open' },
+		['group off'] = { b = false },
+		['panic end'] = { b = false },
+		['no motion'] = { b = false, inv = 'Off' },
+		stop = { b = false, inv = 'Open' },
+		stopped = { b = false },
+		paused = { b = false, inv = 'Play' },
+		['all on'] = { b = true, inv = 'All Off' },
+		['all off'] = { b = false, inv = 'All On' },
+	}
+
 	local self = {
 		['name'] = name,
 		['changed'] = wasChanged,
-		['_States'] = {
-			on = { b = true, inv = 'Off' },
-			open = { b = true, inv = 'Closed' },
-			['group on'] = { b = true },
-			panic = { b = true, inv = 'Off' },
-			normal = { b = true, inv = 'Alarm' },
-			alarm = { b = true, inv = 'Normal' },
-			chime = { b = true },
-			video = { b = true },
-			audio = { b = true },
-			photo = { b = true },
-			playing = { b = true, inv = 'Pause' },
-			motion = { b = true },
-			off = { b = false, inv = 'On' },
-			closed = { b = false, inv = 'Open' },
-			['group off'] = { b = false },
-			['panic end'] = { b = false },
-			['no motion'] = { b = false, inv = 'Off' },
-			stop = { b = false, inv = 'Open' },
-			stopped = { b = false },
-			paused = { b = false, inv = 'Play' },
-			['all on'] = { b = true, inv = 'All Off' },
-			['all off'] = { b = false, inv = 'All On' },
-		}
 	}
 
 	if (_G.TESTMODE) then
@@ -43,10 +44,10 @@ local function Device(domoticz, name, state, wasChanged)
 	-- some states will be 'booleanized'
 	local function stateToBool(state)
 		state = string.lower(state)
-		local info = self._States[state]
+		local info = _states[state]
 		local b
 		if (info) then
-			b = self._States[state]['b']
+			b = _states[state]['b']
 		end
 
 		if (b == nil) then b = false end
@@ -78,7 +79,7 @@ local function Device(domoticz, name, state, wasChanged)
 	function self.toggleSwitch()
 		local current, inv
 		if (self.state ~= nil) then
-			current = self._States[string.lower(self.state)]
+			current = _states[string.lower(self.state)]
 			if (current ~= nil) then
 				inv = current.inv
 				if (inv ~= nil) then
@@ -111,7 +112,7 @@ local function Device(domoticz, name, state, wasChanged)
 	end
 
 	function self.stop() -- blinds
-	return TimedCommand(domoticz, self.name, 'Stop')
+		return TimedCommand(domoticz, self.name, 'Stop')
 	end
 
 
@@ -201,7 +202,7 @@ local function Device(domoticz, name, state, wasChanged)
 	end
 
 	function self.updateCounter(value)
-		self.update(value) -- no 0??
+		self.update(0, value)
 	end
 
 	function self.updateElectricity(power, energy)
@@ -251,7 +252,7 @@ local function Device(domoticz, name, state, wasChanged)
 	end
 
 	function self.updateLux(lux)
-		self.update(lux)
+		self.update(0, lux)
 	end
 
 	function self.updateVoltage(voltage)
@@ -307,6 +308,58 @@ local function Device(domoticz, name, state, wasChanged)
 			utils.log('Setting setpoint not supported for this device.', utils.LOG_ERROR)
 		end
 	end
+
+	function self.kodiSwitchOff()
+		--return TimedCommand(domoticz, self.name, 'Play')
+		domoticz.sendCommand(self.name, 'Off')
+	end
+
+	function self.kodiStop()
+		--return TimedCommand(domoticz, self.name, 'Stop')
+		domoticz.sendCommand(self.name, 'Stop')
+	end
+
+	function self.kodiPlay()
+		--return TimedCommand(domoticz, self.name, 'Play')
+		domoticz.sendCommand(self.name, 'Play')
+	end
+
+	function self.kodiPause()
+		--return TimedCommand(domoticz, self.name, 'Pause')
+		domoticz.sendCommand(self.name, 'Pause')
+	end
+
+	function self.kodiSetVolume(value)
+
+		if (value<0 or value > 100) then
+
+			utils.log('Volume must be between 0 and 100. Value = ' .. tostring(value) , utils.LOG_ERROR)
+
+		else
+			--return TimedCommand(domoticz, self.name, 'Pause')
+			domoticz.sendCommand(self.name, 'Set Volume ' .. tostring(value))
+		end
+
+	end
+
+	function self.kodiPlayPlaylist(name, position)
+		if (position == nil) then
+			position = 0
+		end
+		domoticz.sendCommand(self.name, 'Play Playlist ' .. tostring(name) .. ' ' .. tostring(position))
+	end
+
+	function self.kodiPlayFavorites(position)
+		if (position == nil) then
+			position = 0
+		end
+		domoticz.sendCommand(self.name, 'Play Favorites ' .. tostring(position))
+	end
+
+	function self.kodiExecuteAddOn(addonId)
+		domoticz.sendCommand(self.name, 'Execute ' .. tostring(addonId))
+	end
+
 
 	function self.attributeChanged(attribute)
 		-- returns true if an attribute is marked as changed

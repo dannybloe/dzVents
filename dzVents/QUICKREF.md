@@ -43,16 +43,17 @@ A dzVents script has this structure:
             <device id>,
             timer,
             timer = '<timer definition>',
-            timer = { '<timer definition1>', '<timer definition2>', .. }
+            timer = { '<timer definition1>', '<timer definition2>', .. },
+            devices = { '<device name>', '<device name>' , <device id> .. }
         },
         data = {
 	        var1 = { initial = <initial value> }
-	        historicalVar1 = { 
-		        history = true, 
-		        maxItem = xxx, 
+	        historicalVar1 = {
+		        history = true,
+		        maxItem = xxx,
 		        maxHours = xxx,
 		        maxMinutes = xxx,
-		        getValue = function (item) 
+		        getValue = function (item)
 			        return item.....; -- return a number
 			    end
         },
@@ -66,18 +67,18 @@ A dzVents script has this structure:
 ## timer definitions
 All times are in 24hr format:
 
- - `every minute`:  every minute 
- - `every other minute`:  minutes: xx:00, xx:02, xx:04, ..., xx:58 
- - `every <xx> minutes`,  -- starting from xx:00 triggers every xx minutes (0 > xx < 60) 
- - `every hour`: 00:00, 01:00, ..., 23:00  (24x per 24hrs) 
+ - `every minute`:  every minute
+ - `every other minute`:  minutes: xx:00, xx:02, xx:04, ..., xx:58
+ - `every <xx> minutes`,  -- starting from xx:00 triggers every xx minutes (0 > xx < 60)
+ - `every hour`: 00:00, 01:00, ..., 23:00  (24x per 24hrs)
  - `every other hour`:  00:00, 02:00, ..., 22:00  (12x per 24hrs)
- - `every  <xx> hours:` starting from 00:00, triggers every xx hours (0 > xx < 24) 
- - `at 13:45`: specific time 
- - `at *:45`: every 45th minute in the hour 
- - `at 15:*`: very minute between 15:00 and 16:00 
- - `at 13:45 on mon,tue`: at 13:45 only on Monday en Tuesday (english) 
- - `every hour on sat`: you guessed it correctly 
- - `at sunset`: uses sunset/sunrise info from Domoticz 
+ - `every  <xx> hours:` starting from 00:00, triggers every xx hours (0 > xx < 24)
+ - `at 13:45`: specific time
+ - `at *:45`: every 45th minute in the hour
+ - `at 15:*`: very minute between 15:00 and 16:00
+ - `at 13:45 on mon,tue`: at 13:45 only on Monday en Tuesday (english)
+ - `every hour on sat`: you guessed it correctly
+ - `at sunset`: uses sunset/sunrise info from Domoticz
  - `at sunrise`
  - `at sunset on sat,sun`
 
@@ -86,9 +87,9 @@ All times are in 24hr format:
 ## Domoticz attributes:
 
  - **changedDevices**: *Table*. A collection holding all the devices that have been updated in this cycle.
- - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See [Device object API](#device-object-api) below. 
- - **groups**: *Table*: A collection with all the groups. 
- - **scenes**: *Table*: A collection with all the scenes. 
+ - **devices**: *Table*. A collection with all the *device objects*. You can get a device by its name or id: `domoticz.devices[123]` or `domoticz.devices['My switch']`. See [Device object API](#device-object-api) below.
+ - **groups**: *Table*: A collection with all the groups.
+ - **scenes**: *Table*: A collection with all the scenes.
  - **security**: Holds the state of the security system e.g. `Armed Home` or `Armed Away`.
  - **time**: Current system time:
 	 - **day**: *Number*
@@ -106,7 +107,7 @@ All times are in 24hr format:
 	 - **isNightTime**
 	 - **sunsetInMinutes**
 	 - **sunriseInMinutes**
- - **variables**: *Table*. A collection holding all the user *variable objects* as defined in Domoticz. See  [Variable object API](#variable-object-api) for the attributes.  
+ - **variables**: *Table*. A collection holding all the user *variable objects* as defined in Domoticz. See  [Variable object API](#variable-object-api) for the attributes.
 
 ## Domoticz methods
 
@@ -117,7 +118,7 @@ All times are in 24hr format:
  - **openURL(url)**: *Function*. Have Domoticz 'call' a URL.
  - **sendCommand(command, value)**: *Function*. Generic command method (adds it to the commandArray) to the list of commands that are being sent back to domoticz.
  - **setScene(scene, value)**: *Function*. E.g. `domoticz.setScene('My scene', 'On')`. Supports timing options. See below.
- - **sms(message)**: *Function*. Sends an sms if it is configured in Domoticz. 
+ - **sms(message)**: *Function*. Sends an sms if it is configured in Domoticz.
  - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
 
 ## Iterators
@@ -133,74 +134,76 @@ Available on the collections: devices, variables, scenes, groups:
  - **ALERTLEVEL_RED**,
  - **ALERTLEVEL_YELLOW**: For updating text sensors.
  - **BARO_CLOUDY**,
- - **BARO_CLOUDY_RAIN**, 
- - **BARO_STABLE**, 
- - **BARO_SUNNY**, 
- - **BARO_THUNDERSTORM**, 
- - **BARO_UNKNOWN**, 
+ - **BARO_CLOUDY_RAIN**,
+ - **BARO_STABLE**,
+ - **BARO_SUNNY**,
+ - **BARO_THUNDERSTORM**,
+ - **BARO_UNKNOWN**,
  - **BARO_UNSTABLE**: For updating barometric values.
- - **HUM_COMFORTABLE**, 
- - **HUM_DRY**, 
- - **HUM_NORMAL**, 
+ - **HUM_COMFORTABLE**,
+ - **HUM_DRY**,
+ - **HUM_NORMAL**,
  - **HUM_WET**: Constant for humidity status.
  - **EVENT_TYPE_TIMER**,
  - **EVENT_TYPE_DEVICE**: triggerInfo.type that is passed to execute function.
- - **LOG_DEBUG**, 
- - **LOG_ERROR**, 
+ - **LOG_DEBUG**,
+ - **LOG_ERROR**,
  - **LOG_INFO**: For logging messages.
- - **PRIORITY_LOW**, 
- - **PRIORITY_MODERATE**, 
- - **PRIORITY_NORMAL**, 
- - **PRIORITY_HIGH**, 
+ - **PRIORITY_LOW**,
+ - **PRIORITY_MODERATE**,
+ - **PRIORITY_NORMAL**,
+ - **PRIORITY_HIGH**,
  - **PRIORITY_EMERGENCY**: For notification priority.
- - **SECURITY_ARMEDAWAY**, 
- - **SECURITY_ARMEDHOME**, 
+ - **SECURITY_ARMEDAWAY**,
+ - **SECURITY_ARMEDHOME**,
  - **SECURITY_DISARMED**: For security state.
- - **SOUND_ALIEN** , 
- - **SOUND_BIKE**, 
- - **SOUND_BUGLE**, 
- - **SOUND_CASH_REGISTER**, 
- - **SOUND_CLASSICAL**, 
- - **SOUND_CLIMB** , 
- - **SOUND_COSMIC**, 
- - **SOUND_DEFAULT** , 
- - **SOUND_ECHO**, 
- - **SOUND_FALLING**  , 
- - **SOUND_GAMELAN**, 
- - **SOUND_INCOMING**, 
- - **SOUND_INTERMISSION**, 
- - **SOUND_MAGIC** , 
- - **SOUND_MECHANICAL**, 
- - **SOUND_NONE**, 
- - **SOUND_PERSISTENT**, 
- - **SOUND_PIANOBAR** , 
- - **SOUND_SIREN** , 
- - **SOUND_SPACEALARM**, 
+ - **SOUND_ALIEN** ,
+ - **SOUND_BIKE**,
+ - **SOUND_BUGLE**,
+ - **SOUND_CASH_REGISTER**,
+ - **SOUND_CLASSICAL**,
+ - **SOUND_CLIMB** ,
+ - **SOUND_COSMIC**,
+ - **SOUND_DEFAULT** ,
+ - **SOUND_ECHO**,
+ - **SOUND_FALLING**  ,
+ - **SOUND_GAMELAN**,
+ - **SOUND_INCOMING**,
+ - **SOUND_INTERMISSION**,
+ - **SOUND_MAGIC** ,
+ - **SOUND_MECHANICAL**,
+ - **SOUND_NONE**,
+ - **SOUND_PERSISTENT**,
+ - **SOUND_PIANOBAR** ,
+ - **SOUND_SIREN** ,
+ - **SOUND_SPACEALARM**,
  - **SOUND_TUGBOAT**  ,
- - **SOUND_UPDOWN**: For notification sounds. 
- - **EVOHOME_MODE_AUTO**, 
+ - **SOUND_UPDOWN**: For notification sounds.
+ - **EVOHOME_MODE_AUTO**,
  - **EVOHOME_MODE_TEMPORARY_OVERRIDE**
  - **EVOHOME_MODE_PERMANENT_OVERRIDE**: for EvoHome set point controlling.
- 
+
 
 # Device object API
 ## Device attributes
 
  - **batteryLevel**: *Number* (note this is the raw value from Domoticcz and can be 255). Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'. 
+ - **bState**: *Boolean*. Is true for some common states like 'On' or 'Open' or 'Motion'.
  - **barometer**: Only when applicable.
  - **changed**: *Boolean*. True if the device was changed
- - **description**: *String*. Description of the device. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.  
+ - **counterToday**: *String*. Today's counter value for counter devices. Formatted string with unit. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **counterTotal**: *String*. Total counter value for counter devices. Formatted string with unit. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **description**: *String*. Description of the device. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **deviceSubType**: *String*. Only available when [http fetching](#fetching-http-data) is enabled.Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **deviceType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **dewpoint**: Only when applicable.
  - **hardwareName**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareId**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **hardwareTypeVal**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **hardwareTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **humidity**: Only when applicable.
  - **id**: *Number*. Id of the device
- - **lastUpdate**: 
+ - **lastUpdate**:
 	 - **day**: *Number*
 	 - **getISO**: *Function*. Returns the ISO 8601 formatted date.
 	 - **hour**: *Number*
@@ -222,9 +225,9 @@ Available on the collections: devices, variables, scenes, groups:
  - **rainLastHour**: Only when applicable.
  - **rawData**: *Table*. Raw data passed by Domoticz.
  - **signalLevel**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
  - **setPoint**: *Number*. Holds the set point for thermostat like devices. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **heatingMode**: *String*. For zoned thermostats like EvoHome. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
  - **switchType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **switchTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **temperature**: Only when applicable.
@@ -244,6 +247,14 @@ Available on the collections: devices, variables, scenes, groups:
  - **attributeChanged(attributeName)**: *Function*. Returns  a boolean (true/false) if the attribute was changed in this cycle. E.g. `device.attributeChanged('temperature')`.
  - **close()**: *Function*.  Set device to Close if it supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **dimTo(percentage)**: *Function*.  Switch a dimming device on and/or dim to the specified level. Supports timing options. See [below](#switch-timing-options-delay-duration).
+ - **kodiExecuteAddOn(addonId)**: *Function*. Will send an Execute Addon command sending no parameters. Addon IDs are embedded in the addon configuration and are not to be confused with the Addon Name. For example: http://forums.homeseer.com/showthread.php?p=1213403.
+ - **kodiPause()**: *Function*. Will send a Pause command, only effective if the device is streaming.
+ - **kodiPlay()**: *Function*. Will send a Play command, only effective if the device was streaming and has been paused.
+ - **kodiPlayFavorites([position])**: *Function*. Will play an item from the Kodi's Favorites list optionally starting at *position*. Favorite positions start from 0 which is the default.
+ - **kodiPlayPlaylist(name, [position])**: *Function*. Will play a music or video Smart Playlist with *name* optionally starting at *position*. Playlist positions start from 0 which is the default.
+ - **kodiSetVolume(level)**: *Function*. Set the volume for a Kodi device, 0 <= level <= 100.
+ - **kodiStop()**: *Function*. Will send a Stop command, only effective if the device is streaming.
+ - **kodiSwitchOff()**: *Function*. Will turn the device off if this is supported in settings on the device.
  - **open()**: *Function*.  Set device to Open if it supports it. Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **setState(newState)**: *Function*. Generic update method for switch-like devices. E.g.: device.setState('On'). Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **stop()**: *Function*.  Set device to Stop if it supports it (e.g. blinds). Supports timing options. See [below](#switch-timing-options-delay-duration).
@@ -252,28 +263,28 @@ Available on the collections: devices, variables, scenes, groups:
  - **switchSelector(level)**:  *Function*. Switches a selector switch to a specific level (numeric value, see the edit page in Domoticz for such a switch to get a list of the values). Supports timing options. See [below](#switch-timing-options-delay-duration).
  - **update(< params >)**: *Function*. Generic update method. Accepts any number of parameters that will be sent back to Domoticz. There is no need to pass the device.id here. It will be passed for you. Example to update a temperature: `device.update(0,12)`. This will eventually result in a commandArray entry `['UpdateDevice']='<idx>|0|12'`
  - **toggleSwitch()**: *Function*. Toggles the state of the switch (if it is togglable) like On/Off, Open/Close etc.
- - **updateAirQuality(quality)**: *Function*. 
+ - **updateAirQuality(quality)**: *Function*.
  - **updateAlertSensor(level, text)**: *Function*. Level can be domoticz.ALERTLEVEL_GREY, ALERTLEVEL_GREE, ALERTLEVEL_YELLOW, ALERTLEVEL_ORANGE, ALERTLEVEL_RED
- - **updateBarometer(pressure, forecast)**: *Function*. Update barometric pressure. Forecast can be domoticz.BARO_STABLE, BARO_SUNNY, BARO_CLOUDY, BARO_UNSTABLE, BARO_THUNDERSTORM, BARO_UNKNOWN, BARO_CLOUDY_RAIN 
+ - **updateBarometer(pressure, forecast)**: *Function*. Update barometric pressure. Forecast can be domoticz.BARO_STABLE, BARO_SUNNY, BARO_CLOUDY, BARO_UNSTABLE, BARO_THUNDERSTORM, BARO_UNKNOWN, BARO_CLOUDY_RAIN
  - **updateCounter(value)**: *Function*.
  - **updateCustomSensor(value)**: *Function*.
- - **updateDistance(distance)**: *Function*. 
- - **updateElectricity(power, energy)**: *Function*. 
- - **updateGas(usage)**: *Function*. 
- - **updateHumidity(humidity, status)**: *Function*. Update humidity. status can be domoticz.HUM_NORMAL, HUM_COMFORTABLE, HUM_DRY, HUM_WET 
- - **updateLux(lux)**: *Function*. 
- - **updateP1(sage1, usage2, return1, return2, cons, prod)**: *Function*. 
- - **updatePercentage(percentage)**: *Function*. 
- - **updatePressure(pressure)**: *Function*. 
+ - **updateDistance(distance)**: *Function*.
+ - **updateElectricity(power, energy)**: *Function*.
+ - **updateGas(usage)**: *Function*.
+ - **updateHumidity(humidity, status)**: *Function*. Update humidity. status can be domoticz.HUM_NORMAL, HUM_COMFORTABLE, HUM_DRY, HUM_WET
+ - **updateLux(lux)**: *Function*.
+ - **updateP1(sage1, usage2, return1, return2, cons, prod)**: *Function*.
+ - **updatePercentage(percentage)**: *Function*.
+ - **updatePressure(pressure)**: *Function*.
  - **updateRain(rate, counter)**: *Function*. Update rain sensor.
  - **updateSetPoint(setPoint, mode, until)**: *Function*. Update set point for dummy thermostat devices, OpenThermGW and EvoHome Zone devices. This uses http json calls to update setpoints so make sure your [http settings](#settings) are correct. For EvoHome devices mode can be domoticz.EVOHOME_MODE_AUTO, EVOHOME_MODE_TEMPORARY_OVERRIDE or EVOHOME_MODE_PERMANENT_OVERRIDE. You can provide an until date (in ISO 8601 format e.g.: `os.date("!%Y-%m-%dT%TZ")`). Note that there is a bug in the EvoHome code which ignores the time zone so you may have to add/remove some hours depending on your time zone.
  - **updateTemperature(temperature)**: *Function*. Update temperature sensor.
  - **updateTempHum(temperature, humidity, status)**: *Function*. For status options see updateHumidity.
- - **updateTempHumBaro(temperature, humidity, status, pressure, forecast)**: *Function*. 
- - **updateText(text)**: *Function*. 
- - **updateUV(uv)**: *Function*. 
- - **updateVoltage(voltage)**: *Function*. 
- - **updateWind(bearing, direction, speed, gust, temperature, chill)**: *Function*. 
+ - **updateTempHumBaro(temperature, humidity, status, pressure, forecast)**: *Function*.
+ - **updateText(text)**: *Function*.
+ - **updateUV(uv)**: *Function*.
+ - **updateVoltage(voltage)**: *Function*.
+ - **updateWind(bearing, direction, speed, gust, temperature, chill)**: *Function*.
 
 ## Switch timing options (delay, duration)
  - **after_sec(seconds)**: *Function*. Activates the command after a certain amount of seconds.
@@ -290,7 +301,7 @@ User variables created in Domoticz have these attributes and methods:
 
  - **nValue**: *Number*. **value** cast to number.
  - **value**: Raw value coming from Domoticz
- - **lastUpdate**: 
+ - **lastUpdate**:
 	 - **day**: *Number*
 	 - **getISO**: *Function*. Returns the ISO 8601 formatted date.
 	 - **hour**: *Number*
@@ -346,12 +357,12 @@ Script level persistent variables are created in the data section of your script
 ```
 data = {
        var1 = { initial = <initial value> }
-       historicalVar1 = { 
-	        history = true, 
-	        maxItem = xxx, 
+       historicalVar1 = {
+	        history = true,
+	        maxItem = xxx,
 	        maxHours = xxx,
 	        maxMinutes = xxx,
-	        getValue = function (item) 
+	        getValue = function (item)
 		        return item.....; -- return a number
 		    end
 		},
@@ -389,12 +400,12 @@ Access these globals in your scripts:
 Define like this in your script with `history = true`:
 ```
 data = {
-       historicalVar1 = { 
-	        history = true, 
-	        maxItem = xxx, 
+       historicalVar1 = {
+	        history = true,
+	        maxItem = xxx,
 	        maxHours = xxx,
 	        maxMinutes = xxx,
-	        getValue = function (item) 
+	        getValue = function (item)
 		        return item.....; -- return a number
 		    end
 		},
@@ -402,7 +413,7 @@ data = {
 ```
 
  - **maxItems**: *Number*. Controls how many items are stored in the variable. maxItems wins over maxHours and maxMinutes.
- - **maxHours**: *Number*. Data older than `maxHours` from now will be discarded.  So if you set it to 2 than data older than 2 hours will be removed at the beginning of the script. 
+ - **maxHours**: *Number*. Data older than `maxHours` from now will be discarded.  So if you set it to 2 than data older than 2 hours will be removed at the beginning of the script.
  - **maxMinutes**: *Number*. Same as maxHours but, you guessed it: for minutes this time.
 
 ### Adding a new value
@@ -420,7 +431,7 @@ The time attribute by itself is a table with many properties that help you inspe
  - **day**: *Number*.
  - **getISO**: *Function*. Returns the ISO 8601 formatted date.
  - **hour**: *Number*
- - **isToday**: *Boolean*. 
+ - **isToday**: *Boolean*.
  - **month**: *Number*
  - **min**: *Number*
  - **minutesAgo**: *Number*.  How many minutes ago from the current time the data was stored.
@@ -447,7 +458,7 @@ The time attribute by itself is a table with many properties that help you inspe
 
 #### API
  - **add( data )**: Adds new data to the set. The data is added to the set and is time-stamped.
- - **avg( [fromIdx], [toIdx], [default] )**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set. 
+ - **avg( [fromIdx], [toIdx], [default] )**: Calculates the average of all item values within the range `fromIdx` to `toIdx`. You can specify a `default` value for when there is no data in the set.
  - **avgSince( [timeAgo](../README.md/#time-specification-timeago), default )**: Calculates the average of all data points since `timeAgo`. Returns `default` if there is no data. E.g.: `local avg = myVar.avgSince('00:30:00')` returns the average over the past 30 minutes.
  - **delta( fromIdx, toIdx, [smoothRange], [default] )**:  Returns the delta (difference) between items specified by `fromIdx` and `toIdx`. You have to provide a valid range (no `nil` values). [Supports data smoothing](../README.md/#about-data-smoothing) when providing a `smoothRange` value. Returns `default` if there is not enough data.
  - **deltaSince( [timeAgo](../README.md/#time-specification-timeago),  [smoothRange], [default] )**: Same as **delta** but now within the `timeAgo` interval.
@@ -456,8 +467,8 @@ The time attribute by itself is a table with many properties that help you inspe
  - **filter(function)**: Create a filtered set of items. The function receives the item and returns true if the item should be in the result set. E.g. get a set with item values larger than 20: `subset = myVar.filter( function (item) return (item.data > 20) end )`.
  - **find(function)**:  Search for a specific item in the set: E.g. find the first item with a value higher than 20: `local item = myVar.find( function (item) return (item.data > 20) end )`.
  - **forEach(function)**:  Loop over all items in the set: E.g.: `myVar.forEach( function( item, index, collection) ... end )`
- - **getLatest( ):** Returns the youngest item in the set. Same as `print(myVar.get(1).data)`. 
- - **getOldest( )**: Returns the oldest item in the set. Same as `print(myVar.get(myVar.size).data)`. 
+ - **getLatest( ):** Returns the youngest item in the set. Same as `print(myVar.get(1).data)`.
+ - **getOldest( )**: Returns the oldest item in the set. Same as `print(myVar.get(myVar.size).data)`.
  - **localMin( [smoothRange], default )**:  Returns the first minimum value (and the item holding the minimal value) in the past. [Supports data smoothing](../README.md/#about-data-smoothing).
  - **localMax([smoothRange], default)**:  Same as **localMin** but now for the maximum value. [Supports data smoothing](#about-data-smoothing) when providing a `smoothRange` value.
  - **max( [fromIdx], [toIdx] )**: Returns the highest value in the range defined by fromIdx and toIdx.
@@ -467,7 +478,7 @@ The time attribute by itself is a table with many properties that help you inspe
  - **size**: Return the amount of data points in the set.
  - **subset( [fromIdx], [toIdx] )**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set supports `forEach`, `filter`, `find` and `reduce`.
  - **subsetSince( [[timeAgo](../README.md/#time-specification-timeago)] )**: Returns a subset of the stored data since the relative time specified by timeAgo. The result set supports `forEach`, `filter`, `find` and `reduce`.
- - **reduce(function, initial)**:  Loop over all items in the set and do some calculation with it. You call reduce with the function and the initial value. Each iteration the function is called with the accumulator. The function does something with the accumulator and returns a new value for it. 
+ - **reduce(function, initial)**:  Loop over all items in the set and do some calculation with it. You call reduce with the function and the initial value. Each iteration the function is called with the accumulator. The function does something with the accumulator and returns a new value for it.
  - **reset( ):** Removes all the items from the set.
  - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`. See [About data smoothing](../README.md/#about-data-smoothing).
  - **sum( [fromIdx], [toIdx] )**: Returns the summation of all values in the range defined by fromIdx and toIdx.
@@ -479,4 +490,12 @@ The time attribute by itself is a table with many properties that help you inspe
  - **Domoticz port**: *Number*. Port number used to contact Domoticz over IP.
  - **Enable http fetch**: *Boolean*: Controls wether or not dzVents will fetch device data using http.
  - **Fetch interval**: *String*. Default is 'every 30 minutes' but you can increase this if you need more recent values in your device objects. See [timer trigger options](#timer-trigger-options).
- - **Log level**: *Number*. 1: Errors, 2: Errors + info, 3: Debug info + Errors + Info, 0: As silent as possible. 
+ - **Log level**: *Number*.
+ - **Log level**: *Number*:
+     - 1: Errors,
+     - 1.5: Errors + info about the execution of individual scripts and a dump of the commands sent back to Domoticz,
+     - 2: Errors + info
+     - 3: Debug info + Errors + Info
+     - 0: As silent as possible.
+
+     This part is stil a bit experimental and may not give you all the information you need in the logs. Besides, Domoticz tends to choke on too many log messages and may decide not to show them all. You can alway put a print statement here or there or use the `domoticz.log()` API (see [Domoticz object API](#domoticz-object-api)).

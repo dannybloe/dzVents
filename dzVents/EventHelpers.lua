@@ -434,10 +434,10 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		end
 
 		for eventIdx, eventHandler in pairs(events) do
-			utils.log('=====================================================', utils.LOG_INFO)
-			utils.log('>>> Handler: ' .. eventHandler.name , utils.LOG_INFO)
+			utils.log('=====================================================', utils.LOG_MODULE_EXEC_INFO)
+			utils.log('>>> Handler: ' .. eventHandler.name , utils.LOG_MODULE_EXEC_INFO)
 			if (device) then
-				utils.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), utils.LOG_INFO)
+				utils.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), utils.LOG_MODULE_EXEC_INFO)
 			end
 
 			utils.log('.....................................................', utils.LOG_INFO)
@@ -445,8 +445,8 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			self.callEventHandler(eventHandler, device)
 
 			utils.log('.....................................................', utils.LOG_INFO)
-			utils.log('<<< Done ', utils.LOG_INFO)
-			utils.log('-----------------------------------------------------', utils.LOG_INFO)
+			utils.log('<<< Done ', utils.LOG_MODULE_EXEC_INFO)
+			utils.log('-----------------------------------------------------', utils.LOG_MODULE_EXEC_INFO)
 		end
 	end
 
@@ -532,11 +532,27 @@ local function EventHelpers(settings, domoticz, mainMethod)
 										end
 									else
 										if (event ~= 'timer' and j~='timer') then
-											-- let's not try to resolve indexes to names here for performance reasons
-											if (bindings[event] == nil) then
-												bindings[event] = {}
+
+											if (type(j) == 'string' and j=='devices' and type(event) == 'table') then
+
+												-- { ['devices'] = { 'devA', 'devB', .. }
+
+												for devIdx, devName in pairs(event) do
+													if (bindings[devName] == nil) then
+														bindings[devName] = {}
+													end
+													table.insert(bindings[devName], module)
+												end
+
+											else
+												-- let's not try to resolve indexes to names here for performance reasons
+												if (bindings[event] == nil) then
+													bindings[event] = {}
+												end
+												table.insert(bindings[event], module)
+
 											end
-											table.insert(bindings[event], module)
+
 										end
 									end
 								end
@@ -584,14 +600,14 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		for k,v in pairs(commandArray) do
 			if (type(v)=='table') then
 				for kk,vv in pairs(v) do
-					utils.log('[' .. k .. '] = ' .. kk .. ': ' .. vv, utils.LOG_INFO)
+					utils.log('[' .. k .. '] = ' .. kk .. ': ' .. vv, utils.LOG_MODULE_EXEC_INFO)
 				end
 			else
-				utils.log(k .. ': ' .. v, utils.LOG_INFO)
+				utils.log(k .. ': ' .. v, utils.LOG_MODULE_EXEC_INFO)
 			end
 			printed = true
 		end
-		if(printed) then utils.log('=====================================================', utils.LOG_INFO) end
+		if(printed) then utils.log('=====================================================', utils.LOG_MODULE_EXEC_INFO) end
 	end
 
 	function self.findScriptForChangedDevice(changedDeviceName, allEventScripts)
@@ -645,21 +661,21 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 					if (handledDevices[tostring(device.id)] == nil) then -- make sure a device is only handled once (so not for MySensor and MySensor_Temperature)
 
-						-- first search by name
-						scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
+					-- first search by name
+					scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
 
-						if (scriptsToExecute == nil) then
-							-- search by id
-							scriptsToExecute = allEventScripts[device.id]
-						end
+					if (scriptsToExecute == nil) then
+						-- search by id
+						scriptsToExecute = allEventScripts[device.id]
+					end
 
-						if (scriptsToExecute ~= nil) then
-							utils.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', utils.LOG_INFO)
-							self.handleEvents(scriptsToExecute, device)
-						end
+					if (scriptsToExecute ~= nil) then
+						utils.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', utils.LOG_INFO)
+						self.handleEvents(scriptsToExecute, device)
+					end
 
-						-- mark as handled
-						handledDevices[tostring(device.id)] = true
+					-- mark as handled
+					handledDevices[tostring(device.id)] = true
 					end
 
 				else

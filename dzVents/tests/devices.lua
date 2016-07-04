@@ -87,6 +87,7 @@ return
 			['SwitchType'] = 'Security',
 			['SwitchTypeVal'] = 0,
 			['CounterToday'] = '1.234 kWh',
+			['Counter'] = '567 kWh',
 			['Name'] = 'Name5',
 			['Data'] = '3;3;3;3',
 		},

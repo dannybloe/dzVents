@@ -55,7 +55,7 @@ describe('script_time_main', function()
 		assert.is_same({
 			{["onscript1"]="Off"},
 			{["onscript1"]="Set Level 10"},
-			{["UpdateDevice"]="1|123"}}, main)
+			{["UpdateDevice"]="1|0|123"}}, main)
 
 	end)
 
