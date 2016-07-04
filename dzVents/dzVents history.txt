@@ -1,6 +1,7 @@
 [1.1.1]
 * Added support for a devices table in the 'on' section.
 * Added extra log level for only showing information about the execution of a script module.
+* Added example script for System-alive checker notifications (preventing false negatives).
 
 [1.1]
 * Added example script for controlling the temperature in a room with hysteresis control.
