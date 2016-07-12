@@ -1,3 +1,6 @@
+[1.1.2]
+* More robust way of updating devices.lua
+
 [1.1.1]
 * Added support for a devices table in the 'on' section.
 * Added extra log level for only showing information about the execution of a script module.

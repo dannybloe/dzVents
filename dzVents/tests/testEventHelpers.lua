@@ -52,7 +52,8 @@ describe('event helpers', function()
 	before_each(function()
 		helpers = EventHelpers(settings, domoticz)
 		utils = helpers._getUtilsInstance()
-		utils.print = function()  end
+		utils.print = function() end
+		utils.activateDevicesFile = function() end
 	end)
 
 	after_each(function()

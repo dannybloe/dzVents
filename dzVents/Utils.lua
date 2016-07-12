@@ -6,8 +6,8 @@ local self = {
 }
 
 function self.fileExists(name)
-	local f=io.open(name,"r")
-	if f~=nil then
+	local f = io.open(name, "r")
+	if f ~= nil then
 		io.close(f)
 		return true
 	else
@@ -40,27 +40,59 @@ function self.requestDomoticzData(ip, port)
 	-- of lua processing power since the json can be huge
 	-- the call is detached from the Domoticz process to it more or less
 	-- runs in its own process, not blocking execution of Domoticz
-	local sed1 = self.getSed("],", "},")
-	local sed2 = self.getSed('   "', '   ["')
-	local sed3 = self.getSed('         "','         ["')
-	local sed4 = self.getSed('" :', '"]=')
-	local sed5 = self.getSed(': \\[', ': {')
-	local sed6 = self.getSed('= \\[', '= {')
-	local filePath = self.getDevicesPath()
-	local cmd = "{ echo 'return ' ; curl 'http://" ..
-			ip .. ":" .. port ..
-			"/json.htm?type=devices&displayhidden=1&filter=all&used=true' -s " ..
-			"; } " ..
-			" | " .. sed1 ..
-			" | " .. sed2 ..
-			" | " .. sed3 ..
-			" | " .. sed4 ..
-			" | " .. sed5 ..
-			" | " .. sed6 .. " > " .. filePath .. " 2>/dev/null &"
 
-	-- this will create a lua-requirable file with fetched data
-	self.log('Fetching Domoticz data: ' .. cmd, self.LOG_DEBUG)
-	self.osExecute(cmd)
+	local filePath = self.getDevicesPath() .. '.tmp'
+
+	if (not self.fileExists(filePath)) then
+		local sed1 = self.getSed("],", "},")
+		local sed2 = self.getSed('   "', '   ["')
+		local sed3 = self.getSed('         "', '         ["')
+		local sed4 = self.getSed('" :', '"]=')
+		local sed5 = self.getSed(': \\[', ': {')
+		local sed6 = self.getSed('= \\[', '= {')
+
+		local cmd = "{ echo 'return ' ; curl 'http://" ..
+				ip .. ":" .. port ..
+				"/json.htm?type=devices&displayhidden=1&filter=all&used=true' -s " ..
+				"; } " ..
+				" | " .. sed1 ..
+				" | " .. sed2 ..
+				" | " .. sed3 ..
+				" | " .. sed4 ..
+				" | " .. sed5 ..
+				" | " .. sed6 .. " > " .. filePath .. " 2>/dev/null &"
+
+		-- this will create a lua-requirable file with fetched data
+		self.log('Fetching Domoticz data: ' .. cmd, self.LOG_DEBUG)
+		self.osExecute(cmd)
+	end
+end
+
+function self.activateDevicesFile()
+
+	if (_G.TESTMODE) then return end
+
+	local tmpFilePath = self.getDevicesPath() .. '.tmp'
+	local fd = io.popen('lsof "' .. tmpFilePath .. '"')
+	local fileopened = (#fd:read("*a") > 0)
+
+	if (not fileopened) then
+		local tmpFilePath = self.getDevicesPath() .. '.tmp'
+		local targetFilePath = self.getDevicesPath()
+		local copyCmd = 'cp "' .. tmpFilePath .. '" "' .. targetFilePath .. '"'
+		local rmCmd = 'rm "' .. tmpFilePath .. '"'
+
+		if (self.fileExists(tmpFilePath)) then
+			self.log('Copying ' .. tmpFilePath .. ' to ' .. targetFilePath, self.LOG_DEBUG)
+			self.osExecute(copyCmd)
+			self.log('Removing ' .. tmpFilePath, self.LOG_DEBUG)
+			self.osExecute(rmCmd)
+			self.log('Finished copying.', self.LOG_DEBUG)
+		end
+
+	else
+		self.log('Skipping copying devices.lua.tmp, file is being written', self.LOG_DEBUG)
+	end
 end
 
 function self.print(msg)
@@ -72,7 +104,7 @@ function self.log(msg, level)
 
 	if (level == nil) then level = self.LOG_INFO end
 
-	local lLevel = _G.logLevel==nil and 1 or _G.logLevel
+	local lLevel = _G.logLevel == nil and 1 or _G.logLevel
 
 	if (level <= lLevel) then
 		self.print(msg)

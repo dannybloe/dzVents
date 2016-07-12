@@ -18,7 +18,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 	local currentPath = debug.getinfo(1).source:match("@?(.*/)")
 
 	if (_G.TESTMODE) then
-		scriptsFolderPath = currentPath ..'tests/scripts'
+		scriptsFolderPath = currentPath .. 'tests/scripts'
 		package.path = package.path .. ';' .. currentPath .. '/tests/scripts/?.lua'
 		package.path = package.path .. ';' .. currentPath .. '/tests/scripts/storage/?.lua'
 		package.path = package.path .. ';' .. currentPath .. '/../?.lua'
@@ -72,19 +72,18 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			package.loaded[module] = nil -- no caching
 			if (ok) then
 				-- only transfer data as defined in storageDef
-				for var,def in pairs(storageDef) do
+				for var, def in pairs(storageDef) do
 
-					if ( def.history~=nil and def.history == true ) then
+					if (def.history ~= nil and def.history == true) then
 						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours, def.maxMinutes, def.getValue)
 					else
 						storageContext[var] = fileStorage[var]
 					end
-
 				end
 			else
-				for var,def in pairs(storageDef) do
+				for var, def in pairs(storageDef) do
 
-					if ( def.history~=nil and def.history == true ) then
+					if (def.history ~= nil and def.history == true) then
 						-- no initial value, just an empty history
 						storageContext[var] = HistoricalStorage(fileStorage[var], def.maxItems, def.maxHours, def.maxMinutes, def.getValue)
 					else
@@ -94,7 +93,6 @@ local function EventHelpers(settings, domoticz, mainMethod)
 							storageContext[var] = nil
 						end
 					end
-
 				end
 			end
 		end
@@ -102,14 +100,14 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		return storageContext
 	end
 
-	function self.writeStorageContext(storageDef, dataFilePath,  dataFileModuleName, storageContext)
+	function self.writeStorageContext(storageDef, dataFilePath, dataFileModuleName, storageContext)
 
 		local data = {}
 
 		if (storageDef ~= nil) then
 			-- transfer only stuf as described in storageDef
 			for var, def in pairs(storageDef) do
-				if ( def.history~=nil and def.history == true ) then
+				if (def.history ~= nil and def.history == true) then
 					data[var] = storageContext[var]._getForStorage()
 				else
 					data[var] = storageContext[var]
@@ -178,16 +176,14 @@ local function EventHelpers(settings, domoticz, mainMethod)
 				-- ==================
 
 				if (useStorage) then
-					self.writeStorageContext(
-						eventHandler.data,
+					self.writeStorageContext(eventHandler.data,
 						eventHandler.dataFilePath,
 						eventHandler.dataFileName,
 						self.domoticz[SCRIPT_DATA])
 				end
 
 				if (globalsDefinition) then
-					self.writeStorageContext(
-						globalsDefinition,
+					self.writeStorageContext(globalsDefinition,
 						scriptsFolderPath .. '/storage/__data_global_data.lua',
 						scriptsFolderPath .. '/storage/__data_global_data',
 						self.domoticz[GLOBAL_DATA])
@@ -207,7 +203,6 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 		self.domoticz[SCRIPT_DATA] = nil
 		self.domoticz[GLOBAL_DATA] = nil
-
 	end
 
 	function self.reverseFind(s, target)
@@ -220,7 +215,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		-- rTarget = gnol
 
 		local from, to = string.find(reversed, rTarget)
-		if (from~=nil) then
+		if (from ~= nil) then
 			-- return 1 less
 			local targetPos = string.len(s) - to + 1
 			return targetPos, targetPos + string.len(target) - 1
@@ -252,26 +247,25 @@ local function EventHelpers(settings, domoticz, mainMethod)
 	function self.scandir(directory)
 		local pos, len
 		local i, t, popen = 0, {}, io.popen
-		local sep = string.sub(package.config,1,1)
+		local sep = string.sub(package.config, 1, 1)
 		local cmd
 
-		if (sep=='/') then
-			cmd = 'ls -a "'..directory..'"'
+		if (sep == '/') then
+			cmd = 'ls -a "' .. directory .. '"'
 		else
 			-- assume windows for now
-			cmd = 'dir "'..directory..'" /b /ad'
+			cmd = 'dir "' .. directory .. '" /b /ad'
 		end
 
 		t = {}
 		local pfile = popen(cmd)
 		for filename in pfile:lines() do
-			pos,len = string.find(filename, '.lua')
+			pos, len = string.find(filename, '.lua')
 
-			if (pos and pos > 0 ) then
-				table.insert(t, string.sub(filename, 1, pos-1))
+			if (pos and pos > 0) then
+				table.insert(t, string.sub(filename, 1, pos - 1))
 				utils.log('Found module in ' .. directory .. ' folder: ' .. t[#t], utils.LOG_DEBUG)
 			end
-
 		end
 		pfile:close()
 		return t
@@ -279,19 +273,19 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 	function self.getDayOfWeek(testTime)
 		local d
-		if (testTime~=nil) then
+		if (testTime ~= nil) then
 			d = testTime.day
 		else
 			d = os.date('*t').wday
 		end
 
-		local lookup = {'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' }
+		local lookup = { 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' }
 		utils.log('Current day .. ' .. lookup[d], utils.LOG_DEBUG)
 		return lookup[d]
 	end
 
 	function self.getNow(testTime)
-		if (testTime==nil) then
+		if (testTime == nil) then
 			local timenow = os.date("*t")
 			return timenow
 		else
@@ -302,12 +296,12 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 	function self.isTriggerByMinute(m, testTime)
 		local time = self.getNow(testTime)
-		return (time.min/m == math.floor(time.min/m))
+		return (time.min / m == math.floor(time.min / m))
 	end
 
 	function self.isTriggerByHour(h, testTime)
 		local time = self.getNow(testTime)
-		return (time.hour/h == math.floor(time.hour/h) and time.min==0)
+		return (time.hour / h == math.floor(time.hour / h) and time.min == 0)
 	end
 
 	function self.isTriggerByTime(t, testTime)
@@ -315,10 +309,10 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		local time = self.getNow(testTime)
 
 		-- specials: sunset, sunrise
-		if (t == 'sunset' or t=='sunrise') then
+		if (t == 'sunset' or t == 'sunrise') then
 			local minutesnow = time.min + time.hour * 60
 
-			if (testTime~=nil) then
+			if (testTime ~= nil) then
 				if (t == 'sunset') then
 					return (minutesnow == testTime['SunsetInMinutes'])
 				else
@@ -331,20 +325,19 @@ local function EventHelpers(settings, domoticz, mainMethod)
 					return (minutesnow == timeofday['SunriseInMinutes'])
 				end
 			end
-
 		end
 
 		local pos = string.find(t, ':')
 
-		if (pos~=nil and pos > 0) then
-			th = string.sub(t, 1, pos-1)
-			tm = string.sub(t, pos+1)
+		if (pos ~= nil and pos > 0) then
+			th = string.sub(t, 1, pos - 1)
+			tm = string.sub(t, pos + 1)
 
 			if (tm == '*') then
 				return (time.hour == tonumber(th))
 			elseif (th == '*') then
 				return (time.min == tonumber(tm))
-			elseif (th~='*' and tm~='*') then
+			elseif (th ~= '*' and tm ~= '*') then
 				return (tonumber(tm) == time.min and tonumber(th) == time.hour)
 			else
 				utils.log('wrong time format', utils.LOG_ERROR)
@@ -374,12 +367,12 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 		-- now we can skip everything if the current day
 		-- cannot be found in the days string
-		if (days~=nil and string.find(days, self.getDayOfWeek(testTime)) == nil) then
+		if (days ~= nil and string.find(days, self.getDayOfWeek(testTime)) == nil) then
 			-- today is not part of this trigger definition
 			return false
 		end
 
-		local m,h
+		local m, h
 		local words = {}
 		for w in t:gmatch("%S+") do
 			table.insert(words, w)
@@ -435,7 +428,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 		for eventIdx, eventHandler in pairs(events) do
 			utils.log('=====================================================', utils.LOG_MODULE_EXEC_INFO)
-			utils.log('>>> Handler: ' .. eventHandler.name , utils.LOG_MODULE_EXEC_INFO)
+			utils.log('>>> Handler: ' .. eventHandler.name, utils.LOG_MODULE_EXEC_INFO)
 			if (device) then
 				utils.log('>>> Device: "' .. device.name .. '" Index: ' .. tostring(device.id), utils.LOG_MODULE_EXEC_INFO)
 			end
@@ -466,13 +459,13 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		local bindings = {}
 		local errModules = {}
 		local ok, modules, moduleName, i, event, j, device
-		ok, modules = pcall( self.scandir, scriptsFolderPath)
+		ok, modules = pcall(self.scandir, scriptsFolderPath)
 		if (not ok) then
 			utils.log(modules, utils.LOG_ERROR)
 			return nil
 		end
 
-		for i, moduleName  in pairs(modules) do
+		for i, moduleName in pairs(modules) do
 
 			local module, skip
 			ok, module = pcall(require, moduleName)
@@ -504,7 +497,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 							end
 						end
 						if (not skip) then
-							if ( module.on ~= nil and module[self.mainMethod]~= nil ) then
+							if (module.on ~= nil and module[self.mainMethod] ~= nil) then
 								module.name = moduleName
 								module.dataFileName = '__data_' .. moduleName
 								module.dataFilePath = scriptsFolderPath .. '/storage/__data_' .. moduleName .. '.lua'
@@ -515,13 +508,13 @@ local function EventHelpers(settings, domoticz, mainMethod)
 											-- execute every minute (old style)
 											module.trigger = event
 											table.insert(bindings, module)
-										elseif (type(j) == 'string' and j=='timer' and type(event) == 'string') then
+										elseif (type(j) == 'string' and j == 'timer' and type(event) == 'string') then
 											-- { ['timer'] = 'every minute' }
 											if (self.evalTimeTrigger(event)) then
 												module.trigger = event
 												table.insert(bindings, module)
 											end
-										elseif (type(j) == 'string' and j=='timer' and type(event) == 'table') then
+										elseif (type(j) == 'string' and j == 'timer' and type(event) == 'table') then
 											-- { ['timer'] = { 'every minute ', 'every hour' } }
 											local triggered, def = self.checkTimeDefs(event)
 											if (triggered) then
@@ -531,9 +524,9 @@ local function EventHelpers(settings, domoticz, mainMethod)
 											end
 										end
 									else
-										if (event ~= 'timer' and j~='timer') then
+										if (event ~= 'timer' and j ~= 'timer') then
 
-											if (type(j) == 'string' and j=='devices' and type(event) == 'table') then
+											if (type(j) == 'string' and j == 'devices' and type(event) == 'table') then
 
 												-- { ['devices'] = { 'devA', 'devB', .. }
 
@@ -550,9 +543,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 													bindings[event] = {}
 												end
 												table.insert(bindings[event], module)
-
 											end
-
 										end
 									end
 								end
@@ -581,7 +572,7 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 	function self.fetchHttpDomoticzData(ip, port, interval)
 
-		local sep = string.sub(package.config,1,1)
+		local sep = string.sub(package.config, 1, 1)
 		if (sep ~= '/') then return end -- only on linux
 
 		if (ip == nil or port == nil) then
@@ -592,14 +583,13 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		if (self.evalTimeTrigger(interval)) then
 			self.utils.requestDomoticzData(ip, port)
 		end
-
 	end
 
 	function self.dumpCommandArray(commandArray)
 		local printed = false
-		for k,v in pairs(commandArray) do
-			if (type(v)=='table') then
-				for kk,vv in pairs(v) do
+		for k, v in pairs(commandArray) do
+			if (type(v) == 'table') then
+				for kk, vv in pairs(v) do
 					utils.log('[' .. k .. '] = ' .. kk .. ': ' .. vv, utils.LOG_MODULE_EXEC_INFO)
 				end
 			else
@@ -607,13 +597,13 @@ local function EventHelpers(settings, domoticz, mainMethod)
 			end
 			printed = true
 		end
-		if(printed) then utils.log('=====================================================', utils.LOG_MODULE_EXEC_INFO) end
+		if (printed) then utils.log('=====================================================', utils.LOG_MODULE_EXEC_INFO) end
 	end
 
 	function self.findScriptForChangedDevice(changedDeviceName, allEventScripts)
 		-- event could be like: myPIRLivingRoom
 		-- or myPir(.*)
-		utils.log('Searching for scripts for changed device: '.. changedDeviceName, utils.LOG_DEBUG)
+		utils.log('Searching for scripts for changed device: ' .. changedDeviceName, utils.LOG_DEBUG)
 
 		for scriptTrigger, scripts in pairs(allEventScripts) do
 			if (string.find(scriptTrigger, '*')) then -- a wild-card was use
@@ -645,7 +635,11 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 		local handledDevices = {}
 
-		if (changedDevices ~=nil) then
+		if (changedDevices ~= nil) then
+
+			-- check if there's a new devices.lua file waiting to be activated
+			utils.activateDevicesFile()
+
 			for changedDeviceName, changedDeviceValue in pairs(changedDevices) do
 
 				utils.log('Event in devicechanged: ' .. changedDeviceName .. ' value: ' .. changedDeviceValue, utils.LOG_DEBUG)
@@ -691,11 +685,9 @@ local function EventHelpers(settings, domoticz, mainMethod)
 	function self.autoFetchHttpDomoticzData()
 		-- this is indirectly triggered by the timer script
 		if (settings['Enable http fetch']) then
-			self.fetchHttpDomoticzData(
-				settings['Domoticz ip'],
+			self.fetchHttpDomoticzData(settings['Domoticz ip'],
 				settings['Domoticz port'],
-				settings['Fetch interval']
-			)
+				settings['Fetch interval'])
 		end
 	end
 
@@ -705,6 +697,9 @@ local function EventHelpers(settings, domoticz, mainMethod)
 		self.handleEvents(scriptsToExecute)
 
 		self.autoFetchHttpDomoticzData()
+
+		-- check if there's a new devices.lua file waiting to be activated
+		utils.activateDevicesFile()
 
 		self.dumpCommandArray(self.domoticz.commandArray)
 
@@ -718,7 +713,6 @@ local function EventHelpers(settings, domoticz, mainMethod)
 	end
 
 	return self
-
 end
 
 return EventHelpers

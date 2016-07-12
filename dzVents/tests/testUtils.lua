@@ -89,7 +89,7 @@ describe('event helpers', function()
 
 		utils.requestDomoticzData('0.0.0.0', '8080')
 
-		local expected = "{ echo 'return ' ; curl 'http://0.0.0.0:8080/json.htm?type=devices&displayhidden=1&filter=all&used=true' -s ; }  | sed 's/],/},/' | sed 's/   \"/   [\"/' | sed 's/         \"/         [\"/' | sed 's/\" :/\"]=/' | sed 's/: \\[/: {/' | sed 's/= \\[/= {/' > ../../devices.lua 2>/dev/null &"
+		local expected = "{ echo 'return ' ; curl 'http://0.0.0.0:8080/json.htm?type=devices&displayhidden=1&filter=all&used=true' -s ; }  | sed 's/],/},/' | sed 's/   \"/   [\"/' | sed 's/         \"/         [\"/' | sed 's/\" :/\"]=/' | sed 's/: \\[/: {/' | sed 's/= \\[/= {/' > ../../devices.lua.tmp 2>/dev/null &"
 
 		assert.is_same(expected, cmd)
 	end)
