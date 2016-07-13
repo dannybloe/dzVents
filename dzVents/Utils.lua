@@ -79,15 +79,11 @@ function self.activateDevicesFile()
 	if (not fileopened) then
 		local tmpFilePath = self.getDevicesPath() .. '.tmp'
 		local targetFilePath = self.getDevicesPath()
-		local copyCmd = 'cp "' .. tmpFilePath .. '" "' .. targetFilePath .. '"'
-		local rmCmd = 'rm "' .. tmpFilePath .. '"'
+		local mvCmd = 'mv -f "' .. tmpFilePath .. '" "' .. targetFilePath .. '"'
 
 		if (self.fileExists(tmpFilePath)) then
 			self.log('Copying ' .. tmpFilePath .. ' to ' .. targetFilePath, self.LOG_DEBUG)
-			self.osExecute(copyCmd)
-			self.log('Removing ' .. tmpFilePath, self.LOG_DEBUG)
-			self.osExecute(rmCmd)
-			self.log('Finished copying.', self.LOG_DEBUG)
+			self.osExecute(mvCmd)
 		end
 
 	else
