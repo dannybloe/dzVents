@@ -34,8 +34,7 @@ return
 			['SwitchType'] = "Motion Sensor",
 			['SwitchTypeVal'] = 8,
 			['Name'] = 'Name2',
-			['Data'] = '1;2;3',
-
+			['Data'] = '1;2;3'
 		},
 		{
 			['idx'] = '3',
@@ -90,6 +89,7 @@ return
 			['Counter'] = '567 kWh',
 			['Name'] = 'Name5',
 			['Data'] = '3;3;3;3',
+			['Level'] = 10
 		},
 		{
 			['idx'] = '7',

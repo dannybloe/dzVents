@@ -1,5 +1,6 @@
 [1.1.2]
 * More robust way of updating devices.lua
+* Added device level information for non-dimmer-like devices
 
 [1.1.1]
 * Added support for a devices table in the 'on' section.

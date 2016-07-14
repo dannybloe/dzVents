@@ -510,6 +510,7 @@ describe('Domoticz', function()
 			assert.is_same(13, d5.WActual)
 			assert.is_same('1.234 kWh', d5.counterToday)
 			assert.is_same('567 kWh', d5.counterTotal)
+			assert.is_same(10, d5.level)
 
 			assert.is_same(11, d3.WActual)
 

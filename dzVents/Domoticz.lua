@@ -453,6 +453,12 @@ local function Domoticz(settings)
 					device.addAttribute('batteryLevel', httpDevice.BatteryLevel)
 					device.addAttribute('signalLevel', httpDevice.SignalLevel)
 					device.addAttribute('deviceSubType', httpDevice.SubType)
+
+					if (device.level == nil) then
+						-- for those non-dimmer-like devices that do have a level
+						device.addAttribute('level', httpDevice.Level)
+					end
+
 					device.addAttribute('deviceType', httpDevice.Type)
 					device.addAttribute('hardwareName', httpDevice.HardwareName)
 					device.addAttribute('hardwareType', httpDevice.HardwareType)
