@@ -1,5 +1,5 @@
 local scriptPath = debug.getinfo(1).source:match("@?(.*/)")
-package.path    = package.path .. ';' .. scriptPath .. '?.lua'
+package.path = package.path .. ';' .. scriptPath .. '?.lua'
 
 local EventHelpers = require('EventHelpers')
 local Device = require('Device')
@@ -14,7 +14,7 @@ local utils = require('Utils')
 function string:split(sep)
 	local sep, fields = sep or ":", {}
 	local pattern = string.format("([^%s]+)", sep)
-	self:gsub(pattern, function(c) fields[#fields+1] = c end)
+	self:gsub(pattern, function(c) fields[#fields + 1] = c end)
 	return fields
 end
 
@@ -32,11 +32,11 @@ local function Domoticz(settings)
 	-- the new instance
 	local self = {
 		['settings'] = settings,
-		['commandArray']= {},
+		['commandArray'] = {},
 		['devices'] = {},
 		['scenes'] = {},
 		['groups'] = {},
-		['changedDevices']={},
+		['changedDevices'] = {},
 		['security'] = globalvariables["Security"],
 		['time'] = nowTime,
 		['variables'] = {},
@@ -102,7 +102,7 @@ local function Domoticz(settings)
 		collection['forEach'] = function(func)
 			local res
 			for i, item in pairs(collection) do
-				if (type(item) ~= 'function' and type(i)~='number') then
+				if (type(item) ~= 'function' and type(i) ~= 'number') then
 					res = func(item, i, collection)
 					if (res == false) then -- abort
 					return
@@ -114,7 +114,7 @@ local function Domoticz(settings)
 		collection['filter'] = function(filter)
 			local res = {}
 			for i, item in pairs(collection) do
-				if (type(item) ~= 'function' and type(i)~='number') then
+				if (type(item) ~= 'function' and type(i) ~= 'number') then
 					if (filter(item)) then
 						res[i] = item
 					end
@@ -127,7 +127,7 @@ local function Domoticz(settings)
 
 	-- add domoticz commands to the commandArray
 	function self.sendCommand(command, value)
-		table.insert(self.commandArray, {[command] = value})
+		table.insert(self.commandArray, { [command] = value })
 
 		-- return a reference to the newly added item
 		return self.commandArray[#self.commandArray], command, value
@@ -145,7 +145,7 @@ local function Domoticz(settings)
 
 	-- have domoticz send an email
 	function self.email(subject, message, mailTo)
-		if (mailTo==nil) then
+		if (mailTo == nil) then
 			utils.log('No mail to is provide', utils.LOG_DEBUG)
 		else
 			if (subject == nil) then subject = '' end
@@ -181,10 +181,8 @@ local function Domoticz(settings)
 	end
 
 	function self.fetchHttpDomoticzData()
-		utils.requestDomoticzData(
-			self.settings['Domoticz ip'],
-			self.settings['Domoticz port']
-		)
+		utils.requestDomoticzData(self.settings['Domoticz ip'],
+			self.settings['Domoticz port'])
 	end
 
 	function self.log(message, level)
@@ -197,7 +195,6 @@ local function Domoticz(settings)
 			local var = Variable(self, name, value)
 			self.variables[name] = var
 		end
-
 	end
 
 	-- process a otherdevices table for a given attribute and
@@ -235,14 +232,14 @@ local function Domoticz(settings)
 					device.addAttribute(attribute, value)
 				end
 
-				if (tableName ~=nil) then
+				if (tableName ~= nil) then
 					local deviceAttributeName = name .. '_' ..
-							string.upper(string.sub(tableName,1,1)) ..
-							string.sub(tableName,2)
+							string.upper(string.sub(tableName, 1, 1)) ..
+							string.sub(tableName, 2)
 
 					-- now we have to transfer the changed information for attributes
 					-- if that is availabel
-					if (devicechanged and devicechanged[deviceAttributeName]~= nil) then
+					if (devicechanged and devicechanged[deviceAttributeName] ~= nil) then
 						device.setAttributeChanged(attribute)
 					end
 				end
@@ -266,9 +263,6 @@ local function Domoticz(settings)
 
 	-- doesn't seem to work well for some weird reasone
 	function self.logDevice(device)
-		print('----------------------------')
-		print('Device: ' .. device.name)
-		print('----------------------------')
 		dumpTable(device, '> ')
 	end
 
@@ -278,8 +272,8 @@ local function Domoticz(settings)
 		}
 
 		-- figure out what os this is
-		local sep = string.sub(package.config,1,1)
-		if (sep~='/') then return httpData end -- only on linux
+		local sep = string.sub(package.config, 1, 1)
+		if (sep ~= '/') then return httpData end -- only on linux
 
 		if utils.fileExists(utils.getDevicesPath()) then
 			local ok, module
@@ -309,7 +303,7 @@ local function Domoticz(settings)
 	local function createDevices()
 		-- first create the device objects
 		for name, state in pairs(otherdevices) do
-			local wasChanged = (devicechanged~=nil and devicechanged[name] ~= nil)
+			local wasChanged = (devicechanged ~= nil and devicechanged[name] ~= nil)
 			self.devices[name] = Device(self, name, state, wasChanged)
 		end
 
@@ -318,7 +312,7 @@ local function Domoticz(settings)
 		for tableName, tableData in pairs(_G) do
 
 			-- only deal with global <otherdevices_*> tables
-			if (string.find(tableName, 'otherdevices_')~=nil and tableName ~= 'otherdevices_scenesgroups') then
+			if (string.find(tableName, 'otherdevices_') ~= nil and tableName ~= 'otherdevices_scenesgroups') then
 				utils.log('Found ' .. tableName .. ' adding this as a possible attribute', utils.LOG_DEBUG)
 				-- extract the part after 'otherdevices_'
 				-- That is the unprocesses attribute name
@@ -355,7 +349,7 @@ local function Domoticz(settings)
 					local state = httpDevice.Status -- can be nil
 					local id = tonumber(httpDevice.idx)
 					local raw = httpDevice.Data
-					local device =  Device(self, name, state, false)
+					local device = Device(self, name, state, false)
 					device.addAttribute('id', id)
 					device.addAttribute('lastUpdate', Time(httpDevice.LastUpdate))
 					device.addAttribute('rawData', string.split(raw, ';'))
@@ -408,7 +402,7 @@ local function Domoticz(settings)
 						local name = httpDevice.Name
 						local state = httpDevice.Status -- can be nil
 						local raw = httpDevice.Data
-						local device =  Device(self, name, state, false)
+						local device = Device(self, name, state, false)
 
 						self.devices[name] = device
 						self.devices[id] = device
@@ -449,65 +443,73 @@ local function Domoticz(settings)
 						device = self.devices[id]
 					end
 
-					device.addAttribute('description', httpDevice.Description)
-					device.addAttribute('batteryLevel', httpDevice.BatteryLevel)
-					device.addAttribute('signalLevel', httpDevice.SignalLevel)
-					device.addAttribute('deviceSubType', httpDevice.SubType)
+					if (device == nil) then
+						-- oops
+						-- something is wrong
+						utils.log('Cannot find a device with this id: ' .. tostring(id), utils.LOG_ERROR)
+						self.logDevice(httpDevice)
+					else
 
-					if (device.level == nil) then
-						-- for those non-dimmer-like devices that do have a level
-						device.addAttribute('level', httpDevice.Level)
-					end
+						device.addAttribute('description', httpDevice.Description)
+						device.addAttribute('batteryLevel', httpDevice.BatteryLevel)
+						device.addAttribute('signalLevel', httpDevice.SignalLevel)
+						device.addAttribute('deviceSubType', httpDevice.SubType)
 
-					device.addAttribute('deviceType', httpDevice.Type)
-					device.addAttribute('hardwareName', httpDevice.HardwareName)
-					device.addAttribute('hardwareType', httpDevice.HardwareType)
-					device.addAttribute('hardwareId', httpDevice.HardwareID)
-					device.addAttribute('hardwareTypeValue', httpDevice.HardwareTypeVal)
-					device.addAttribute('hardwareTypeVal', httpDevice.HardwareTypeVal)
-					device.addAttribute('switchType', httpDevice.SwitchType)
-					device.addAttribute('switchTypeValue', httpDevice.SwitchTypeVal)
-					device.addAttribute('timedOut', httpDevice.HaveTimeout)
-					device.addAttribute('counterToday', httpDevice.CounterToday or '')
-					device.addAttribute('counterTotal', httpDevice.Counter or '')
+						if (device.level == nil) then
+							-- for those non-dimmer-like devices that do have a level
+							device.addAttribute('level', httpDevice.Level)
+						end
 
-
-					if (device.deviceType == 'Heating' and device.deviceSubType == 'Zone') then
-						device.addAttribute('setPoint', tonumber(device.rawData[2]))
-						device.addAttribute('heatingMode', device.rawData[3])
-					end
-
-					if (device.deviceType ==  'Lux' and device.deviceSubType == 'Lux') then
-						device.addAttribute('lux', tonumber(device.rawData[1]))
-					end
-
-					if (device.deviceType == 'General' and device.deviceSubType == 'kWh') then
-						device.addAttribute('WhTotal', tonumber(device.rawData[2]))
-						device.addAttribute('WActual', tonumber(device.rawData[1]))
-						local todayFormatted = httpDevice.CounterToday or ''
-						-- risky business, we assume no decimals, just thousands separators
-						-- there is no raw value available for today
-						local s = string.gsub(todayFormatted, '%,', '')
-						--s = string.gsub(s, '%,', '')
-						s = string.gsub(s, ' kWh', '')
-						device.addAttribute('WhToday', tonumber(s))
-					end
-
-					if (device.deviceType == 'Usage' and device.deviceSubType == 'Electric') then
-						device.addAttribute('WActual', tonumber(device.rawData[1]))
-					end
+						device.addAttribute('deviceType', httpDevice.Type)
+						device.addAttribute('hardwareName', httpDevice.HardwareName)
+						device.addAttribute('hardwareType', httpDevice.HardwareType)
+						device.addAttribute('hardwareId', httpDevice.HardwareID)
+						device.addAttribute('hardwareTypeValue', httpDevice.HardwareTypeVal)
+						device.addAttribute('hardwareTypeVal', httpDevice.HardwareTypeVal)
+						device.addAttribute('switchType', httpDevice.SwitchType)
+						device.addAttribute('switchTypeValue', httpDevice.SwitchTypeVal)
+						device.addAttribute('timedOut', httpDevice.HaveTimeout)
+						device.addAttribute('counterToday', httpDevice.CounterToday or '')
+						device.addAttribute('counterTotal', httpDevice.Counter or '')
 
 
-					if (device.deviceType ==  'P1 Smart Meter' and device.deviceSubType == 'Energy') then
-						device.addAttribute('WActual', tonumber(device.rawData[5]))
-					end
+						if (device.deviceType == 'Heating' and device.deviceSubType == 'Zone') then
+							device.addAttribute('setPoint', tonumber(device.rawData[2]))
+							device.addAttribute('heatingMode', device.rawData[3])
+						end
 
-					if (device.deviceType == 'Thermostat' and device.deviceSubType == 'SetPoint') then
-						device.addAttribute('setPoint', tonumber(device.rawData[1]))
-					end
+						if (device.deviceType == 'Lux' and device.deviceSubType == 'Lux') then
+							device.addAttribute('lux', tonumber(device.rawData[1]))
+						end
 
-					if (device.deviceSubType == 'Text') then
-						device.addAttribute('text', httpDevice.Data) -- could be old because it may not be fetched
+						if (device.deviceType == 'General' and device.deviceSubType == 'kWh') then
+							device.addAttribute('WhTotal', tonumber(device.rawData[2]))
+							device.addAttribute('WActual', tonumber(device.rawData[1]))
+							local todayFormatted = httpDevice.CounterToday or ''
+							-- risky business, we assume no decimals, just thousands separators
+							-- there is no raw value available for today
+							local s = string.gsub(todayFormatted, '%,', '')
+							--s = string.gsub(s, '%,', '')
+							s = string.gsub(s, ' kWh', '')
+							device.addAttribute('WhToday', tonumber(s))
+						end
+
+						if (device.deviceType == 'Usage' and device.deviceSubType == 'Electric') then
+							device.addAttribute('WActual', tonumber(device.rawData[1]))
+						end
+
+
+						if (device.deviceType == 'P1 Smart Meter' and device.deviceSubType == 'Energy') then
+							device.addAttribute('WActual', tonumber(device.rawData[5]))
+						end
+
+						if (device.deviceType == 'Thermostat' and device.deviceSubType == 'SetPoint') then
+							device.addAttribute('setPoint', tonumber(device.rawData[1]))
+						end
+
+						if (device.deviceSubType == 'Text') then
+							device.addAttribute('text', httpDevice.Data) -- could be old because it may not be fetched
+						end
 					end
 				end
 			end
