@@ -73,22 +73,24 @@ function self.activateDevicesFile()
 	if (_G.TESTMODE) then return end
 
 	local tmpFilePath = self.getDevicesPath() .. '.tmp'
-	local fd = io.popen('lsof "' .. tmpFilePath .. '"')
-	local fileopened = (#fd:read("*a") > 0)
 
-	if (not fileopened) then
-		local tmpFilePath = self.getDevicesPath() .. '.tmp'
-		local targetFilePath = self.getDevicesPath()
-		local mvCmd = 'mv -f "' .. tmpFilePath .. '" "' .. targetFilePath .. '"'
+	if (self.fileExists(tmpFilePath)) then
 
-		if (self.fileExists(tmpFilePath)) then
+		local fd = io.popen('lsof "' .. tmpFilePath .. '"')
+		local fileopened = (#fd:read("*a") > 0)
+
+		if (not fileopened) then
+			local targetFilePath = self.getDevicesPath()
+			local mvCmd = 'mv -f "' .. tmpFilePath .. '" "' .. targetFilePath .. '"'
+
 			self.log('Copying ' .. tmpFilePath .. ' to ' .. targetFilePath, self.LOG_DEBUG)
 			self.osExecute(mvCmd)
-		end
 
-	else
-		self.log('Skipping copying devices.lua.tmp, file is being written', self.LOG_DEBUG)
+		else
+			self.log('Skipping copying devices.lua.tmp, file is being written', self.LOG_DEBUG)
+		end
 	end
+
 end
 
 function self.print(msg)
