@@ -655,23 +655,24 @@ local function EventHelpers(settings, domoticz, mainMethod)
 
 					if (handledDevices[tostring(device.id)] == nil) then -- make sure a device is only handled once (so not for MySensor and MySensor_Temperature)
 
-					-- first search by name
-					scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
+						-- first search by name
+						scriptsToExecute = self.findScriptForChangedDevice(device.name, allEventScripts)
 
-					if (scriptsToExecute == nil) then
-						-- search by id
-						scriptsToExecute = allEventScripts[device.id]
+						if (scriptsToExecute == nil) then
+							-- search by id
+							scriptsToExecute = allEventScripts[device.id]
+						end
+
+						if (scriptsToExecute ~= nil) then
+							utils.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', utils.LOG_INFO)
+							self.handleEvents(scriptsToExecute, device)
+						end
+
+						-- mark as handled
+						handledDevices[tostring(device.id)] = true
+					else
+						utils.log('Skipping: ' .. changedDeviceName .. '. Already processed', utils.LOG_DEBUG)
 					end
-
-					if (scriptsToExecute ~= nil) then
-						utils.log('Handling events for: "' .. changedDeviceName .. '", value: "' .. changedDeviceValue .. '"', utils.LOG_INFO)
-						self.handleEvents(scriptsToExecute, device)
-					end
-
-					-- mark as handled
-					handledDevices[tostring(device.id)] = true
-					end
-
 				else
 					-- this is weird.. basically impossible because the list of device objects is based on what
 					-- Domoticz passes along.
