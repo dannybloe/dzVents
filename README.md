@@ -96,11 +96,11 @@ Or you want to detect a humidity rise since the past 5 minutes:
 
     return {
     	active = true,
-    	on = { ['timer'] = 'every 5 minutes },
+    	on = { ['timer'] = 'every 5 minutes' },
     	data = { previousHumidity = { initial = 100 } },
     	execute = function(domoticz)
     		local bathroomSensor = domoticz.devices['BathroomSensor']
-    		if (bathroomSensor.humidity - domoticz.data.previousHumidity) >= 5) then
+    		if (bathroomSensor.humidity - domoticz.data.previousHumidity >= 5) then
     			-- there was a significant rise
     			domoticz.devices['Ventilator'].switchOn()
     		end
@@ -277,7 +277,7 @@ The domoticz object contains everything that you need to know in your scripts an
 
 So this object structure contains all the information logically arranged where you would expect it to be. Also, it harbors methods to manipulate Domoticz or devices. dzVents will create the commandArray contents for you and all you have to do is something like `domoticz.devices[123].switchOn().for_min(5).after_sec(10)` or `domoticz.devices['My dummy sensor'].updateBarometer(1034, domoticz.BARO_THUNDERSTORM)`.
 
-*The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domotiz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
+*The intention is that you don't have to construct low-level commandArray-commands for Domoticz anymore!* Please let me know if there is anything missing there. Of course there is a method `domoticz.sendCommand(..)` that allows you to send raw Domoticz commands in case there indeed is some update function missing.
 
 ## Domoticz object API
 The domoticz object holds all information about your Domoticz system. It has a couple of global attributes and methods to query and manipulate your system. It also has a collection of **devices** and **variables** (user variables in Domoticz) and when applicable, a collection of **changedDevices**. There three collection each have two iterator functions: `forEach(function)` and `filter(function)` to make searching for devices easier. See [iterators](#iterators) below.
