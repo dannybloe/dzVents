@@ -201,6 +201,7 @@ Available on the collections: devices, variables, scenes, groups:
  - **hardwareId**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareType**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **hardwareTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
+ - **heatingMode**: *String*. For zoned thermostats like EvoHome. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **humidity**: Only when applicable.
  - **id**: *Number*. Id of the device
  - **lastUpdate**:
@@ -226,8 +227,7 @@ Available on the collections: devices, variables, scenes, groups:
  - **rawData**: *Table*. Raw data passed by Domoticz.
  - **signalLevel**: *String*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **setPoint**: *Number*. Holds the set point for thermostat like devices. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **heatingMode**: *String*. For zoned thermostats like EvoHome. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
- - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`.
+ - **state**: *String*. For switches this holds the state like 'On' or 'Off'. For dimmers that are on, it is also 'On' but there is a level attribute holding the dimming level. **For selector switches** (Dummy switch) the state holds the *name* of the currently selected level. The corresponding numeric level of this state can be found in the **rawData** attribute: `device.rawData[1]`. **For groups**, the state can be "On", "Off" or "Mixed".
  - **switchType**: *String*. See Domoticz devices table in Domoticz GUI. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **switchTypeValue**: *Number*. Only available when [http fetching](../README.md/#fetching-http-data) is enabled.
  - **temperature**: Only when applicable.

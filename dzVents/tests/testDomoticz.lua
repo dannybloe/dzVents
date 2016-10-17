@@ -90,7 +90,7 @@ describe('Domoticz', function()
 
 		}
 
-		_G.otherdevices_scenesandgroups = {
+		_G.otherdevices_scenesgroups = {
 			['Scene1'] = 'Off',
 			['Scene2'] = 'Off',
 			['Group1'] = 'On',

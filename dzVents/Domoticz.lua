@@ -312,7 +312,8 @@ local function Domoticz(settings)
 		for tableName, tableData in pairs(_G) do
 
 			-- only deal with global <otherdevices_*> tables
-			if (string.find(tableName, 'otherdevices_') ~= nil and tableName ~= 'otherdevices_scenesgroups') then
+			if (string.find(tableName, 'otherdevices_') ~= nil and
+				string.find(tableName, 'otherdevices_scenesgroups') == nil) then
 				utils.log('Found ' .. tableName .. ' adding this as a possible attribute', utils.LOG_DEBUG)
 				-- extract the part after 'otherdevices_'
 				-- That is the unprocesses attribute name
@@ -376,9 +377,9 @@ local function Domoticz(settings)
 
 	local function updateGroupAndScenes()
 		-- assume that the groups and scenes have been created using the http data first
-		if (_G.otherdevices_scenesandgroups) then
+		if (_G.otherdevices_scenesgroups) then
 
-			for name, state in pairs(_G.otherdevices_scenesandgroups) do
+			for name, state in pairs(_G.otherdevices_scenesgroups) do
 
 				-- name is either a scene or a group
 				local device = (self.scenes and self.scenes[name]) or (self.groups and self.groups[name])
