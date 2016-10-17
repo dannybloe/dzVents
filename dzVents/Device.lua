@@ -291,7 +291,7 @@ local function Device(domoticz, name, state, wasChanged)
 
 
 	function self.updateSetPoint(setPoint, mode, untilDate)
-		if ((self.hardwareTypeVal == 15 or self.hardwareTypeVal == 20) and self.deviceSubType == 'SetPoint') then
+		if ((self.hardwareTypeVal == 15 or self.hardwareTypeVal == 20 or self.hardwareTypeVal == 68) and self.deviceSubType == 'SetPoint') then
 			-- send the command using openURL otherwise, due to a bug in Domoticz, you will get a timeout on the script
 			local url = 'http://' .. domoticz.settings['Domoticz ip'] .. ':' .. domoticz.settings['Domoticz port'] ..
 					'/json.htm?type=command&param=udevice&idx=' .. self.id .. '&nvalue=0&svalue=' .. setPoint
