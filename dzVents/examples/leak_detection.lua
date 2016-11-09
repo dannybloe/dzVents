@@ -11,7 +11,7 @@
 -- A notification can be put on "Leakage_Percent" if >80% (80% = 80 minutes of continuous flow)
 --
 -- 2 / "micro continuous flow" (drip)
--- in 24 hours one must have at least 2 hours without flow (detection 0.5 litters / hour is 4.5m3 / year)
+-- in 24 hours one must have at least 2 hours without flow (detection 0.5 liters / hour is 4.5m3 / year)
 -- if not, "Leakage_Percent" is forced at 100%.
 
 local FLOW_DEVICE = 'Water_Flow' -- Flow device
@@ -28,7 +28,7 @@ return {
 		total_time = { initial = 0 },
     },
     execute = function(domoticz)
-    	-- Flow in litter/minute
+    	-- Flow in liter/minute
         local flow = tonumber(domoticz.devices[FLOW_DEVICE].rawData[1])
         -- Dummy device in %
         local leakage = domoticz.devices[LEAK_DEVICE]
