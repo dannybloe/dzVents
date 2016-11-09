@@ -6,12 +6,12 @@
 -- a Dummy Device type percentage "Leakage_Percent"
 --
 -- 1 / leakage "open valve"
--- Every minute if a non-zero water flow is present, it incerments a counter (Leakage_Percent)
+-- Every minute if a non-zero water flow is present, it increments a counter (Leakage_Percent)
 -- If the water flow is zero is that it leaks more continuously.
 -- A notification can be put on "Leakage_Percent" if >80% (80% = 80 minutes of continuous flow)
 --
 -- 2 / "micro continuous flow" (drip)
--- in 24 hours one must have at least 2 hours without flow (detection 0.5 liters / hour is 4.5m3 / year)
+-- in 24 hours one must have at least 2 hours without flow (detection 0.5 litters / hour is 4.5m3 / year)
 -- if not, "Leakage_Percent" is forced at 100%.
 
 local FLOW_DEVICE = 'Water_Flow' -- Flow device
@@ -28,7 +28,7 @@ return {
 		total_time = { initial = 0 },
     },
     execute = function(domoticz)
-    	-- Flow in liter/minute
+    	-- Flow in litter/minute
         local flow = tonumber(domoticz.devices[FLOW_DEVICE].rawData[1])
         -- Dummy device in %
         local leakage = domoticz.devices[LEAK_DEVICE]
@@ -60,7 +60,7 @@ return {
 -- log
         domoticz.log(new_time_with_flow .. ' minutes with flow ')
         domoticz.log(domoticz.data.time_0_flow .. ' minutes without flow ')
-        domoticz.log(domoticz.data.total_time .. ' minutes witout 2hrs witout flow ')
+        domoticz.log(domoticz.data.total_time .. ' minutes without 2hrs without flow ')
  
  -- update dummy device %       
         if (time_with_flow ~= new_time_with_flow) then
@@ -68,4 +68,3 @@ return {
         end
     end
 }
-
