@@ -86,6 +86,9 @@ local function Domoticz(settings)
 		['SECURITY_DISARMED'] = 'Disarmed',
 		['SECURITY_ARMEDAWAY'] = 'Armed Away',
 		['SECURITY_ARMEDHOME'] = 'Armed Home',
+		['SET_SECURITY_DISARM'] = 'Disarm',
+		['SET_SECURITY_ARMAWAY'] = 'Arm Away',
+		['SET_SECURITY_ARMHOME'] = 'Arm Home',
 		['LOG_INFO'] = utils.LOG_INFO,
 		['LOG_MODULE_EXEC_INFO'] = utils.LOG_MODULE_EXEC_INFO,
 		['LOG_DEBUG'] = utils.LOG_DEBUG,
@@ -172,6 +175,23 @@ local function Domoticz(settings)
 	-- send a group switch command
 	function self.switchGroup(group, value)
 		return TimedCommand(self, 'Group:' .. group, value)
+	end
+	
+	-- functions to retrieve the state of the Domoticz built-in security system
+	function self.armed()
+		return ((self.security ~= self.SECURITY_DISARMED) and true or false)
+	end
+
+	function self.disarmed()
+		return ((self.security == self.SECURITY_DISARMED) and true or false)
+	end
+
+	function self.armedHome()
+		return ((self.security == self.SECURITY_ARMEDHOME) and true or false)
+	end
+
+	function self.armedAway()
+		return ((self.security == self.SECURITY_ARMEDAWAY) and true or false)
 	end
 
 	if (_G.TESTMODE) then
