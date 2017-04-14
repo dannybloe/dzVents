@@ -7,7 +7,7 @@ return {
 	},
 	execute = function(domoticz)
 
-		local message
+		local message=""
 
 		-- first filter on low battery level
 		local lowOnBat = domoticz.devices.filter(function(device)
@@ -27,7 +27,7 @@ return {
 
 		end)
 
-		if (message) then
+		if (string.len(message) >= 1) then
 			domoticz.notify('Low battery warning', message, domoticz.PRIORITY_NORMAL)
 			domoticz.log('Low battery warning: ' .. message, domoticz.LOG_ERROR)
 		end
