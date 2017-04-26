@@ -804,7 +804,7 @@ There are a couple of convenience methods to make looping through the data set e
 
     	local sum = myVar.reduce(function(acc, item)
 			local value = item.data
-			return acc + val
+			return acc + value
 		end, 0)
 
 Suppose you want to get data points older than 45 minutes and count the values that are higher than 20 (of course there are more ways to do this):
