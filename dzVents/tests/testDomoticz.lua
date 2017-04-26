@@ -391,6 +391,13 @@ describe('Domoticz', function()
 		assert.is_same({1,3}, devices)
 	end)
 
+	it('should have a filter that return {} when nothing matches', function()
+		local res = domoticz.devices.filter(function(d)
+			return false
+		end)
+		assert.is_same({'filter', 'forEach'}, _.keys(res))
+	end)
+
 	it('should have created variables', function()
 		assert.is_same(1, domoticz.variables['x'].nValue)
 		assert.is_same(2, domoticz.variables['y'].nValue)
