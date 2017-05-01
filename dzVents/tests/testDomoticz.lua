@@ -253,13 +253,25 @@ describe('Domoticz', function()
 		end)
 
 		it('should notify', function()
-			domoticz.notify('sub', 'mes', 1, 'noise')
-			assert.is_same({{['SendNotification'] = 'sub#mes#1#noise'}}, domoticz.commandArray)
+			domoticz.notify('sub', 'mes', 1, 'noise', 'extra', domoticz.NSS_NMA)
+
+			assert.is_same({{['SendNotification'] = 'sub#mes#1#noise#extra#nma'}}, domoticz.commandArray)
 		end)
 
 		it('should notify with defaults', function()
 			domoticz.notify('sub')
-			assert.is_same({{['SendNotification'] = 'sub##0#pushover'}}, domoticz.commandArray)
+			assert.is_same({{['SendNotification'] = 'sub##0#pushover##'}}, domoticz.commandArray)
+		end)
+
+		it('should notify with multiple subsystems as string', function()
+			domoticz.notify('sub', nil, nil, nil, nil, domoticz.NSS_HTTP ..';' .. domoticz.NSS_PROWL)
+			assert.is_same({ { ['SendNotification'] = 'sub##0#pushover##http;prowl' } }, domoticz.commandArray)
+
+		end)
+
+		it('should notify with multiple subsystems as table', function()
+			domoticz.notify('sub', nil, nil, nil, nil, { domoticz.NSS_HTTP, domoticz.NSS_PROWL })
+			assert.is_same({ { ['SendNotification'] = 'sub##0#pushover##http;prowl' } }, domoticz.commandArray)
 		end)
 
 		it('should send email', function()

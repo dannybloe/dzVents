@@ -94,7 +94,17 @@ local function Domoticz(settings)
 		['EVENT_TYPE_DEVICE'] = 'device',
 		['EVOHOME_MODE_AUTO'] = 'Auto',
 		['EVOHOME_MODE_TEMPORARY_OVERRIDE'] = 'TemporaryOverride',
-		['EVOHOME_MODE_PERMANENT_OVERRIDE'] = 'PermanentOverride'
+		['EVOHOME_MODE_PERMANENT_OVERRIDE'] = 'PermanentOverride',
+		['NSS_GOOGLE_CLOUD_MESSAGING'] = 'gcm',
+		['NSS_HTTP'] = 'http',
+		['NSS_KODI'] = 'kodi',
+		['NSS_LOGITECH_MEDIASERVER'] = 'lms',
+		['NSS_NMA'] = 'nma',
+		['NSS_PROWL'] = 'prowl',
+		['NSS_PUSHALOT'] = 'pushalot',
+		['NSS_PUSHBULLET'] = 'pushbullet',
+		['NSS_PUSHOVER'] = 'pushover',
+		['NSS_PUSHSAFER'] = 'pushsafer'
 	}
 
 	local function setIterators(collection)
@@ -134,13 +144,33 @@ local function Domoticz(settings)
 	end
 
 	-- have domoticz send a push notification
-	function self.notify(subject, message, priority, sound)
+	function self.notify(subject, message, priority, sound, extra, subSystems)
 		-- set defaults
 		if (priority == nil) then priority = self.PRIORITY_NORMAL end
 		if (message == nil) then message = '' end
 		if (sound == nil) then sound = self.SOUND_DEFAULT end
+		if (extra == nil) then extra = '' end
 
-		self.sendCommand('SendNotification', subject .. '#' .. message .. '#' .. tostring(priority) .. '#' .. tostring(sound))
+		local _subSystem
+
+		if (subSystems == nil) then
+			_subSystem = ''
+		else
+			-- combine
+			if (type(subSystems) == 'table') then
+				_subSystem = table.concat(subSystems, ";")
+			elseif (type(subSystems) == 'string') then
+				_subSystem = subSystems
+			else
+				_subSystem = ''
+			end
+		end
+		self.sendCommand('SendNotification', subject
+				.. '#' .. message
+				.. '#' .. tostring(priority)
+				.. '#' .. tostring(sound)
+				.. '#' .. tostring(extra)
+				.. '#' .. tostring(_subSystem))
 	end
 
 	-- have domoticz send an email

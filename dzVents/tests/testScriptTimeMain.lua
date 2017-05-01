@@ -53,7 +53,7 @@ describe('script_time_main', function()
 		local main = require('script_time_main')
 		assert.is_same({
 			{["onscript1"]="Off"},
-			{["SendNotification"]="Me#timer every minute#0#pushover"},
+			{["SendNotification"]="Me#timer every minute#0#pushover##"},
 			{["Scene:scene 1"]="On"}}, main)
 	end)
 
