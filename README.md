@@ -320,10 +320,11 @@ The domoticz object holds all information about your Domoticz system. It has a c
  - **switchGroup(group, value)**: *Function*. E.g. `domoticz.switchGroup('My group', 'Off')`. Supports timing options. See below.
 
 ### Iterators
-The domoticz object has three collections (tables): devices, changedDevices and variables. In order to make iterating over these collections easier dzVents has two iterator methods so you don't need to use the `pair()` or `ipairs()` function anymore (less code to write):
+The domoticz object has three collections (tables): devices, changedDevices and variables. In order to make iterating over these collections easier dzVents has three iterator methods so you don't need to use the `pair()` or `ipairs()` function anymore (less code to write):
 
  1. **forEach(function):** Executes a provided function once per array element. The function receives the item in the collection (device or variable) and the key and the collection itself. If you return *false* in the function then the loop is aborted.
  2. **filter(function):** returns items in the collection for which the function returns true.
+ 3. **reduce(function, initial)**:  Loop over all items in the collection and do some calculation with it. You call  with the function and the initial value. Each iteration the function is called with the accumulator and the item in the collection. The function does something with the accumulator and returns a new value for it.
 
 Best to illustrate with an example:
 
@@ -349,6 +350,16 @@ Of course you can chain:
 	end).forEach(function(zombie)
 		-- do something with the zombie
 	end)
+
+Using a reducer to count all devices that are switched on:
+
+    local count = domoticz.devices.(function(acc, device) 
+	    if (device.state == 'On') then
+		    acc = acc + 1 -- increase the accumulator
+	    end
+	    return acc -- always return the accumulator
+    end, 0) -- 0 is the initial value for the accumulator
+
 
 ### Contants
 

@@ -2,7 +2,7 @@ local _ = require 'lodash'
 _G._ = _
 package.path = package.path .. ";../?.lua"
 
-describe('Domoticz', function()
+describe('#onlyDomoticz', function()
 	local Domoticz, domoticz, settings, d1, d2, d3, d4
 
 	setup(function()
@@ -377,18 +377,27 @@ describe('Domoticz', function()
 	it('should have created iterators', function()
 		assert.is_function(domoticz.devices.forEach)
 		assert.is_function(domoticz.devices.filter)
+		assert.is_function(domoticz.devices.reduce)
 		assert.is_function(domoticz.devices.filter(function()
 		end).forEach)
+		assert.is_function(domoticz.devices.filter(function()
+		end).reduce)
 
 		assert.is_function(domoticz.changedDevices.forEach)
 		assert.is_function(domoticz.changedDevices.filter)
+		assert.is_function(domoticz.changedDevices.reduce)
 		assert.is_function(domoticz.changedDevices.filter(function()
 		end).forEach)
+		assert.is_function(domoticz.changedDevices.filter(function()
+		end).reduce)
 
 		assert.is_function(domoticz.variables.forEach)
 		assert.is_function(domoticz.variables.filter)
+		assert.is_function(domoticz.variables.reduce)
 		assert.is_function(domoticz.variables.filter(function()
 		end).forEach)
+		assert.is_function(domoticz.variables.filter(function()
+		end).reduce)
 	end)
 
 	it('should have a working filter and foreach', function()
@@ -403,11 +412,22 @@ describe('Domoticz', function()
 		assert.is_same({1,3}, devices)
 	end)
 
+	it('should have a working reducer', function()
+
+		local result = domoticz.devices.reduce( function( acc, item)
+			return acc + 1
+
+		end, 1)
+
+		assert.is_same(8, result)
+
+	end)
+
 	it('should have a filter that return {} when nothing matches', function()
 		local res = domoticz.devices.filter(function(d)
 			return false
 		end)
-		assert.is_same({'filter', 'forEach'}, _.keys(res))
+		assert.is_same({'filter', 'forEach', 'reduce'}, _.keys(res))
 	end)
 
 	it('should have created variables', function()
@@ -416,13 +436,13 @@ describe('Domoticz', function()
 	end)
 
 	it('should have created scenes', function()
-		assert.is_same({1, 2, 'Scene1', 'Scene2', 'filter', 'forEach'}, _.keys(domoticz.scenes))
+		assert.is_same({1, 2, 'Scene1', 'Scene2', 'filter', 'forEach', 'reduce'}, _.keys(domoticz.scenes))
 		assert.is_same({'Scene1', 'Scene2', 'Scene1', 'Scene2'}, _.pluck(domoticz.scenes, {'name'}))
 		assert.is_same({'Off', 'Off', 'Off', 'Off'}, _.pluck(domoticz.scenes, {'state'}))
 	end)
 
 	it('should have created groups', function()
-		assert.is_same({3, 4, 'Group1', 'Group2', 'filter', 'forEach'}, _.keys(domoticz.groups))
+		assert.is_same({3, 4, 'Group1', 'Group2', 'filter', 'forEach', 'reduce'}, _.keys(domoticz.groups))
 		assert.is_same({'Group1', 'Group2', 'Group1', 'Group2'}, _.pluck(domoticz.groups, {'name'}))
 		assert.is_same({'On', 'Mixed', 'On', 'Mixed'}, _.pluck(domoticz.groups, {'state'}))
 	end)

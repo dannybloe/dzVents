@@ -121,6 +121,15 @@ local function Domoticz(settings)
 			end
 		end
 
+		collection['reduce'] = function(func, accumulator)
+			for i, item in pairs(collection) do
+				if (type(item) ~= 'function' and type(i) ~= 'number') then
+					accumulator = func(accumulator, item, i, collection)
+				end
+			end
+			return accumulator
+		end
+
 		collection['filter'] = function(filter)
 			local res = {}
 			for i, item in pairs(collection) do

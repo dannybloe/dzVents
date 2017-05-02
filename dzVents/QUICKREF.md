@@ -125,6 +125,7 @@ All times are in 24hr format:
 Available on the collections: devices, variables, scenes, groups:
  - **forEach(function( item, key):** Executes a provided function once per array element.
  - **filter(function( device )):** returns items in the collection for which the function returns true.
+ - **reduce(function, initial)**:  Loop over all items in the collection and do some calculation with it.
 
 ## Contants
 
@@ -489,7 +490,7 @@ The time attribute by itself is a table with many properties that help you inspe
  - **size**: Return the amount of data points in the set.
  - **subset( [fromIdx], [toIdx] )**:  Returns a subset of the stored data. If you omit `fromIdx` then it starts at 1. If you omit `toIdx` then it takes all items until the end of the set (oldest). So `myVar.subset()` returns all data. The result set supports `forEach`, `filter`, `find` and `reduce`.
  - **subsetSince( [[timeAgo](../README.md/#time-specification-timeago)] )**: Returns a subset of the stored data since the relative time specified by timeAgo. The result set supports `forEach`, `filter`, `find` and `reduce`.
- - **reduce(function, initial)**:  Loop over all items in the set and do some calculation with it. You call reduce with the function and the initial value. Each iteration the function is called with the accumulator. The function does something with the accumulator and returns a new value for it.
+ - **reduce(function, initial)**:  Loop over all items in the set and do some calculation with it. You call reduce with the function and the initial value and the item. Each iteration the function is called with the accumulator. The function does something with the accumulator and returns a new value for it.
  - **reset( ):** Removes all the items from the set.
  - **smoothItem(itemIdx, [smoothRange])**: Returns a the value of `itemIdx` in the set but smoothed by averaging with its neighbors. The amount of neighbors is set by `smoothRange`. See [About data smoothing](../README.md/#about-data-smoothing).
  - **sum( [fromIdx], [toIdx] )**: Returns the summation of all values in the range defined by fromIdx and toIdx.
