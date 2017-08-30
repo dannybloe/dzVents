@@ -1,5 +1,6 @@
 # dzVents is now part of Domoticz! 
-dzVents in this repository is no longer maintained!
+dzVents in this repository is no longer maintained! 
+The documentation below is for 1.1.x. 
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
